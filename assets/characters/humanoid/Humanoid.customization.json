@@ -563,8 +563,8 @@
     "Mask_Feet"
    ],
    "materials": [
-    "ShoeAccent",
     "Shoes",
+    "ShoeAccent",
     "Sole",
     "Laces"
    ]

@@ -28,6 +28,7 @@ import body  # noqa: E402
 import bodyshapes  # noqa: E402
 import clothes  # noqa: E402
 import face  # noqa: E402
+import fit  # noqa: E402
 import hair  # noqa: E402
 import materials  # noqa: E402
 import rig  # noqa: E402
@@ -42,6 +43,15 @@ ARMATURE = "AxcenityHumanoid"
 DEFAULT_OUTFIT = ["Shirt_Tee", "Jacket_Cropped", "Pants_Cargo", "Shoes_Sneakers"]
 DEFAULT_HAIR = "Hair_Swept"
 FACE_PARTS = ["Eyes", "Teeth", "Brows", "Lashes"]
+
+# The bones whose cloth gets smoothed weights (the trousers and briefs
+# where they bridge the crease between the buttocks and the thighs).
+HIP_BONES = ("Hips", "LeftUpperLeg", "RightUpperLeg")
+
+# Garments worn over others, (inner, outer), cleared in this order: an
+# untucked tee over the trousers' waistband, a jacket over a top.
+LAYERS = [("Shirt_Tee", "Jacket_Cropped"), ("Underwear_Top", "Jacket_Cropped"),
+          ("Pants_Cargo", "Shirt_Tee")]
 
 
 def to_gltf(d):
@@ -93,14 +103,16 @@ def skin_to(obj, armature):
     mod.object = armature
 
 
-def follow_shapes(obj, follow, field_names, shapes, base=None):
-    """Shape keys on `obj` (extra geometry) following the body's `shapes`."""
+def follow_shapes(obj, follow, field_names, shapes, base=None, smooth=0):
+    """Shape keys on `obj` (extra geometry) following the body's `shapes`,
+    each smoothed over `obj`'s edges `smooth` times (`fit.smooth_field`)."""
     base = base or [vert.co.copy() for vert in obj.data.vertices]
     binds = follow.bind(base)
     fields = {}
     for name in field_names:
         if name in shapes:
-            fields[name] = face.SkinFollow.deltas(binds, shapes[name])
+            field = face.SkinFollow.deltas(binds, shapes[name])
+            fields[name] = fit.smooth_field(obj, field, smooth) if smooth else field
     add_shapes(obj, base, fields)
 
 
@@ -281,7 +293,26 @@ def build(out_dir):
     garments = clothes.build_all(body_obj, P, normals, lm, joints, follow, weights, nbr)
     for g in garments.values():
         follow_shapes(g.obj, follow, list(body_fields), shapes)
+    # Clearance, in the rest pose and every shape: a covered layer moves with
+    # the garment over it, each garment stays outside the body (with its
+    # masks on), and each layer stays under the one worn over it.
+    for g in garments.values():
+        fit.clear_body(g.obj, P, tris, shapes, g.masks)
+    layers = [(garments[i].obj, garments[o].obj) for i, o in LAYERS if i in garments and o in garments]
+    for inner, outer in layers:
+        fit.follow_layer(inner, outer, P, tris)
+    # A covered layer now moves with its outer garment, which may not be
+    # worn: clear it off the body again before tucking it under.
+    for g in garments.values():
+        if any(g.obj is inner for inner, _ in layers):
+            fit.clear_body(g.obj, P, tris, shapes, g.masks)
+    for inner, outer in layers:
+        fit.clear_layer(inner, outer, P, tris, shapes)
+    for g in garments.values():
         copy_weights(g.obj, follow, weights)
+        # Bridging cloth bends as one piece (no folding at the hips' crease).
+        fit.smooth_weights(g.obj, iterations=6, only=HIP_BONES)
+        rig.limit_weights(g.obj)
         skin_to(g.obj, armature)
     styles = hair.build_all(P, normals, lm, fr, joints, follow)
     for h in styles.values():

@@ -1,0 +1,17 @@
+{
+ "about": "Clipping limits for measure.py --check, summed over the eight frame and build combinations. Set from the build of 2026-11-14 that fixed the waist hole (audit defect 1). The waist and the layer order must stay clean; the garment limits are what remains, all checked by eye in fit.png: the briefs and trousers at the body's midline creases (the crotch and the cleft between the buttocks, where cloth bridges the fold and a ray along the skin's normal is unreliable), the toe tips inside the sneakers' solid sole, and the sports top's armpit edge on the feminine frame with the heavy build. Lower a limit when a change improves it; never raise one without renders showing the cause isn't visible.",
+ "waist_gap_mm": 0,
+ "tee_alone_waist_gap_mm": 0,
+ "garments": {
+  "Shirt_Tee": {"points": 0, "max_mm": 0.0},
+  "Jacket_Cropped": {"points": 0, "max_mm": 0.0},
+  "Pants_Cargo": {"points": 12, "max_mm": 4.5},
+  "Shoes_Sneakers": {"points": 42, "max_mm": 14.0},
+  "Underwear_Briefs": {"points": 28, "max_mm": 12.5},
+  "Underwear_Top": {"points": 8, "max_mm": 8.0}
+ },
+ "layering": {
+  "Shirt_Tee_under_Jacket_Cropped": {"points": 1, "max_mm": 1.0},
+  "Pants_Cargo_under_Shirt_Tee": {"points": 0, "max_mm": 0.0}
+ }
+}

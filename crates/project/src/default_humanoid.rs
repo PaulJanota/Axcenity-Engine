@@ -697,4 +697,153 @@ mod tests {
         assert!(size.y > 4.8 && size.y < 5.2, "{size:?}");
         assert!((at.x - 4.0).abs() < 0.5);
     }
+
+    /// A model's triangles in its file's units (metres; glTF axes, Y up and
+    /// the front +Z), each with its material's name. Loading fits a model
+    /// into the unit cube per axis; `size` and `center` undo that.
+    fn file_triangles(model: &axcenity_assets::Model) -> Vec<([[f32; 3]; 3], String)> {
+        let file = |p: [f32; 3]| -> [f32; 3] {
+            std::array::from_fn(|axis| p[axis] * model.size[axis] + model.center[axis])
+        };
+        let mut out = Vec::new();
+        for primitive in &model.primitives {
+            for corner in primitive.indices.chunks_exact(3) {
+                let triangle = [0, 1, 2].map(|k| file(primitive.positions[corner[k] as usize]));
+                out.push((triangle, primitive.material.name.clone()));
+            }
+        }
+        out
+    }
+
+    /// How far along `dir` from `origin` a ray meets `triangle`, if it does
+    /// (Möller–Trumbore).
+    fn ray_hit(origin: [f32; 3], dir: [f32; 3], triangle: &[[f32; 3]; 3]) -> Option<f32> {
+        let sub = |a: [f32; 3], b: [f32; 3]| [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+        let cross = |a: [f32; 3], b: [f32; 3]| {
+            [
+                a[1] * b[2] - a[2] * b[1],
+                a[2] * b[0] - a[0] * b[2],
+                a[0] * b[1] - a[1] * b[0],
+            ]
+        };
+        let dot = |a: [f32; 3], b: [f32; 3]| a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+        let (e1, e2) = (sub(triangle[1], triangle[0]), sub(triangle[2], triangle[0]));
+        let p = cross(dir, e2);
+        let det = dot(e1, p);
+        if det.abs() < 1e-12 {
+            return None;
+        }
+        let s = sub(origin, triangle[0]);
+        let u = dot(s, p) / det;
+        let q = cross(s, e1);
+        let v = dot(dir, q) / det;
+        if u < 0.0 || v < 0.0 || u + v > 1.0 {
+            return None;
+        }
+        let t = dot(e2, q) / det;
+        (t > 0.0).then_some(t)
+    }
+
+    /// Horizontal rays round the waist, from the hips to the lower chest
+    /// (0.88 to 1.15 m, every centimetre, 16 directions; higher, the A-pose
+    /// arms come within 30 cm of the axis): a point on the body's axis (2 cm
+    /// in front of the origin) and the direction out.
+    fn waist_rays() -> Vec<([f32; 3], [f32; 3])> {
+        let mut rays = Vec::new();
+        for step in 0..=27 {
+            let height = 0.88 + step as f32 * 0.01;
+            for k in 0..16 {
+                let angle = k as f32 * std::f32::consts::TAU / 16.0;
+                rays.push(([0.0, height, 0.02], [angle.sin(), 0.0, angle.cos()]));
+            }
+        }
+        rays
+    }
+
+    /// The triangles within `reach` of the body's axis between the hips and
+    /// the chest, which the waist rays can meet.
+    fn near_the_waist(
+        triangles: Vec<([[f32; 3]; 3], String)>,
+        reach: f32,
+    ) -> Vec<([[f32; 3]; 3], String)> {
+        triangles
+            .into_iter()
+            .filter(|(triangle, _)| {
+                triangle
+                    .iter()
+                    .any(|p| p[1] > 0.85 && p[1] < 1.23 && p[0].hypot(p[2] - 0.02) < reach)
+            })
+            .collect()
+    }
+
+    /// The shipped default has no hole round its waist. The skin its outfit
+    /// covers is removed from it, so a gap between its garments is a hole
+    /// into the empty body: every waist ray must leave through a triangle
+    /// within 30 cm. (CS1's T-shirt was cut along each arm by an infinite
+    /// plane, which also cut the torso and lifted the hem at the flanks:
+    /// defect 1 of `docs/development/character-studio/audit.md`.)
+    #[test]
+    fn the_default_character_has_no_hole_round_its_waist() {
+        let model = axcenity_assets::load_models(
+            DEFAULT_HUMANOID_MODEL,
+            Path::new("."),
+            axcenity_assets::ModelFormat::Gltf,
+            &[axcenity_assets::Pick::Whole],
+        )
+        .unwrap()
+        .pop()
+        .unwrap();
+        let triangles = near_the_waist(file_triangles(&model), 0.35);
+        let holes: Vec<String> = waist_rays()
+            .into_iter()
+            .filter(|(origin, dir)| {
+                !triangles
+                    .iter()
+                    .any(|(triangle, _)| ray_hit(*origin, *dir, triangle).is_some_and(|t| t < 0.30))
+            })
+            .map(|(origin, dir)| format!("{:.2} m toward {:.2},{:.2}", origin[1], dir[0], dir[2]))
+            .collect();
+        assert!(holes.is_empty(), "rays out through a hole: {holes:?}");
+    }
+
+    /// The modular character shows no skin between its garments round the
+    /// waist, with the default outfit and with the T-shirt and trousers
+    /// alone: from 26 cm out (inside the A-pose arms), each waist ray meets
+    /// clothing before the body's skin.
+    #[test]
+    fn the_modular_outfit_covers_the_waist_with_and_without_the_jacket() {
+        for outfit in [
+            &["Shirt_Tee", "Pants_Cargo", "Jacket_Cropped"][..],
+            &["Shirt_Tee", "Pants_Cargo"][..],
+        ] {
+            let mut objects = vec!["AxcenityHumanoid/Body".to_owned()];
+            objects.extend(outfit.iter().map(|part| format!("AxcenityHumanoid/{part}")));
+            let model = axcenity_assets::load_models(
+                DEFAULT_HUMANOID_PARTS,
+                Path::new("."),
+                axcenity_assets::ModelFormat::Gltf,
+                &[axcenity_assets::Pick::Objects(objects)],
+            )
+            .unwrap()
+            .pop()
+            .unwrap();
+            let triangles = near_the_waist(file_triangles(&model), 0.35);
+            let bare: Vec<String> = waist_rays()
+                .into_iter()
+                .filter_map(|(axis, dir)| {
+                    let origin = [axis[0] + dir[0] * 0.26, axis[1], axis[2] + dir[2] * 0.26];
+                    let inward = [-dir[0], 0.0, -dir[2]];
+                    let first = triangles
+                        .iter()
+                        .filter_map(|(triangle, material)| {
+                            ray_hit(origin, inward, triangle).map(|t| (t, material))
+                        })
+                        .min_by(|a, b| a.0.total_cmp(&b.0))?;
+                    (first.1 == "Skin")
+                        .then(|| format!("{:.2} m from {:.2},{:.2}", axis[1], dir[0], dir[2]))
+                })
+                .collect();
+            assert!(bare.is_empty(), "{outfit:?}: skin shows at {bare:?}");
+        }
+    }
 }

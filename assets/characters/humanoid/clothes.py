@@ -78,6 +78,40 @@ def cut(bm, point, normal):
     _drop_loose(bm)
 
 
+def _dist_to_chain(p, chain):
+    """The distance from `p` to the polyline through the points `chain`."""
+    best = float("inf")
+    for a, b in zip(chain, chain[1:]):
+        d = b - a
+        t = max(0.0, min(1.0, (p - a).dot(d) / d.length_squared))
+        best = min(best, (p - (a + d * t)).length)
+    return best
+
+
+def cut_limb(bm, point, normal, chain, radius):
+    """Like `cut`, but only on the limb along `chain` (joint positions):
+    cuts and removes faces within `radius` of it, so a sleeve's hem can't
+    also slice the torso the way an infinite plane does."""
+    near = [f for f in bm.faces if _dist_to_chain(f.calc_center_median(), chain) < radius]
+    edges = {e for f in near for e in f.edges}
+    verts = {vert for f in near for vert in f.verts}
+    bmesh.ops.bisect_plane(bm, geom=list(verts) + list(edges) + near, plane_co=point,
+                           plane_no=normal.normalized())
+    drop = [f for f in bm.faces
+            if (f.calc_center_median() - point).dot(normal) > 0
+            and _dist_to_chain(f.calc_center_median(), chain) < radius]
+    bmesh.ops.delete(bm, geom=drop, context="FACES")
+    _drop_loose(bm)
+
+
+def arm_chain(J, side):
+    """The arm's joints, shoulder to the end of the hand."""
+    sh, el = J[f"{side}UpperArm"]
+    wr = J[f"{side}LowerArm"][1]
+    hand_end = J[f"{side}Hand"][1]
+    return [sh, el, wr, hand_end]
+
+
 def _drop_loose(bm, keep_largest=0):
     loose = [vert for vert in bm.verts if not vert.link_faces]
     bmesh.ops.delete(bm, geom=loose, context="VERTS")
@@ -211,16 +245,23 @@ def limb_t(p, head, tail):
 # -- garments ------------------------------------------------------------------------
 
 def tee(ctx):
-    """A crew-neck T-shirt: short sleeves to mid upper arm, hem below the waist."""
+    """A crew-neck T-shirt: short sleeves to mid upper arm, hem below the waist,
+    worn untucked over the trousers."""
     J = ctx.J
     bm = region(ctx, TORSO + ARMS)
     waist = J["Spine"][0]
-    cut(bm, waist + v(0, 0, -0.10), v(0, -0.08, -1))
+    # The hem 12 cm under the waist joint: 6.5 cm over the trousers' top,
+    # so the flanks stay covered on wide hips without a jacket.
+    hem_drop = 0.12
+    cut(bm, waist + v(0, 0, -hem_drop), v(0, -0.08, -1))
     neck = J["Neck"][0]
     cut(bm, neck + v(0, -0.02, -0.005), v(0, -0.45, 1))
     for side, s in SIDES:
         sh, el = J[f"{side}UpperArm"]
-        cut(bm, sh.lerp(el, 0.50), el - sh)
+        # Only the arm: an infinite plane along a 45 degree arm also cuts
+        # the torso, which lifted the hem at the flanks and left the waist
+        # bare (docs/development/character-studio/audit.md, defect 1).
+        cut_limb(bm, sh.lerp(el, 0.50), el - sh, arm_chain(J, side), 0.10)
     keep_islands(bm, lambda c, n: n > 200)
 
     def gap(p):
@@ -235,7 +276,7 @@ def tee(ctx):
         # Sleeves: a little flare and a fold under the arm.
         displace(bm, lambda p, n, sh=sh, el=el: n * 0.004 * smoothstep(0.30, 0.5, limb_t(p, sh, el))
                  if p.x * s > abs(sh.x) * 0.9 else None)
-    hem_z = waist.z - 0.10
+    hem_z = waist.z - hem_drop
     band(bm, lambda p: 1.0 - smoothstep(0.0, 0.015, abs(p.z - hem_z + 0.004)) if p.z < waist.z else 0.0, 0.0015)
     rim(bm, 0.003, inside=0.014)
     return finish("Shirt_Tee", bm, lambda c: "Shirt", "Top", ["Mask_Torso", "Mask_UpperArms_Top"])
@@ -431,8 +472,14 @@ def sneakers(ctx):
         return 0.008 + 0.016 * smoothstep(toes.y + 0.05, toes.y - 0.03, p.y) + 0.003 * smoothstep(0.05, 0.0, p.z)
 
     drape(ctx, bm, gap, iterations=140, smooth=0.75)
+    # Lift the upper's bottom onto the sole, fading to 40% of that by the
+    # ankle: lifting it all (as before) left the toe box 5 cm over the toes;
+    # no lift at the collar put its thin rim on the ankle bone, where the
+    # feminine frame pulled it into spikes.
+    lift_top = 0.09
     for vert in bm.verts:
-        vert.co.z = sole_top + max(0.0, vert.co.z) * (1 - 0.12 * smoothstep(0.07, 0.0, vert.co.z))
+        z = max(0.0, vert.co.z)
+        vert.co.z = z + sole_top * (1.0 - 0.6 * smoothstep(0.0, lift_top, z))
     toe_caps, heels = {}, {}
     for side, s in SIDES:
         ankle = J[f"{side}Foot"][0]
@@ -477,7 +524,13 @@ def sneakers(ctx):
     materials.assign(obj, names)
     for poly in obj.data.polygons:
         poly.use_smooth = True
-    _join(obj, [sole(obj, s, sole_top) for side, s in SIDES])
+    # The sole must enclose the foot's own footprint too: the upper's
+    # outline alone left the toes poking out at the front.
+    footprint = {s: [p for i, p in enumerate(ctx.P)
+                     if p.z < sole_top + 0.01 and p.x * s > 0
+                     and ctx.dominant(i) in (f"{side}Foot", f"{side}Toes")]
+                 for side, s in SIDES}
+    _join(obj, [sole(obj, s, sole_top, footprint[s]) for side, s in SIDES])
     _join(obj, [laces(J, s, obj) for side, s in SIDES])
     return garment
 
@@ -491,19 +544,26 @@ def _join(obj, pieces):
     bpy.ops.object.join()
 
 
-def sole(upper, s, top):
-    """A rubber sole under one shoe: the outline of the upper's bottom,
-    grown a little, lofted down to the ground with a rounded edge."""
+def sole(upper, s, top, footprint=()):
+    """A rubber sole under one shoe: the outline of the upper's bottom, and
+    of the foot's `footprint` (body points under the sole's top) with a
+    4 mm margin, grown a little, lofted down to the ground with a rounded
+    edge."""
     pts = [vert.co for vert in upper.data.vertices if vert.co.x * s > 0 and vert.co.z < top + 0.012]
     c = sum(pts, Vector()) / len(pts)
+    # The outline is the convex hull of the upper's bottom and the foot's
+    # footprint (grown by 4 mm), read along each direction from the centre:
+    # picking one "far" point per direction underestimated the toes' reach
+    # at the front corners, so they poked out under the upper.
+    margin = 0.004
+    hull = _hull_2d([(p.x, p.y) for p in pts] + [(p.x, p.y) for p in footprint])
     n_ang = 40
     ring = []
     for k in range(n_ang):
         a = 2 * math.pi * k / n_ang
         d = Vector((math.cos(a), math.sin(a), 0))
-        far = max(pts, key=lambda p: (p - c).dot(d) - 0.35 * abs((p - c).cross(d).z))
-        r = max(0.02, (far - c).dot(d))
-        ring.append((d, r))
+        r = _ray_to_hull((c.x, c.y), (d.x, d.y), hull) + margin
+        ring.append((d, max(0.02, r)))
     verts, faces = [], []
     layers = [(top + 0.004, -0.001), (top - 0.002, 0.0025), (0.012, 0.003), (0.002, 0.0015), (0.0, -0.002)]
     for z, grow in layers:
@@ -533,6 +593,43 @@ def sole(upper, s, top):
     bm.to_mesh(me)
     bm.free()
     return obj
+
+
+def _hull_2d(points):
+    """The convex hull of 2D points, counter-clockwise (monotone chain)."""
+    pts = sorted(set(points))
+    if len(pts) < 3:
+        return pts
+
+    def turn(o, a, b):
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+
+    lower, upper = [], []
+    for p in pts:
+        while len(lower) >= 2 and turn(lower[-2], lower[-1], p) <= 0:
+            lower.pop()
+        lower.append(p)
+    for p in reversed(pts):
+        while len(upper) >= 2 and turn(upper[-2], upper[-1], p) <= 0:
+            upper.pop()
+        upper.append(p)
+    return lower[:-1] + upper[:-1]
+
+
+def _ray_to_hull(o, d, hull):
+    """How far a ray from `o` (inside the hull) along `d` goes to its edge."""
+    best = 0.0
+    for a, b in zip(hull, hull[1:] + hull[:1]):
+        ex, ey = b[0] - a[0], b[1] - a[1]
+        den = d[0] * ey - d[1] * ex
+        if abs(den) < 1e-12:
+            continue
+        ax, ay = a[0] - o[0], a[1] - o[1]
+        t = (ax * ey - ay * ex) / den
+        u = (ax * d[1] - ay * d[0]) / den
+        if t > 0.0 and -1e-9 <= u <= 1.0 + 1e-9:
+            best = max(best, t)
+    return best
 
 
 def laces(J, s, upper):

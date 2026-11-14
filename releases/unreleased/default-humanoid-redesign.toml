@@ -1,0 +1,12 @@
+category = "feature"
+subsystem = "gameplay"
+title = "A new default character: smooth and stylized"
+details = "The default humanoid is redesigned. The faceted low-poly person is now a smooth stylized one built on Blender Studio's CC0 base meshes: sculpted anatomy, hands and feet, a face with big expressive eyes, brows, lashes and teeth, a baked skin texture, and a modern outfit (a cropped jacket over a T-shirt, cargo joggers, sneakers) with hems, cuffs, folds and pockets. HumanoidParts.glb has six hair styles, underwear, a feminine frame and build shapes for the body, face shapes for Character Studio's coming sliders, and clothing masks that keep skin from poking through clothes; the clothes stay clear of the body and of each other on both frames and every build. The skeleton, the 32 starter animations and the 41 facial shapes keep their names, so existing clips, state machines and face profiles still work. Projects that already have the old model keep it; new projects and Insert > Character get the new one."
+features = ["gameplay.humanoid"]
+fixes = []
+introduces_issues = []
+prs = []
+commits = []
+stability = "experimental"
+public = true
+evidence = "verified"

@@ -12,6 +12,7 @@ Every change to this wiki, newest first: one line each. Keep the five newest als
 
 | Date | Pages | Change | By |
 |---|---|---|---|
+| 2026-11-14 | ADR-0030, ADR index, roadmap, Characters | CS1: the default humanoid redesigned (smooth stylized on CC0 base meshes, frames, identity and mask shapes, new outfit and hair); Character Studio plan CS1–CS6 | Claude |
 | 2026-11-14 | Lighting and atmosphere | RL4: ray traced reflections on glossy surfaces (`renderer/ray_reflections.rs`) | Claude |
 | 2026-11-14 | Lighting and atmosphere | RL3: ray traced GI traced in software on GPUs without ray queries (`renderer/ray_soft.rs`) | Claude |
 | 2026-11-14 | Animation, roadmap | F7b: faces' expressions, overrides, layers and lip sync replicated per face at a set rate | Claude |

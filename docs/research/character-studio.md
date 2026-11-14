@@ -1,5 +1,7 @@
 # Character redesign and Character Studio
 
+**Proposed successor (2026-11-14, awaiting approval):** Paul's later overhaul brief asks for semi-realistic characters by default. Its plan, [development/character-studio/implementation-plan.md](../development/character-studio/implementation-plan.md), would supersede this plan's art direction (D1, ADR-0030) and replace stages CS3–CS6. Until it is approved, this plan stands.
+
 Paul's brief of 2026-11-14, "Axcenity — Character Redesign and Dedicated Character Studio" (sections 1–11), with eight reference images. It replaces the faceted look of the default humanoid ([default-humanoid.md](default-humanoid.md), its decision D1) with a smooth stylized character, and moves character creation out of the Game Editor into a workspace of its own. The face (FaceControls, profiles, expressions, lip sync) stays the facial animation plan's ([facial-animation.md](facial-animation.md)); this plan uses it and doesn't fork it.
 
 ## The reference images

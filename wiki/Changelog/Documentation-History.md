@@ -12,6 +12,7 @@ Every change to this wiki, newest first: one line each. Keep the five newest als
 
 | Date | Pages | Change | By |
 |---|---|---|---|
+| 2026-11-14 | Roadmap | Character Studio overhaul, Stage 1: research, audit, baseline renders and the proposed plan (`docs/development/character-studio/`) | Claude |
 | 2026-11-14 | ADR-0031, ADR index, roadmap, Specialized editors | CS2: the Character Studio workspace, opened from the start screen with no project | Claude |
 | 2026-11-14 | ADR-0030, ADR index, roadmap, Characters | CS1: the default humanoid redesigned (smooth stylized on CC0 base meshes, frames, identity and mask shapes, new outfit and hair); Character Studio plan CS1–CS6 | Claude |
 | 2026-11-14 | Lighting and atmosphere | RL4: ray traced reflections on glossy surfaces (`renderer/ray_reflections.rs`) | Claude |

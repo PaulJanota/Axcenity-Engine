@@ -1,0 +1,6788 @@
+{
+ "files": {
+  "HumanoidParts.glb": {
+   "bones": 56,
+   "objects": {
+    "Body": {
+     "triangles": 25000,
+     "vertices_gltf": 14192,
+     "materials": [
+      "Skin",
+      "Mouth"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [
+      "Blink_Left",
+      "Blink_Right",
+      "Eye_Closed_Left",
+      "Eye_Closed_Right",
+      "Eye_Squint_Left",
+      "Eye_Squint_Right",
+      "Eye_Wide_Left",
+      "Eye_Wide_Right",
+      "Brow_Raise_Left",
+      "Brow_Raise_Right",
+      "Brow_Lower_Left",
+      "Brow_Lower_Right",
+      "Brow_Inward_Left",
+      "Brow_Inward_Right",
+      "Mouth_Smile_Left",
+      "Mouth_Smile_Right",
+      "Mouth_Frown_Left",
+      "Mouth_Frown_Right",
+      "Mouth_Open",
+      "Mouth_Wide",
+      "Mouth_Narrow",
+      "Mouth_Pucker",
+      "Mouth_Left",
+      "Mouth_Right",
+      "Upper_Lip_Raise",
+      "Upper_Lip_Raise_Left",
+      "Upper_Lip_Raise_Right",
+      "Lower_Lip_Lower",
+      "Lower_Lip_Lower_Left",
+      "Lower_Lip_Lower_Right",
+      "Lip_Corner_Pull_Left",
+      "Lip_Corner_Pull_Right",
+      "Cheek_Raise_Left",
+      "Cheek_Raise_Right",
+      "Cheek_Puff",
+      "Nose_Sneer_Left",
+      "Nose_Sneer_Right",
+      "Jaw_Open",
+      "Jaw_Forward",
+      "Jaw_Left",
+      "Jaw_Right",
+      "Face_Eyes_Spacing",
+      "Face_Eyes_Height",
+      "Face_Eyes_Size",
+      "Face_Eyes_Tilt",
+      "Face_Brows_Height",
+      "Face_Nose_Width",
+      "Face_Nose_Length",
+      "Face_Nose_Bridge",
+      "Face_Nose_Tip",
+      "Face_Mouth_Width",
+      "Face_Lips_Full",
+      "Face_Chin_Length",
+      "Face_Chin_Forward",
+      "Face_Jaw_Width",
+      "Face_Cheekbones",
+      "Face_Head_Width",
+      "Face_Head_Length",
+      "Face_Ears_Size",
+      "Face_Ears_Out",
+      "Frame_Feminine",
+      "Build_Heavy",
+      "Build_Slim",
+      "Build_Muscular",
+      "Mask_Torso",
+      "Mask_Hips",
+      "Mask_UpperArms_Top",
+      "Mask_UpperArms_Low",
+      "Mask_Forearms",
+      "Mask_Thighs_Top",
+      "Mask_Thighs_Low",
+      "Mask_Shins_Top",
+      "Mask_Shins_Low",
+      "Mask_Feet"
+     ],
+     "shape_key_count": 74,
+     "bones_weighted": 53,
+     "topology": {
+      "vertices_merged": 12502,
+      "islands": 1,
+      "boundary_edges": 0,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 4,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Brows": {
+     "triangles": 256,
+     "vertices_gltf": 170,
+     "materials": [
+      "Brow"
+     ],
+     "uv_layers": [],
+     "shape_keys": [
+      "Blink_Left",
+      "Blink_Right",
+      "Eye_Closed_Left",
+      "Eye_Closed_Right",
+      "Eye_Squint_Left",
+      "Eye_Squint_Right",
+      "Eye_Wide_Left",
+      "Eye_Wide_Right",
+      "Brow_Raise_Left",
+      "Brow_Raise_Right",
+      "Brow_Lower_Left",
+      "Brow_Lower_Right",
+      "Brow_Inward_Left",
+      "Brow_Inward_Right",
+      "Face_Eyes_Spacing",
+      "Face_Eyes_Height",
+      "Face_Eyes_Size",
+      "Face_Eyes_Tilt",
+      "Face_Brows_Height",
+      "Face_Cheekbones",
+      "Face_Head_Width",
+      "Face_Head_Length",
+      "Frame_Feminine"
+     ],
+     "shape_key_count": 23,
+     "bones_weighted": 1,
+     "topology": {
+      "vertices_merged": 170,
+      "islands": 2,
+      "boundary_edges": 80,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 0,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Eyes": {
+     "triangles": 1600,
+     "vertices_gltf": 843,
+     "materials": [
+      "Sclera",
+      "Iris"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [],
+     "shape_key_count": 0,
+     "bones_weighted": 2,
+     "topology": {
+      "vertices_merged": 804,
+      "islands": 2,
+      "boundary_edges": 0,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 0,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Hair_Bob": {
+     "triangles": 8999,
+     "vertices_gltf": 5263,
+     "materials": [
+      "Hair",
+      "HairSecondary"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [
+      "Frame_Feminine",
+      "Face_Head_Width",
+      "Face_Head_Length"
+     ],
+     "shape_key_count": 3,
+     "bones_weighted": 1,
+     "topology": {
+      "vertices_merged": 4500,
+      "islands": 2,
+      "boundary_edges": 3,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 7,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Hair_Buzz": {
+     "triangles": 688,
+     "vertices_gltf": 429,
+     "materials": [
+      "Hair"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [
+      "Frame_Feminine",
+      "Face_Head_Width",
+      "Face_Head_Length"
+     ],
+     "shape_key_count": 3,
+     "bones_weighted": 1,
+     "topology": {
+      "vertices_merged": 382,
+      "islands": 1,
+      "boundary_edges": 74,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 0,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Hair_Crop": {
+     "triangles": 7000,
+     "vertices_gltf": 3502,
+     "materials": [
+      "Hair"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [
+      "Frame_Feminine",
+      "Face_Head_Width",
+      "Face_Head_Length"
+     ],
+     "shape_key_count": 3,
+     "bones_weighted": 1,
+     "topology": {
+      "vertices_merged": 3502,
+      "islands": 1,
+      "boundary_edges": 0,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 2,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Hair_Long": {
+     "triangles": 9990,
+     "vertices_gltf": 5827,
+     "materials": [
+      "Hair",
+      "HairSecondary"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [
+      "Frame_Feminine",
+      "Face_Head_Width",
+      "Face_Head_Length"
+     ],
+     "shape_key_count": 3,
+     "bones_weighted": 1,
+     "topology": {
+      "vertices_merged": 4986,
+      "islands": 11,
+      "boundary_edges": 30,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 1,
+      "sliver_tris_min_angle_lt_2deg": 7,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Hair_Ponytail": {
+     "triangles": 7998,
+     "vertices_gltf": 4027,
+     "materials": [
+      "Hair",
+      "HairSecondary"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [
+      "Frame_Feminine",
+      "Face_Head_Width",
+      "Face_Head_Length"
+     ],
+     "shape_key_count": 3,
+     "bones_weighted": 1,
+     "topology": {
+      "vertices_merged": 4001,
+      "islands": 1,
+      "boundary_edges": 0,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 5,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Hair_Swept": {
+     "triangles": 6998,
+     "vertices_gltf": 4214,
+     "materials": [
+      "Hair",
+      "HairSecondary"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [
+      "Frame_Feminine",
+      "Face_Head_Width",
+      "Face_Head_Length"
+     ],
+     "shape_key_count": 3,
+     "bones_weighted": 1,
+     "topology": {
+      "vertices_merged": 3500,
+      "islands": 3,
+      "boundary_edges": 6,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 6,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Jacket_Cropped": {
+     "triangles": 6398,
+     "vertices_gltf": 3816,
+     "materials": [
+      "Jacket",
+      "JacketRib",
+      "JacketTrim"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [
+      "Frame_Feminine",
+      "Build_Heavy",
+      "Build_Slim",
+      "Build_Muscular"
+     ],
+     "shape_key_count": 4,
+     "bones_weighted": 18,
+     "topology": {
+      "vertices_merged": 3301,
+      "islands": 1,
+      "boundary_edges": 206,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 2,
+      "sliver_tris_min_angle_lt_2deg": 49,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Lashes": {
+     "triangles": 120,
+     "vertices_gltf": 96,
+     "materials": [
+      "Lash"
+     ],
+     "uv_layers": [],
+     "shape_keys": [
+      "Blink_Left",
+      "Blink_Right",
+      "Eye_Closed_Left",
+      "Eye_Closed_Right",
+      "Eye_Squint_Left",
+      "Eye_Squint_Right",
+      "Eye_Wide_Left",
+      "Eye_Wide_Right",
+      "Brow_Raise_Left",
+      "Brow_Raise_Right",
+      "Brow_Lower_Left",
+      "Brow_Lower_Right",
+      "Brow_Inward_Left",
+      "Brow_Inward_Right",
+      "Cheek_Puff",
+      "Face_Eyes_Spacing",
+      "Face_Eyes_Height",
+      "Face_Eyes_Size",
+      "Face_Eyes_Tilt",
+      "Face_Brows_Height",
+      "Face_Cheekbones",
+      "Face_Head_Width",
+      "Frame_Feminine"
+     ],
+     "shape_key_count": 23,
+     "bones_weighted": 1,
+     "topology": {
+      "vertices_merged": 96,
+      "islands": 2,
+      "boundary_edges": 68,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 0,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Pants_Cargo": {
+     "triangles": 6740,
+     "vertices_gltf": 3607,
+     "materials": [
+      "Trousers"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [
+      "Frame_Feminine",
+      "Build_Heavy",
+      "Build_Slim",
+      "Build_Muscular"
+     ],
+     "shape_key_count": 4,
+     "bones_weighted": 9,
+     "topology": {
+      "vertices_merged": 3419,
+      "islands": 1,
+      "boundary_edges": 100,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 120,
+      "sliver_tris_min_angle_lt_2deg": 16,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Shirt_Tee": {
+     "triangles": 3016,
+     "vertices_gltf": 1723,
+     "materials": [
+      "Shirt"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [
+      "Frame_Feminine",
+      "Build_Heavy",
+      "Build_Slim",
+      "Build_Muscular"
+     ],
+     "shape_key_count": 4,
+     "bones_weighted": 12,
+     "topology": {
+      "vertices_merged": 1597,
+      "islands": 1,
+      "boundary_edges": 182,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 7,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Shoes_Sneakers": {
+     "triangles": 5850,
+     "vertices_gltf": 3593,
+     "materials": [
+      "ShoeAccent",
+      "Shoes",
+      "Sole",
+      "Laces"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [
+      "Frame_Feminine",
+      "Build_Heavy",
+      "Build_Slim"
+     ],
+     "shape_key_count": 3,
+     "bones_weighted": 6,
+     "topology": {
+      "vertices_merged": 3143,
+      "islands": 66,
+      "boundary_edges": 326,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 698,
+      "sliver_tris_min_angle_lt_2deg": 147,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Teeth": {
+     "triangles": 2523,
+     "vertices_gltf": 1822,
+     "materials": [
+      "Teeth",
+      "Gums"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [],
+     "shape_key_count": 0,
+     "bones_weighted": 2,
+     "topology": {
+      "vertices_merged": 1366,
+      "islands": 31,
+      "boundary_edges": 141,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 0,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Underwear_Briefs": {
+     "triangles": 1320,
+     "vertices_gltf": 786,
+     "materials": [
+      "Underwear"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [
+      "Frame_Feminine",
+      "Build_Heavy",
+      "Build_Slim",
+      "Build_Muscular"
+     ],
+     "shape_key_count": 4,
+     "bones_weighted": 4,
+     "topology": {
+      "vertices_merged": 720,
+      "islands": 1,
+      "boundary_edges": 120,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 2,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Underwear_Top": {
+     "triangles": 1468,
+     "vertices_gltf": 846,
+     "materials": [
+      "Underwear"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [
+      "Frame_Feminine",
+      "Build_Heavy",
+      "Build_Slim",
+      "Build_Muscular"
+     ],
+     "shape_key_count": 4,
+     "bones_weighted": 9,
+     "topology": {
+      "vertices_merged": 807,
+      "islands": 1,
+      "boundary_edges": 146,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 1,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    }
+   },
+   "total_triangles": 95964,
+   "total_vertices_gltf": 54756
+  },
+  "Humanoid.glb": {
+   "bones": 56,
+   "objects": {
+    "Body": {
+     "triangles": 12140,
+     "vertices_gltf": 7117,
+     "materials": [
+      "Skin",
+      "Mouth"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [
+      "Blink_Left",
+      "Blink_Right",
+      "Eye_Closed_Left",
+      "Eye_Closed_Right",
+      "Eye_Squint_Left",
+      "Eye_Squint_Right",
+      "Eye_Wide_Left",
+      "Eye_Wide_Right",
+      "Brow_Raise_Left",
+      "Brow_Raise_Right",
+      "Brow_Lower_Left",
+      "Brow_Lower_Right",
+      "Brow_Inward_Left",
+      "Brow_Inward_Right",
+      "Mouth_Smile_Left",
+      "Mouth_Smile_Right",
+      "Mouth_Frown_Left",
+      "Mouth_Frown_Right",
+      "Mouth_Open",
+      "Mouth_Wide",
+      "Mouth_Narrow",
+      "Mouth_Pucker",
+      "Mouth_Left",
+      "Mouth_Right",
+      "Upper_Lip_Raise",
+      "Upper_Lip_Raise_Left",
+      "Upper_Lip_Raise_Right",
+      "Lower_Lip_Lower",
+      "Lower_Lip_Lower_Left",
+      "Lower_Lip_Lower_Right",
+      "Lip_Corner_Pull_Left",
+      "Lip_Corner_Pull_Right",
+      "Cheek_Raise_Left",
+      "Cheek_Raise_Right",
+      "Cheek_Puff",
+      "Nose_Sneer_Left",
+      "Nose_Sneer_Right",
+      "Jaw_Open",
+      "Jaw_Forward",
+      "Jaw_Left",
+      "Jaw_Right",
+      "Mask_Torso",
+      "Mask_Hips",
+      "Mask_UpperArms_Top",
+      "Mask_UpperArms_Low",
+      "Mask_Forearms",
+      "Mask_Thighs_Top",
+      "Mask_Thighs_Low",
+      "Mask_Shins_Top",
+      "Mask_Shins_Low",
+      "Mask_Feet"
+     ],
+     "shape_key_count": 51,
+     "bones_weighted": 43,
+     "topology": {
+      "vertices_merged": 6138,
+      "islands": 3,
+      "boundary_edges": 130,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 0,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Brows": {
+     "triangles": 256,
+     "vertices_gltf": 170,
+     "materials": [
+      "Brow"
+     ],
+     "uv_layers": [],
+     "shape_keys": [
+      "Blink_Left",
+      "Blink_Right",
+      "Eye_Closed_Left",
+      "Eye_Closed_Right",
+      "Eye_Squint_Left",
+      "Eye_Squint_Right",
+      "Eye_Wide_Left",
+      "Eye_Wide_Right",
+      "Brow_Raise_Left",
+      "Brow_Raise_Right",
+      "Brow_Lower_Left",
+      "Brow_Lower_Right",
+      "Brow_Inward_Left",
+      "Brow_Inward_Right"
+     ],
+     "shape_key_count": 14,
+     "bones_weighted": 1,
+     "topology": {
+      "vertices_merged": 170,
+      "islands": 2,
+      "boundary_edges": 80,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 0,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Eyes": {
+     "triangles": 1600,
+     "vertices_gltf": 843,
+     "materials": [
+      "Sclera",
+      "Iris"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [],
+     "shape_key_count": 0,
+     "bones_weighted": 2,
+     "topology": {
+      "vertices_merged": 804,
+      "islands": 2,
+      "boundary_edges": 0,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 0,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Hair_Swept": {
+     "triangles": 6998,
+     "vertices_gltf": 4214,
+     "materials": [
+      "Hair",
+      "HairSecondary"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [],
+     "shape_key_count": 0,
+     "bones_weighted": 1,
+     "topology": {
+      "vertices_merged": 3500,
+      "islands": 3,
+      "boundary_edges": 6,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 6,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Jacket_Cropped": {
+     "triangles": 6398,
+     "vertices_gltf": 3816,
+     "materials": [
+      "Jacket",
+      "JacketRib",
+      "JacketTrim"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [],
+     "shape_key_count": 0,
+     "bones_weighted": 18,
+     "topology": {
+      "vertices_merged": 3301,
+      "islands": 1,
+      "boundary_edges": 206,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 2,
+      "sliver_tris_min_angle_lt_2deg": 49,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Lashes": {
+     "triangles": 120,
+     "vertices_gltf": 96,
+     "materials": [
+      "Lash"
+     ],
+     "uv_layers": [],
+     "shape_keys": [
+      "Blink_Left",
+      "Blink_Right",
+      "Eye_Closed_Left",
+      "Eye_Closed_Right",
+      "Eye_Squint_Left",
+      "Eye_Squint_Right",
+      "Eye_Wide_Left",
+      "Eye_Wide_Right",
+      "Brow_Raise_Left",
+      "Brow_Raise_Right",
+      "Brow_Lower_Left",
+      "Brow_Lower_Right",
+      "Brow_Inward_Left",
+      "Brow_Inward_Right",
+      "Cheek_Puff"
+     ],
+     "shape_key_count": 15,
+     "bones_weighted": 1,
+     "topology": {
+      "vertices_merged": 96,
+      "islands": 2,
+      "boundary_edges": 68,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 0,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Pants_Cargo": {
+     "triangles": 6740,
+     "vertices_gltf": 3607,
+     "materials": [
+      "Trousers"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [],
+     "shape_key_count": 0,
+     "bones_weighted": 9,
+     "topology": {
+      "vertices_merged": 3419,
+      "islands": 1,
+      "boundary_edges": 100,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 120,
+      "sliver_tris_min_angle_lt_2deg": 16,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Shirt_Tee": {
+     "triangles": 3016,
+     "vertices_gltf": 1723,
+     "materials": [
+      "Shirt"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [],
+     "shape_key_count": 0,
+     "bones_weighted": 12,
+     "topology": {
+      "vertices_merged": 1597,
+      "islands": 1,
+      "boundary_edges": 182,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 7,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Shoes_Sneakers": {
+     "triangles": 5850,
+     "vertices_gltf": 3593,
+     "materials": [
+      "ShoeAccent",
+      "Shoes",
+      "Sole",
+      "Laces"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [],
+     "shape_key_count": 0,
+     "bones_weighted": 6,
+     "topology": {
+      "vertices_merged": 3143,
+      "islands": 66,
+      "boundary_edges": 326,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 698,
+      "sliver_tris_min_angle_lt_2deg": 147,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    },
+    "Teeth": {
+     "triangles": 2523,
+     "vertices_gltf": 1822,
+     "materials": [
+      "Teeth",
+      "Gums"
+     ],
+     "uv_layers": [
+      "UVMap"
+     ],
+     "shape_keys": [],
+     "shape_key_count": 0,
+     "bones_weighted": 2,
+     "topology": {
+      "vertices_merged": 1366,
+      "islands": 31,
+      "boundary_edges": 141,
+      "edges_over_2_faces": 0,
+      "wire_edges": 0,
+      "nonmanifold_verts": 0,
+      "loose_verts": 0,
+      "zero_area_faces": 0,
+      "sliver_tris_min_angle_lt_2deg": 0,
+      "inconsistent_normal_edges": 0,
+      "ngons": 0
+     }
+    }
+   },
+   "total_triangles": 45641,
+   "total_vertices_gltf": 27001
+  }
+ },
+ "notes": [
+  "Blender space: metres, Z up, the character faces -Y. Distances in mm unless named _m.",
+  "Topology counts are on position-merged vertices (glTF splits vertices at UV seams); glTF stores only triangles, so ngons are 0 in the files (see source_ngons for the build's polygons).",
+  "Clipping: a skin vertex is 'covered' when a ray along its normal meets the layer within 5 cm (6 cm for hair), 'poke' when instead the layer's outward face lies up to 3 cm inside the skin. Percentages are of covered vertices.",
+  "Feminine looks move the skeleton by the customization file's Frame_Feminine offsets and the eye bones by their offset and eye_scale (what CS3 is meant to do)."
+ ],
+ "source_ngons": {
+  "Body": {
+   "faces": 12500,
+   "tris": 0,
+   "quads": 12500,
+   "ngons": 0,
+   "max_sides": 4
+  },
+  "Eyes": {
+   "faces": 1005,
+   "tris": 410,
+   "quads": 595,
+   "ngons": 0,
+   "max_sides": 4
+  },
+  "Brows": {
+   "faces": 128,
+   "tris": 0,
+   "quads": 128,
+   "ngons": 0,
+   "max_sides": 4
+  },
+  "Lashes": {
+   "faces": 120,
+   "tris": 0,
+   "quads": 120,
+   "ngons": 0,
+   "max_sides": 4
+  },
+  "Teeth": {
+   "faces": 2140,
+   "tris": 1757,
+   "quads": 383,
+   "ngons": 0,
+   "max_sides": 4
+  },
+  "Shirt_Tee": {
+   "faces": 1506,
+   "tris": 45,
+   "quads": 1412,
+   "ngons": 49,
+   "max_sides": 5
+  },
+  "Jacket_Cropped": {
+   "faces": 3199,
+   "tris": 240,
+   "quads": 2723,
+   "ngons": 236,
+   "max_sides": 6
+  },
+  "Pants_Cargo": {
+   "faces": 3370,
+   "tris": 20,
+   "quads": 3330,
+   "ngons": 20,
+   "max_sides": 5
+  },
+  "Shoes_Sneakers": {
+   "faces": 4333,
+   "tris": 2837,
+   "quads": 1473,
+   "ngons": 23,
+   "max_sides": 5
+  },
+  "Underwear_Briefs": {
+   "faces": 660,
+   "tris": 22,
+   "quads": 616,
+   "ngons": 22,
+   "max_sides": 5
+  },
+  "Underwear_Top": {
+   "faces": 730,
+   "tris": 14,
+   "quads": 694,
+   "ngons": 22,
+   "max_sides": 5
+  },
+  "Hair_Swept": {
+   "faces": 6663,
+   "tris": 6326,
+   "quads": 337,
+   "ngons": 0,
+   "max_sides": 4
+  },
+  "Hair_Bob": {
+   "faces": 8466,
+   "tris": 7932,
+   "quads": 534,
+   "ngons": 0,
+   "max_sides": 4
+  },
+  "Hair_Long": {
+   "faces": 9553,
+   "tris": 9106,
+   "quads": 447,
+   "ngons": 0,
+   "max_sides": 4
+  },
+  "Hair_Crop": {
+   "faces": 6370,
+   "tris": 5740,
+   "quads": 630,
+   "ngons": 0,
+   "max_sides": 4
+  },
+  "Hair_Buzz": {
+   "faces": 344,
+   "tris": 0,
+   "quads": 344,
+   "ngons": 0,
+   "max_sides": 4
+  },
+  "Hair_Ponytail": {
+   "faces": 7269,
+   "tris": 6540,
+   "quads": 729,
+   "ngons": 0,
+   "max_sides": 4
+  }
+ },
+ "weights": {
+  "Body": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0,
+   "bones_without_weights": [
+    "Root",
+    "LeftEye",
+    "RightEye"
+   ],
+   "vertices_per_bone": {
+    "Chest": 890,
+    "Head": 3828,
+    "Hips": 815,
+    "Jaw": 845,
+    "LeftFoot": 742,
+    "LeftHand": 317,
+    "LeftIndexDistal": 56,
+    "LeftIndexIntermediate": 76,
+    "LeftIndexProximal": 134,
+    "LeftLittleDistal": 57,
+    "LeftLittleIntermediate": 79,
+    "LeftLittleProximal": 175,
+    "LeftLowerArm": 537,
+    "LeftLowerLeg": 1272,
+    "LeftMiddleDistal": 57,
+    "LeftMiddleIntermediate": 68,
+    "LeftMiddleProximal": 118,
+    "LeftRingDistal": 57,
+    "LeftRingIntermediate": 72,
+    "LeftRingProximal": 151,
+    "LeftShoulder": 790,
+    "LeftThumbDistal": 65,
+    "LeftThumbIntermediate": 96,
+    "LeftThumbProximal": 191,
+    "LeftToes": 473,
+    "LeftUpperArm": 677,
+    "LeftUpperLeg": 1117,
+    "Neck": 3667,
+    "RightFoot": 742,
+    "RightHand": 317,
+    "RightIndexDistal": 56,
+    "RightIndexIntermediate": 76,
+    "RightIndexProximal": 134,
+    "RightLittleDistal": 57,
+    "RightLittleIntermediate": 79,
+    "RightLittleProximal": 175,
+    "RightLowerArm": 537,
+    "RightLowerLeg": 1272,
+    "RightMiddleDistal": 57,
+    "RightMiddleIntermediate": 68,
+    "RightMiddleProximal": 118,
+    "RightRingDistal": 57,
+    "RightRingIntermediate": 72,
+    "RightRingProximal": 151,
+    "RightShoulder": 785,
+    "RightThumbDistal": 65,
+    "RightThumbIntermediate": 96,
+    "RightThumbProximal": 191,
+    "RightToes": 473,
+    "RightUpperArm": 677,
+    "RightUpperLeg": 1117,
+    "Spine": 683,
+    "UpperChest": 914
+   }
+  },
+  "Brows": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0
+  },
+  "Eyes": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0
+  },
+  "Hair_Bob": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0
+  },
+  "Hair_Buzz": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0
+  },
+  "Hair_Crop": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0
+  },
+  "Hair_Long": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0
+  },
+  "Hair_Ponytail": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0
+  },
+  "Hair_Swept": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0
+  },
+  "Jacket_Cropped": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0
+  },
+  "Lashes": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0
+  },
+  "Pants_Cargo": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0
+  },
+  "Shirt_Tee": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0
+  },
+  "Shoes_Sneakers": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0
+  },
+  "Teeth": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0
+  },
+  "Underwear_Briefs": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0
+  },
+  "Underwear_Top": {
+   "over_4_influences": 0,
+   "unnormalized_sum": 0,
+   "max_sum_error": 0.0,
+   "no_weights": 0
+  },
+  "fingers": {
+   "LeftThumb": {
+    "verts_w_gt_0.1": 190,
+    "bleed_verts_nearer_other_bone": 22,
+    "bleed_max_weight": 0.332,
+    "verts_over_3cm_from_chain": 38
+   },
+   "LeftIndex": {
+    "verts_w_gt_0.1": 157,
+    "bleed_verts_nearer_other_bone": 20,
+    "bleed_max_weight": 0.683,
+    "verts_over_3cm_from_chain": 13
+   },
+   "LeftMiddle": {
+    "verts_w_gt_0.1": 139,
+    "bleed_verts_nearer_other_bone": 23,
+    "bleed_max_weight": 0.92,
+    "verts_over_3cm_from_chain": 0
+   },
+   "LeftRing": {
+    "verts_w_gt_0.1": 154,
+    "bleed_verts_nearer_other_bone": 28,
+    "bleed_max_weight": 1.0,
+    "verts_over_3cm_from_chain": 4
+   },
+   "LeftLittle": {
+    "verts_w_gt_0.1": 179,
+    "bleed_verts_nearer_other_bone": 13,
+    "bleed_max_weight": 0.258,
+    "verts_over_3cm_from_chain": 33
+   },
+   "RightThumb": {
+    "verts_w_gt_0.1": 190,
+    "bleed_verts_nearer_other_bone": 22,
+    "bleed_max_weight": 0.332,
+    "verts_over_3cm_from_chain": 38
+   },
+   "RightIndex": {
+    "verts_w_gt_0.1": 157,
+    "bleed_verts_nearer_other_bone": 20,
+    "bleed_max_weight": 0.683,
+    "verts_over_3cm_from_chain": 13
+   },
+   "RightMiddle": {
+    "verts_w_gt_0.1": 139,
+    "bleed_verts_nearer_other_bone": 23,
+    "bleed_max_weight": 0.92,
+    "verts_over_3cm_from_chain": 0
+   },
+   "RightRing": {
+    "verts_w_gt_0.1": 154,
+    "bleed_verts_nearer_other_bone": 28,
+    "bleed_max_weight": 1.0,
+    "verts_over_3cm_from_chain": 4
+   },
+   "RightLittle": {
+    "verts_w_gt_0.1": 179,
+    "bleed_verts_nearer_other_bone": 13,
+    "bleed_max_weight": 0.258,
+    "verts_over_3cm_from_chain": 33
+   }
+  },
+  "cross_side_weights": {
+   "verts": 174,
+   "max_weight": 0.172,
+   "bones": {
+    "Shoulder": 74,
+    "UpperLeg": 100
+   }
+  },
+  "face_weights": {
+   "upper_lip_verts": 33,
+   "upper_lip_jaw_weight_mean": 0.174,
+   "upper_lip_jaw_weight_max": 0.766,
+   "lower_lip_verts": 20,
+   "lower_lip_jaw_weight_mean": 0.961,
+   "lower_lip_jaw_weight_min": 0.741,
+   "face_front_verts_above_head_joint": 1824,
+   "face_verts_with_neck_weight_gt_0.1": 911,
+   "face_neck_weight_max": 0.299,
+   "neck_weighted_verts_above_eye_level": 7
+  },
+  "jaw": {
+   "verts_w_gt_0.05": 598,
+   "z_range_m": [
+    1.433,
+    1.529
+   ],
+   "mouth_line_z_m": 1.494,
+   "front_verts_above_mouth_line": 166,
+   "max_weight_above_mouth_line": 1.0
+  }
+ },
+ "clipping": {
+  "garments": {
+   "Shirt_Tee": {
+    "masculine/neutral": {
+     "covered": 1058,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 16.32,
+     "gap_p95_mm": 20.43
+    },
+    "masculine/Build_Heavy": {
+     "covered": 1052,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 16.22,
+     "gap_p95_mm": 20.0
+    },
+    "masculine/Build_Slim": {
+     "covered": 1073,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 16.33,
+     "gap_p95_mm": 20.73
+    },
+    "masculine/Build_Muscular": {
+     "covered": 1052,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 16.26,
+     "gap_p95_mm": 20.39
+    },
+    "feminine/neutral": {
+     "covered": 1088,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 15.83,
+     "gap_p95_mm": 19.11
+    },
+    "feminine/Build_Heavy": {
+     "covered": 1069,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 15.77,
+     "gap_p95_mm": 19.17
+    },
+    "feminine/Build_Slim": {
+     "covered": 1093,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 15.81,
+     "gap_p95_mm": 19.07
+    },
+    "feminine/Build_Muscular": {
+     "covered": 1078,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 15.74,
+     "gap_p95_mm": 19.16
+    }
+   },
+   "Jacket_Cropped": {
+    "masculine/neutral": {
+     "covered": 2199,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 23.65,
+     "gap_p95_mm": 29.63
+    },
+    "masculine/Build_Heavy": {
+     "covered": 2206,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 23.48,
+     "gap_p95_mm": 29.81
+    },
+    "masculine/Build_Slim": {
+     "covered": 2205,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 23.68,
+     "gap_p95_mm": 29.68
+    },
+    "masculine/Build_Muscular": {
+     "covered": 2189,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 23.52,
+     "gap_p95_mm": 29.58
+    },
+    "feminine/neutral": {
+     "covered": 2239,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 22.88,
+     "gap_p95_mm": 28.14
+    },
+    "feminine/Build_Heavy": {
+     "covered": 2208,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 22.72,
+     "gap_p95_mm": 28.23
+    },
+    "feminine/Build_Slim": {
+     "covered": 2242,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 22.88,
+     "gap_p95_mm": 28.26
+    },
+    "feminine/Build_Muscular": {
+     "covered": 2225,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 22.85,
+     "gap_p95_mm": 28.26
+    }
+   },
+   "Pants_Cargo": {
+    "masculine/neutral": {
+     "covered": 2908,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 35.12,
+     "gap_p95_mm": 41.9
+    },
+    "masculine/Build_Heavy": {
+     "covered": 2888,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 34.6,
+     "gap_p95_mm": 41.29
+    },
+    "masculine/Build_Slim": {
+     "covered": 2922,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 35.31,
+     "gap_p95_mm": 42.18
+    },
+    "masculine/Build_Muscular": {
+     "covered": 2899,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 35.0,
+     "gap_p95_mm": 41.94
+    },
+    "feminine/neutral": {
+     "covered": 2912,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 34.43,
+     "gap_p95_mm": 40.47
+    },
+    "feminine/Build_Heavy": {
+     "covered": 2895,
+     "poke": 7,
+     "poke_pct": 0.24,
+     "poke_max_mm": 4.08,
+     "poke_p90_mm": 3.75,
+     "where": {
+      "RightUpperLeg": 4,
+      "LeftUpperLeg": 3
+     },
+     "exposed_over_opening": 1,
+     "exposed_where": {
+      "LeftUpperLeg": 1
+     },
+     "gap_median_mm": 34.26,
+     "gap_p95_mm": 40.39
+    },
+    "feminine/Build_Slim": {
+     "covered": 2900,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 34.55,
+     "gap_p95_mm": 40.63
+    },
+    "feminine/Build_Muscular": {
+     "covered": 2909,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 34.42,
+     "gap_p95_mm": 40.51
+    }
+   },
+   "Shoes_Sneakers": {
+    "masculine/neutral": {
+     "covered": 1541,
+     "poke": 34,
+     "poke_pct": 2.21,
+     "poke_max_mm": 14.63,
+     "poke_p90_mm": 12.94,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "RightFoot": 4,
+      "LeftFoot": 1
+     },
+     "exposed_over_opening": 23,
+     "exposed_where": {
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 14.77,
+     "gap_p95_mm": 43.35
+    },
+    "masculine/Build_Heavy": {
+     "covered": 1542,
+     "poke": 34,
+     "poke_pct": 2.2,
+     "poke_max_mm": 14.63,
+     "poke_p90_mm": 12.94,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "RightFoot": 4,
+      "LeftFoot": 1
+     },
+     "exposed_over_opening": 23,
+     "exposed_where": {
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 14.93,
+     "gap_p95_mm": 43.97
+    },
+    "masculine/Build_Slim": {
+     "covered": 1539,
+     "poke": 34,
+     "poke_pct": 2.21,
+     "poke_max_mm": 14.63,
+     "poke_p90_mm": 12.94,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "RightFoot": 4,
+      "LeftFoot": 1
+     },
+     "exposed_over_opening": 23,
+     "exposed_where": {
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 14.72,
+     "gap_p95_mm": 43.36
+    },
+    "masculine/Build_Muscular": {
+     "covered": 1541,
+     "poke": 34,
+     "poke_pct": 2.21,
+     "poke_max_mm": 14.63,
+     "poke_p90_mm": 12.94,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "RightFoot": 4,
+      "LeftFoot": 1
+     },
+     "exposed_over_opening": 23,
+     "exposed_where": {
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 14.77,
+     "gap_p95_mm": 43.35
+    },
+    "feminine/neutral": {
+     "covered": 1557,
+     "poke": 32,
+     "poke_pct": 2.06,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.59,
+     "where": {
+      "LeftToes": 19,
+      "RightToes": 7,
+      "RightFoot": 6
+     },
+     "exposed_over_opening": 21,
+     "exposed_where": {
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "RightToes": 4,
+      "RightFoot": 2
+     },
+     "gap_median_mm": 13.23,
+     "gap_p95_mm": 44.61
+    },
+    "feminine/Build_Heavy": {
+     "covered": 1558,
+     "poke": 32,
+     "poke_pct": 2.05,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.59,
+     "where": {
+      "LeftToes": 19,
+      "RightToes": 7,
+      "RightFoot": 6
+     },
+     "exposed_over_opening": 21,
+     "exposed_where": {
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "RightToes": 4,
+      "RightFoot": 2
+     },
+     "gap_median_mm": 13.33,
+     "gap_p95_mm": 44.73
+    },
+    "feminine/Build_Slim": {
+     "covered": 1556,
+     "poke": 32,
+     "poke_pct": 2.06,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.59,
+     "where": {
+      "LeftToes": 19,
+      "RightToes": 7,
+      "RightFoot": 6
+     },
+     "exposed_over_opening": 21,
+     "exposed_where": {
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "RightToes": 4,
+      "RightFoot": 2
+     },
+     "gap_median_mm": 13.21,
+     "gap_p95_mm": 44.63
+    },
+    "feminine/Build_Muscular": {
+     "covered": 1557,
+     "poke": 32,
+     "poke_pct": 2.06,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.59,
+     "where": {
+      "LeftToes": 19,
+      "RightToes": 7,
+      "RightFoot": 6
+     },
+     "exposed_over_opening": 21,
+     "exposed_where": {
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "RightToes": 4,
+      "RightFoot": 2
+     },
+     "gap_median_mm": 13.23,
+     "gap_p95_mm": 44.61
+    }
+   },
+   "Underwear_Briefs": {
+    "masculine/neutral": {
+     "covered": 363,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 1.72,
+     "gap_p95_mm": 2.63
+    },
+    "masculine/Build_Heavy": {
+     "covered": 365,
+     "poke": 19,
+     "poke_pct": 5.21,
+     "poke_max_mm": 8.47,
+     "poke_p90_mm": 7.91,
+     "where": {
+      "LeftUpperLeg": 10,
+      "RightUpperLeg": 9
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 1.68,
+     "gap_p95_mm": 2.39
+    },
+    "masculine/Build_Slim": {
+     "covered": 364,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 1.72,
+     "gap_p95_mm": 2.78
+    },
+    "masculine/Build_Muscular": {
+     "covered": 366,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 1.72,
+     "gap_p95_mm": 2.62
+    },
+    "feminine/neutral": {
+     "covered": 364,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 1.66,
+     "gap_p95_mm": 2.5
+    },
+    "feminine/Build_Heavy": {
+     "covered": 375,
+     "poke": 6,
+     "poke_pct": 1.6,
+     "poke_max_mm": 5.8,
+     "poke_p90_mm": 5.79,
+     "where": {
+      "LeftUpperLeg": 3,
+      "RightUpperLeg": 3
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 1.67,
+     "gap_p95_mm": 3.48
+    },
+    "feminine/Build_Slim": {
+     "covered": 366,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 1.66,
+     "gap_p95_mm": 2.54
+    },
+    "feminine/Build_Muscular": {
+     "covered": 366,
+     "poke": 4,
+     "poke_pct": 1.09,
+     "poke_max_mm": 1.09,
+     "poke_p90_mm": 0.99,
+     "where": {
+      "LeftUpperLeg": 3,
+      "RightUpperLeg": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 1.66,
+     "gap_p95_mm": 2.4
+    }
+   },
+   "Underwear_Top": {
+    "masculine/neutral": {
+     "covered": 389,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 1.98,
+     "gap_p95_mm": 8.09
+    },
+    "masculine/Build_Heavy": {
+     "covered": 398,
+     "poke": 5,
+     "poke_pct": 1.26,
+     "poke_max_mm": 14.6,
+     "poke_p90_mm": 13.58,
+     "where": {
+      "LeftUpperArm": 2,
+      "LeftShoulder": 1,
+      "Chest": 1,
+      "RightUpperArm": 1
+     },
+     "exposed_over_opening": 2,
+     "exposed_where": {
+      "LeftUpperArm": 1,
+      "RightUpperArm": 1
+     },
+     "gap_median_mm": 1.97,
+     "gap_p95_mm": 8.13
+    },
+    "masculine/Build_Slim": {
+     "covered": 389,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 1.99,
+     "gap_p95_mm": 8.1
+    },
+    "masculine/Build_Muscular": {
+     "covered": 397,
+     "poke": 2,
+     "poke_pct": 0.5,
+     "poke_max_mm": 0.26,
+     "poke_p90_mm": 0.24,
+     "where": {
+      "LeftShoulder": 1,
+      "Chest": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 1.98,
+     "gap_p95_mm": 8.85
+    },
+    "feminine/neutral": {
+     "covered": 400,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 2.03,
+     "gap_p95_mm": 9.09
+    },
+    "feminine/Build_Heavy": {
+     "covered": 412,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 2.03,
+     "gap_p95_mm": 9.08
+    },
+    "feminine/Build_Slim": {
+     "covered": 384,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 2.03,
+     "gap_p95_mm": 6.27
+    },
+    "feminine/Build_Muscular": {
+     "covered": 414,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 2.01,
+     "gap_p95_mm": 16.13
+    }
+   }
+  },
+  "layering": {
+   "Shirt_Tee_under_Jacket_Cropped": {
+    "masculine/neutral": {
+     "covered": 1140,
+     "poke": 7,
+     "poke_pct": 0.61,
+     "poke_max_mm": 11.78,
+     "poke_p90_mm": 11.78,
+     "where": {
+      "UpperChest": 2,
+      "Hips": 2,
+      "LeftShoulder": 1,
+      "Spine": 1,
+      "RightShoulder": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 8.18,
+     "gap_p95_mm": 11.46
+    },
+    "masculine/Build_Heavy": {
+     "covered": 1123,
+     "poke": 4,
+     "poke_pct": 0.36,
+     "poke_max_mm": 12.24,
+     "poke_p90_mm": 12.21,
+     "where": {
+      "UpperChest": 2,
+      "LeftShoulder": 1,
+      "RightShoulder": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 8.03,
+     "gap_p95_mm": 11.25
+    },
+    "masculine/Build_Slim": {
+     "covered": 1153,
+     "poke": 5,
+     "poke_pct": 0.43,
+     "poke_max_mm": 11.57,
+     "poke_p90_mm": 11.56,
+     "where": {
+      "UpperChest": 2,
+      "LeftShoulder": 1,
+      "RightShoulder": 1,
+      "Hips": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 8.24,
+     "gap_p95_mm": 11.9
+    },
+    "masculine/Build_Muscular": {
+     "covered": 1132,
+     "poke": 7,
+     "poke_pct": 0.62,
+     "poke_max_mm": 12.03,
+     "poke_p90_mm": 12.03,
+     "where": {
+      "UpperChest": 2,
+      "Hips": 2,
+      "LeftShoulder": 1,
+      "Spine": 1,
+      "RightShoulder": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 8.11,
+     "gap_p95_mm": 11.32
+    },
+    "feminine/neutral": {
+     "covered": 1163,
+     "poke": 9,
+     "poke_pct": 0.77,
+     "poke_max_mm": 11.13,
+     "poke_p90_mm": 10.99,
+     "where": {
+      "UpperChest": 6,
+      "LeftShoulder": 1,
+      "RightShoulder": 1,
+      "Hips": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 7.47,
+     "gap_p95_mm": 12.53
+    },
+    "feminine/Build_Heavy": {
+     "covered": 1151,
+     "poke": 18,
+     "poke_pct": 1.56,
+     "poke_max_mm": 12.51,
+     "poke_p90_mm": 11.69,
+     "where": {
+      "UpperChest": 6,
+      "LeftUpperArm": 5,
+      "RightUpperArm": 5,
+      "LeftShoulder": 1,
+      "RightShoulder": 1
+     },
+     "exposed_over_opening": 1,
+     "exposed_where": {
+      "RightShoulder": 1
+     },
+     "gap_median_mm": 7.46,
+     "gap_p95_mm": 12.13
+    },
+    "feminine/Build_Slim": {
+     "covered": 1166,
+     "poke": 9,
+     "poke_pct": 0.77,
+     "poke_max_mm": 10.73,
+     "poke_p90_mm": 10.59,
+     "where": {
+      "UpperChest": 6,
+      "LeftShoulder": 1,
+      "RightShoulder": 1,
+      "Hips": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 7.49,
+     "gap_p95_mm": 12.43
+    },
+    "feminine/Build_Muscular": {
+     "covered": 1162,
+     "poke": 9,
+     "poke_pct": 0.77,
+     "poke_max_mm": 11.48,
+     "poke_p90_mm": 11.34,
+     "where": {
+      "UpperChest": 6,
+      "LeftShoulder": 1,
+      "RightShoulder": 1,
+      "Hips": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 7.4,
+     "gap_p95_mm": 12.4
+    }
+   },
+   "Pants_Cargo_under_Shirt_Tee": {
+    "masculine/neutral": {
+     "covered": 0,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {}
+    },
+    "masculine/Build_Heavy": {
+     "covered": 0,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {}
+    },
+    "masculine/Build_Slim": {
+     "covered": 0,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {}
+    },
+    "masculine/Build_Muscular": {
+     "covered": 0,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {}
+    },
+    "feminine/neutral": {
+     "covered": 0,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {}
+    },
+    "feminine/Build_Heavy": {
+     "covered": 0,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {}
+    },
+    "feminine/Build_Slim": {
+     "covered": 0,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {}
+    },
+    "feminine/Build_Muscular": {
+     "covered": 0,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {}
+    }
+   },
+   "Shirt_Tee_under_Pants_Cargo": {
+    "masculine/neutral": {
+     "covered": 0,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {}
+    },
+    "masculine/Build_Heavy": {
+     "covered": 0,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {}
+    },
+    "masculine/Build_Slim": {
+     "covered": 0,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {}
+    },
+    "masculine/Build_Muscular": {
+     "covered": 0,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {}
+    },
+    "feminine/neutral": {
+     "covered": 0,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {}
+    },
+    "feminine/Build_Heavy": {
+     "covered": 0,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {}
+    },
+    "feminine/Build_Slim": {
+     "covered": 0,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {}
+    },
+    "feminine/Build_Muscular": {
+     "covered": 0,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {}
+    }
+   },
+   "Body_under_default_outfit": {
+    "masculine/neutral": {
+     "covered": 6692,
+     "poke": 31,
+     "poke_pct": 0.46,
+     "poke_max_mm": 14.63,
+     "poke_p90_mm": 13.17,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "RightFoot": 2
+     },
+     "exposed_over_opening": 23,
+     "exposed_where": {
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 24.87,
+     "gap_p95_mm": 41.0
+    },
+    "masculine/Build_Heavy": {
+     "covered": 6683,
+     "poke": 31,
+     "poke_pct": 0.46,
+     "poke_max_mm": 14.63,
+     "poke_p90_mm": 13.17,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "RightFoot": 2
+     },
+     "exposed_over_opening": 23,
+     "exposed_where": {
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 24.02,
+     "gap_p95_mm": 40.76
+    },
+    "masculine/Build_Slim": {
+     "covered": 6718,
+     "poke": 31,
+     "poke_pct": 0.46,
+     "poke_max_mm": 14.63,
+     "poke_p90_mm": 13.17,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "RightFoot": 2
+     },
+     "exposed_over_opening": 23,
+     "exposed_where": {
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 24.92,
+     "gap_p95_mm": 41.06
+    },
+    "masculine/Build_Muscular": {
+     "covered": 6673,
+     "poke": 31,
+     "poke_pct": 0.46,
+     "poke_max_mm": 14.63,
+     "poke_p90_mm": 13.17,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "RightFoot": 2
+     },
+     "exposed_over_opening": 23,
+     "exposed_where": {
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 24.76,
+     "gap_p95_mm": 40.96
+    },
+    "feminine/neutral": {
+     "covered": 6763,
+     "poke": 32,
+     "poke_pct": 0.47,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.59,
+     "where": {
+      "LeftToes": 19,
+      "RightToes": 7,
+      "RightFoot": 6
+     },
+     "exposed_over_opening": 21,
+     "exposed_where": {
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "RightToes": 4,
+      "RightFoot": 2
+     },
+     "gap_median_mm": 24.01,
+     "gap_p95_mm": 39.97
+    },
+    "feminine/Build_Heavy": {
+     "covered": 6726,
+     "poke": 39,
+     "poke_pct": 0.58,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.58,
+     "where": {
+      "LeftToes": 19,
+      "RightToes": 7,
+      "RightFoot": 6,
+      "RightUpperLeg": 4,
+      "LeftUpperLeg": 3
+     },
+     "exposed_over_opening": 22,
+     "exposed_where": {
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "RightToes": 4,
+      "RightFoot": 2,
+      "LeftUpperLeg": 1
+     },
+     "gap_median_mm": 23.52,
+     "gap_p95_mm": 39.85
+    },
+    "feminine/Build_Slim": {
+     "covered": 6753,
+     "poke": 32,
+     "poke_pct": 0.47,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.59,
+     "where": {
+      "LeftToes": 19,
+      "RightToes": 7,
+      "RightFoot": 6
+     },
+     "exposed_over_opening": 24,
+     "exposed_where": {
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "RightToes": 4,
+      "LeftLowerLeg": 2,
+      "RightFoot": 2,
+      "RightLowerLeg": 1
+     },
+     "gap_median_mm": 24.04,
+     "gap_p95_mm": 39.95
+    },
+    "feminine/Build_Muscular": {
+     "covered": 6752,
+     "poke": 32,
+     "poke_pct": 0.47,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.59,
+     "where": {
+      "LeftToes": 19,
+      "RightToes": 7,
+      "RightFoot": 6
+     },
+     "exposed_over_opening": 21,
+     "exposed_where": {
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "RightToes": 4,
+      "RightFoot": 2
+     },
+     "gap_median_mm": 23.96,
+     "gap_p95_mm": 40.08
+    }
+   }
+  },
+  "waist_gap_mm": {
+   "masculine/neutral": {
+    "000": 22.0,
+    "022": 44.0,
+    "045": 38.0,
+    "068": 28.0,
+    "090": 20.0,
+    "112": 6.0,
+    "135": 0.0,
+    "158": 2.0,
+    "180": 2.0,
+    "202": 0.0,
+    "225": 0.0,
+    "247": 4.0,
+    "270": 16.0,
+    "292": 26.0,
+    "315": 36.0,
+    "338": 44.0
+   },
+   "masculine/Build_Heavy": {
+    "000": 24.0,
+    "022": 46.0,
+    "045": 40.0,
+    "068": 28.0,
+    "090": 20.0,
+    "112": 8.0,
+    "135": 0.0,
+    "158": 0.0,
+    "180": 0.0,
+    "202": 0.0,
+    "225": 0.0,
+    "247": 6.0,
+    "270": 14.0,
+    "292": 26.0,
+    "315": 38.0,
+    "338": 48.0
+   },
+   "masculine/Build_Slim": {
+    "000": 22.0,
+    "022": 44.0,
+    "045": 36.0,
+    "068": 26.0,
+    "090": 22.0,
+    "112": 6.0,
+    "135": 0.0,
+    "158": 0.0,
+    "180": 2.0,
+    "202": 0.0,
+    "225": 2.0,
+    "247": 2.0,
+    "270": 16.0,
+    "292": 24.0,
+    "315": 38.0,
+    "338": 44.0
+   },
+   "masculine/Build_Muscular": {
+    "000": 22.0,
+    "022": 44.0,
+    "045": 38.0,
+    "068": 28.0,
+    "090": 20.0,
+    "112": 6.0,
+    "135": 0.0,
+    "158": 0.0,
+    "180": 2.0,
+    "202": 0.0,
+    "225": 0.0,
+    "247": 4.0,
+    "270": 16.0,
+    "292": 26.0,
+    "315": 36.0,
+    "338": 44.0
+   },
+   "feminine/neutral": {
+    "000": 20.0,
+    "022": 48.0,
+    "045": 32.0,
+    "068": 24.0,
+    "090": 16.0,
+    "112": 4.0,
+    "135": 0.0,
+    "158": 0.0,
+    "180": 0.0,
+    "202": 0.0,
+    "225": 0.0,
+    "247": 2.0,
+    "270": 14.0,
+    "292": 22.0,
+    "315": 30.0,
+    "338": 46.0
+   },
+   "feminine/Build_Heavy": {
+    "000": 22.0,
+    "022": 46.0,
+    "045": 34.0,
+    "068": 24.0,
+    "090": 16.0,
+    "112": 4.0,
+    "135": 0.0,
+    "158": 0.0,
+    "180": 2.0,
+    "202": 0.0,
+    "225": 0.0,
+    "247": 4.0,
+    "270": 14.0,
+    "292": 22.0,
+    "315": 34.0,
+    "338": 48.0
+   },
+   "feminine/Build_Slim": {
+    "000": 20.0,
+    "022": 48.0,
+    "045": 32.0,
+    "068": 22.0,
+    "090": 18.0,
+    "112": 4.0,
+    "135": 0.0,
+    "158": 0.0,
+    "180": 0.0,
+    "202": 2.0,
+    "225": 2.0,
+    "247": 0.0,
+    "270": 12.0,
+    "292": 20.0,
+    "315": 30.0,
+    "338": 48.0
+   },
+   "feminine/Build_Muscular": {
+    "000": 22.0,
+    "022": 48.0,
+    "045": 32.0,
+    "068": 24.0,
+    "090": 16.0,
+    "112": 4.0,
+    "135": 0.0,
+    "158": 0.0,
+    "180": 0.0,
+    "202": 0.0,
+    "225": 0.0,
+    "247": 2.0,
+    "270": 14.0,
+    "292": 22.0,
+    "315": 30.0,
+    "338": 46.0
+   }
+  },
+  "tee_alone_waist_gap_mm": {
+   "masculine/neutral": {
+    "000": 22.0,
+    "022": 44.0,
+    "045": 80.0,
+    "068": 104.0,
+    "090": 114.0,
+    "112": 92.0,
+    "135": 58.0,
+    "158": 28.0,
+    "180": 18.0,
+    "202": 28.0,
+    "225": 58.0,
+    "247": 90.0,
+    "270": 110.0,
+    "292": 102.0,
+    "315": 78.0,
+    "338": 44.0
+   },
+   "masculine/Build_Heavy": {
+    "000": 24.0,
+    "022": 46.0,
+    "045": 76.0,
+    "068": 96.0,
+    "090": 102.0,
+    "112": 82.0,
+    "135": 56.0,
+    "158": 30.0,
+    "180": 14.0,
+    "202": 30.0,
+    "225": 56.0,
+    "247": 82.0,
+    "270": 98.0,
+    "292": 94.0,
+    "315": 74.0,
+    "338": 48.0
+   },
+   "masculine/Build_Slim": {
+    "000": 22.0,
+    "022": 44.0,
+    "045": 80.0,
+    "068": 106.0,
+    "090": 118.0,
+    "112": 94.0,
+    "135": 56.0,
+    "158": 26.0,
+    "180": 20.0,
+    "202": 26.0,
+    "225": 56.0,
+    "247": 92.0,
+    "270": 114.0,
+    "292": 104.0,
+    "315": 80.0,
+    "338": 44.0
+   },
+   "masculine/Build_Muscular": {
+    "000": 22.0,
+    "022": 44.0,
+    "045": 80.0,
+    "068": 104.0,
+    "090": 114.0,
+    "112": 90.0,
+    "135": 58.0,
+    "158": 26.0,
+    "180": 18.0,
+    "202": 28.0,
+    "225": 58.0,
+    "247": 90.0,
+    "270": 110.0,
+    "292": 102.0,
+    "315": 78.0,
+    "338": 44.0
+   },
+   "feminine/neutral": {
+    "000": 20.0,
+    "022": 48.0,
+    "045": 80.0,
+    "068": 98.0,
+    "090": 96.0,
+    "112": 66.0,
+    "135": 36.0,
+    "158": 20.0,
+    "180": 14.0,
+    "202": 20.0,
+    "225": 36.0,
+    "247": 64.0,
+    "270": 94.0,
+    "292": 96.0,
+    "315": 78.0,
+    "338": 46.0
+   },
+   "feminine/Build_Heavy": {
+    "000": 22.0,
+    "022": 46.0,
+    "045": 74.0,
+    "068": 88.0,
+    "090": 102.0,
+    "112": 60.0,
+    "135": 38.0,
+    "158": 22.0,
+    "180": 14.0,
+    "202": 24.0,
+    "225": 38.0,
+    "247": 62.0,
+    "270": 100.0,
+    "292": 86.0,
+    "315": 74.0,
+    "338": 48.0
+   },
+   "feminine/Build_Slim": {
+    "000": 20.0,
+    "022": 48.0,
+    "045": 82.0,
+    "068": 102.0,
+    "090": 100.0,
+    "112": 64.0,
+    "135": 32.0,
+    "158": 20.0,
+    "180": 16.0,
+    "202": 20.0,
+    "225": 32.0,
+    "247": 62.0,
+    "270": 96.0,
+    "292": 100.0,
+    "315": 80.0,
+    "338": 48.0
+   },
+   "feminine/Build_Muscular": {
+    "000": 22.0,
+    "022": 48.0,
+    "045": 80.0,
+    "068": 98.0,
+    "090": 96.0,
+    "112": 66.0,
+    "135": 36.0,
+    "158": 20.0,
+    "180": 14.0,
+    "202": 20.0,
+    "225": 36.0,
+    "247": 66.0,
+    "270": 94.0,
+    "292": 96.0,
+    "315": 76.0,
+    "338": 46.0
+   }
+  },
+  "hair": {
+   "Hair_Swept": {
+    "masculine/neutral": {
+     "covered": 452,
+     "poke": 4,
+     "poke_pct": 0.88,
+     "poke_max_mm": 13.24,
+     "poke_p90_mm": 13.05,
+     "where": {
+      "ear": 4
+     },
+     "exposed_over_opening": 7,
+     "exposed_where": {
+      "ear": 7
+     },
+     "gap_median_mm": 5.2,
+     "gap_p95_mm": 24.91
+    },
+    "masculine/Build_Heavy": {
+     "covered": 447,
+     "poke": 4,
+     "poke_pct": 0.89,
+     "poke_max_mm": 13.24,
+     "poke_p90_mm": 13.04,
+     "where": {
+      "ear": 4
+     },
+     "exposed_over_opening": 7,
+     "exposed_where": {
+      "ear": 7
+     },
+     "gap_median_mm": 4.39,
+     "gap_p95_mm": 31.7
+    },
+    "feminine/neutral": {
+     "covered": 473,
+     "poke": 3,
+     "poke_pct": 0.63,
+     "poke_max_mm": 13.55,
+     "poke_p90_mm": 13.1,
+     "where": {
+      "ear": 3
+     },
+     "exposed_over_opening": 8,
+     "exposed_where": {
+      "ear": 8
+     },
+     "gap_median_mm": 5.09,
+     "gap_p95_mm": 16.52
+    },
+    "feminine/Build_Heavy": {
+     "covered": 470,
+     "poke": 3,
+     "poke_pct": 0.64,
+     "poke_max_mm": 13.55,
+     "poke_p90_mm": 13.1,
+     "where": {
+      "ear": 3
+     },
+     "exposed_over_opening": 8,
+     "exposed_where": {
+      "ear": 8
+     },
+     "gap_median_mm": 4.14,
+     "gap_p95_mm": 32.62
+    }
+   },
+   "Hair_Bob": {
+    "masculine/neutral": {
+     "covered": 1026,
+     "poke": 4,
+     "poke_pct": 0.39,
+     "poke_max_mm": 14.8,
+     "poke_p90_mm": 14.7,
+     "where": {
+      "ear": 4
+     },
+     "exposed_over_opening": 38,
+     "exposed_where": {
+      "ear": 21,
+      "forehead/face": 17
+     },
+     "gap_median_mm": 10.23,
+     "gap_p95_mm": 53.35
+    },
+    "masculine/Build_Heavy": {
+     "covered": 1019,
+     "poke": 4,
+     "poke_pct": 0.39,
+     "poke_max_mm": 14.8,
+     "poke_p90_mm": 14.7,
+     "where": {
+      "ear": 4
+     },
+     "exposed_over_opening": 38,
+     "exposed_where": {
+      "ear": 21,
+      "forehead/face": 17
+     },
+     "gap_median_mm": 16.29,
+     "gap_p95_mm": 53.5
+    },
+    "feminine/neutral": {
+     "covered": 1084,
+     "poke": 3,
+     "poke_pct": 0.28,
+     "poke_max_mm": 6.74,
+     "poke_p90_mm": 6.06,
+     "where": {
+      "ear": 3
+     },
+     "exposed_over_opening": 25,
+     "exposed_where": {
+      "ear": 13,
+      "forehead/face": 12
+     },
+     "gap_median_mm": 11.54,
+     "gap_p95_mm": 52.12
+    },
+    "feminine/Build_Heavy": {
+     "covered": 1090,
+     "poke": 3,
+     "poke_pct": 0.28,
+     "poke_max_mm": 7.07,
+     "poke_p90_mm": 6.38,
+     "where": {
+      "ear": 3
+     },
+     "exposed_over_opening": 25,
+     "exposed_where": {
+      "ear": 13,
+      "forehead/face": 12
+     },
+     "gap_median_mm": 15.71,
+     "gap_p95_mm": 52.27
+    }
+   },
+   "Hair_Long": {
+    "masculine/neutral": {
+     "covered": 1588,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 100,
+     "exposed_where": {
+      "forehead/face": 79,
+      "ear": 21
+     },
+     "gap_median_mm": 16.43,
+     "gap_p95_mm": 51.8
+    },
+    "masculine/Build_Heavy": {
+     "covered": 1604,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 98,
+     "exposed_where": {
+      "forehead/face": 78,
+      "ear": 20
+     },
+     "gap_median_mm": 18.85,
+     "gap_p95_mm": 51.95
+    },
+    "feminine/neutral": {
+     "covered": 1659,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 103,
+     "exposed_where": {
+      "forehead/face": 82,
+      "ear": 21
+     },
+     "gap_median_mm": 14.52,
+     "gap_p95_mm": 56.07
+    },
+    "feminine/Build_Heavy": {
+     "covered": 1646,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 97,
+     "exposed_where": {
+      "forehead/face": 76,
+      "ear": 21
+     },
+     "gap_median_mm": 17.1,
+     "gap_p95_mm": 55.61
+    }
+   },
+   "Hair_Crop": {
+    "masculine/neutral": {
+     "covered": 332,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 2,
+     "exposed_where": {
+      "ear": 2
+     },
+     "gap_median_mm": 17.9,
+     "gap_p95_mm": 18.87
+    },
+    "masculine/Build_Heavy": {
+     "covered": 335,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 2,
+     "exposed_where": {
+      "ear": 2
+     },
+     "gap_median_mm": 14.91,
+     "gap_p95_mm": 15.89
+    },
+    "feminine/neutral": {
+     "covered": 366,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 17.8,
+     "gap_p95_mm": 19.22
+    },
+    "feminine/Build_Heavy": {
+     "covered": 365,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 14.85,
+     "gap_p95_mm": 16.88
+    }
+   },
+   "Hair_Buzz": {
+    "masculine/neutral": {
+     "covered": 318,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 2.49,
+     "gap_p95_mm": 2.49
+    },
+    "masculine/Build_Heavy": {
+     "covered": 320,
+     "poke": 316,
+     "poke_pct": 98.75,
+     "poke_max_mm": 1.38,
+     "poke_p90_mm": 0.49,
+     "where": {
+      "scalp": 294,
+      "forehead/face": 16,
+      "neck/nape": 6
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 27.15,
+     "gap_p95_mm": 32.25
+    },
+    "feminine/neutral": {
+     "covered": 345,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 2.45,
+     "gap_p95_mm": 2.48
+    },
+    "feminine/Build_Heavy": {
+     "covered": 320,
+     "poke": 316,
+     "poke_pct": 98.75,
+     "poke_max_mm": 1.36,
+     "poke_p90_mm": 0.49,
+     "where": {
+      "scalp": 299,
+      "forehead/face": 16,
+      "neck/nape": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 32.75,
+     "gap_p95_mm": 45.16
+    }
+   },
+   "Hair_Ponytail": {
+    "masculine/neutral": {
+     "covered": 497,
+     "poke": 17,
+     "poke_pct": 3.42,
+     "poke_max_mm": 9.65,
+     "poke_p90_mm": 9.3,
+     "where": {
+      "ear": 17
+     },
+     "exposed_over_opening": 11,
+     "exposed_where": {
+      "ear": 11
+     },
+     "gap_median_mm": 17.78,
+     "gap_p95_mm": 21.31
+    },
+    "masculine/Build_Heavy": {
+     "covered": 496,
+     "poke": 17,
+     "poke_pct": 3.43,
+     "poke_max_mm": 9.62,
+     "poke_p90_mm": 9.28,
+     "where": {
+      "ear": 17
+     },
+     "exposed_over_opening": 11,
+     "exposed_where": {
+      "ear": 11
+     },
+     "gap_median_mm": 14.93,
+     "gap_p95_mm": 21.41
+    },
+    "feminine/neutral": {
+     "covered": 489,
+     "poke": 14,
+     "poke_pct": 2.86,
+     "poke_max_mm": 14.52,
+     "poke_p90_mm": 13.13,
+     "where": {
+      "ear": 14
+     },
+     "exposed_over_opening": 7,
+     "exposed_where": {
+      "ear": 7
+     },
+     "gap_median_mm": 17.51,
+     "gap_p95_mm": 23.7
+    },
+    "feminine/Build_Heavy": {
+     "covered": 485,
+     "poke": 14,
+     "poke_pct": 2.89,
+     "poke_max_mm": 14.43,
+     "poke_p90_mm": 13.11,
+     "where": {
+      "ear": 14
+     },
+     "exposed_over_opening": 7,
+     "exposed_where": {
+      "ear": 7
+     },
+     "gap_median_mm": 14.8,
+     "gap_p95_mm": 21.96
+    }
+   }
+  },
+  "hair_face_shapes": {
+   "Hair_Swept": {
+    "masculine/neutral/Face_Head_Width-1": {
+     "covered": 457,
+     "poke": 7,
+     "poke_pct": 1.53,
+     "poke_max_mm": 14.81,
+     "poke_p90_mm": 14.69,
+     "where": {
+      "ear": 7
+     },
+     "exposed_over_opening": 5,
+     "exposed_where": {
+      "ear": 4,
+      "forehead/face": 1
+     },
+     "gap_median_mm": 5.22,
+     "gap_p95_mm": 24.93
+    },
+    "masculine/neutral/Face_Head_Width+1": {
+     "covered": 457,
+     "poke": 4,
+     "poke_pct": 0.88,
+     "poke_max_mm": 13.26,
+     "poke_p90_mm": 13.26,
+     "where": {
+      "ear": 4
+     },
+     "exposed_over_opening": 7,
+     "exposed_where": {
+      "ear": 7
+     },
+     "gap_median_mm": 5.26,
+     "gap_p95_mm": 26.29
+    },
+    "masculine/neutral/Face_Head_Length-1": {
+     "covered": 453,
+     "poke": 4,
+     "poke_pct": 0.88,
+     "poke_max_mm": 13.21,
+     "poke_p90_mm": 13.0,
+     "where": {
+      "ear": 4
+     },
+     "exposed_over_opening": 7,
+     "exposed_where": {
+      "ear": 7
+     },
+     "gap_median_mm": 5.21,
+     "gap_p95_mm": 24.46
+    },
+    "masculine/neutral/Face_Head_Length+1": {
+     "covered": 452,
+     "poke": 4,
+     "poke_pct": 0.88,
+     "poke_max_mm": 13.27,
+     "poke_p90_mm": 13.1,
+     "where": {
+      "ear": 4
+     },
+     "exposed_over_opening": 7,
+     "exposed_where": {
+      "ear": 7
+     },
+     "gap_median_mm": 5.19,
+     "gap_p95_mm": 25.47
+    },
+    "feminine/neutral/Face_Head_Width-1": {
+     "covered": 470,
+     "poke": 4,
+     "poke_pct": 0.85,
+     "poke_max_mm": 11.57,
+     "poke_p90_mm": 11.41,
+     "where": {
+      "ear": 4
+     },
+     "exposed_over_opening": 8,
+     "exposed_where": {
+      "ear": 8
+     },
+     "gap_median_mm": 5.07,
+     "gap_p95_mm": 15.55
+    },
+    "feminine/neutral/Face_Head_Width+1": {
+     "covered": 471,
+     "poke": 2,
+     "poke_pct": 0.42,
+     "poke_max_mm": 11.56,
+     "poke_p90_mm": 10.98,
+     "where": {
+      "ear": 2
+     },
+     "exposed_over_opening": 6,
+     "exposed_where": {
+      "ear": 6
+     },
+     "gap_median_mm": 5.09,
+     "gap_p95_mm": 16.04
+    },
+    "feminine/neutral/Face_Head_Length-1": {
+     "covered": 475,
+     "poke": 4,
+     "poke_pct": 0.84,
+     "poke_max_mm": 13.32,
+     "poke_p90_mm": 12.69,
+     "where": {
+      "ear": 4
+     },
+     "exposed_over_opening": 8,
+     "exposed_where": {
+      "ear": 8
+     },
+     "gap_median_mm": 5.03,
+     "gap_p95_mm": 17.84
+    },
+    "feminine/neutral/Face_Head_Length+1": {
+     "covered": 472,
+     "poke": 3,
+     "poke_pct": 0.64,
+     "poke_max_mm": 13.77,
+     "poke_p90_mm": 13.3,
+     "where": {
+      "ear": 3
+     },
+     "exposed_over_opening": 8,
+     "exposed_where": {
+      "ear": 8
+     },
+     "gap_median_mm": 5.14,
+     "gap_p95_mm": 16.67
+    }
+   },
+   "Hair_Bob": {
+    "masculine/neutral/Face_Head_Width-1": {
+     "covered": 1024,
+     "poke": 6,
+     "poke_pct": 0.59,
+     "poke_max_mm": 14.97,
+     "poke_p90_mm": 14.79,
+     "where": {
+      "ear": 6
+     },
+     "exposed_over_opening": 44,
+     "exposed_where": {
+      "ear": 23,
+      "forehead/face": 21
+     },
+     "gap_median_mm": 10.16,
+     "gap_p95_mm": 52.05
+    },
+    "masculine/neutral/Face_Head_Width+1": {
+     "covered": 1032,
+     "poke": 4,
+     "poke_pct": 0.39,
+     "poke_max_mm": 14.96,
+     "poke_p90_mm": 14.82,
+     "where": {
+      "ear": 4
+     },
+     "exposed_over_opening": 28,
+     "exposed_where": {
+      "forehead/face": 15,
+      "ear": 13
+     },
+     "gap_median_mm": 10.53,
+     "gap_p95_mm": 51.1
+    },
+    "masculine/neutral/Face_Head_Length-1": {
+     "covered": 1027,
+     "poke": 4,
+     "poke_pct": 0.39,
+     "poke_max_mm": 14.79,
+     "poke_p90_mm": 14.66,
+     "where": {
+      "ear": 4
+     },
+     "exposed_over_opening": 38,
+     "exposed_where": {
+      "ear": 21,
+      "forehead/face": 17
+     },
+     "gap_median_mm": 10.21,
+     "gap_p95_mm": 53.35
+    },
+    "masculine/neutral/Face_Head_Length+1": {
+     "covered": 1026,
+     "poke": 4,
+     "poke_pct": 0.39,
+     "poke_max_mm": 14.81,
+     "poke_p90_mm": 14.74,
+     "where": {
+      "ear": 4
+     },
+     "exposed_over_opening": 40,
+     "exposed_where": {
+      "ear": 22,
+      "forehead/face": 18
+     },
+     "gap_median_mm": 10.25,
+     "gap_p95_mm": 53.35
+    },
+    "feminine/neutral/Face_Head_Width-1": {
+     "covered": 1085,
+     "poke": 3,
+     "poke_pct": 0.28,
+     "poke_max_mm": 6.69,
+     "poke_p90_mm": 6.0,
+     "where": {
+      "ear": 3
+     },
+     "exposed_over_opening": 27,
+     "exposed_where": {
+      "ear": 15,
+      "forehead/face": 12
+     },
+     "gap_median_mm": 11.48,
+     "gap_p95_mm": 52.61
+    },
+    "feminine/neutral/Face_Head_Width+1": {
+     "covered": 1089,
+     "poke": 3,
+     "poke_pct": 0.28,
+     "poke_max_mm": 6.78,
+     "poke_p90_mm": 6.12,
+     "where": {
+      "ear": 3
+     },
+     "exposed_over_opening": 26,
+     "exposed_where": {
+      "ear": 14,
+      "forehead/face": 12
+     },
+     "gap_median_mm": 11.6,
+     "gap_p95_mm": 52.55
+    },
+    "feminine/neutral/Face_Head_Length-1": {
+     "covered": 1083,
+     "poke": 3,
+     "poke_pct": 0.28,
+     "poke_max_mm": 6.78,
+     "poke_p90_mm": 6.09,
+     "where": {
+      "ear": 3
+     },
+     "exposed_over_opening": 25,
+     "exposed_where": {
+      "ear": 13,
+      "forehead/face": 12
+     },
+     "gap_median_mm": 11.36,
+     "gap_p95_mm": 52.12
+    },
+    "feminine/neutral/Face_Head_Length+1": {
+     "covered": 1084,
+     "poke": 3,
+     "poke_pct": 0.28,
+     "poke_max_mm": 6.7,
+     "poke_p90_mm": 6.04,
+     "where": {
+      "ear": 3
+     },
+     "exposed_over_opening": 25,
+     "exposed_where": {
+      "ear": 13,
+      "forehead/face": 12
+     },
+     "gap_median_mm": 11.54,
+     "gap_p95_mm": 52.12
+    }
+   },
+   "Hair_Long": {
+    "masculine/neutral/Face_Head_Width-1": {
+     "covered": 1596,
+     "poke": 1,
+     "poke_pct": 0.06,
+     "poke_max_mm": 12.57,
+     "poke_p90_mm": 12.57,
+     "where": {
+      "ear": 1
+     },
+     "exposed_over_opening": 108,
+     "exposed_where": {
+      "forehead/face": 84,
+      "ear": 24
+     },
+     "gap_median_mm": 15.76,
+     "gap_p95_mm": 51.52
+    },
+    "masculine/neutral/Face_Head_Width+1": {
+     "covered": 1581,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 94,
+     "exposed_where": {
+      "forehead/face": 76,
+      "ear": 18
+     },
+     "gap_median_mm": 16.56,
+     "gap_p95_mm": 51.99
+    },
+    "masculine/neutral/Face_Head_Length-1": {
+     "covered": 1589,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 100,
+     "exposed_where": {
+      "forehead/face": 79,
+      "ear": 21
+     },
+     "gap_median_mm": 16.34,
+     "gap_p95_mm": 51.44
+    },
+    "masculine/neutral/Face_Head_Length+1": {
+     "covered": 1587,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 100,
+     "exposed_where": {
+      "forehead/face": 79,
+      "ear": 21
+     },
+     "gap_median_mm": 16.47,
+     "gap_p95_mm": 51.82
+    },
+    "feminine/neutral/Face_Head_Width-1": {
+     "covered": 1665,
+     "poke": 2,
+     "poke_pct": 0.12,
+     "poke_max_mm": 14.0,
+     "poke_p90_mm": 13.98,
+     "where": {
+      "ear": 2
+     },
+     "exposed_over_opening": 110,
+     "exposed_where": {
+      "forehead/face": 84,
+      "ear": 26
+     },
+     "gap_median_mm": 14.41,
+     "gap_p95_mm": 55.95
+    },
+    "feminine/neutral/Face_Head_Width+1": {
+     "covered": 1644,
+     "poke": 1,
+     "poke_pct": 0.06,
+     "poke_max_mm": 14.86,
+     "poke_p90_mm": 14.86,
+     "where": {
+      "ear": 1
+     },
+     "exposed_over_opening": 98,
+     "exposed_where": {
+      "forehead/face": 81,
+      "ear": 17
+     },
+     "gap_median_mm": 14.67,
+     "gap_p95_mm": 55.87
+    },
+    "feminine/neutral/Face_Head_Length-1": {
+     "covered": 1661,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 102,
+     "exposed_where": {
+      "forehead/face": 82,
+      "ear": 20
+     },
+     "gap_median_mm": 14.52,
+     "gap_p95_mm": 56.07
+    },
+    "feminine/neutral/Face_Head_Length+1": {
+     "covered": 1659,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 103,
+     "exposed_where": {
+      "forehead/face": 82,
+      "ear": 21
+     },
+     "gap_median_mm": 14.54,
+     "gap_p95_mm": 56.07
+    }
+   },
+   "Hair_Crop": {
+    "masculine/neutral/Face_Head_Width-1": {
+     "covered": 337,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 2,
+     "exposed_where": {
+      "ear": 2
+     },
+     "gap_median_mm": 17.94,
+     "gap_p95_mm": 18.91
+    },
+    "masculine/neutral/Face_Head_Width+1": {
+     "covered": 336,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 17.91,
+     "gap_p95_mm": 18.9
+    },
+    "masculine/neutral/Face_Head_Length-1": {
+     "covered": 338,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 2,
+     "exposed_where": {
+      "ear": 2
+     },
+     "gap_median_mm": 17.98,
+     "gap_p95_mm": 18.93
+    },
+    "masculine/neutral/Face_Head_Length+1": {
+     "covered": 330,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 17.85,
+     "gap_p95_mm": 18.86
+    },
+    "feminine/neutral/Face_Head_Width-1": {
+     "covered": 364,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 17.76,
+     "gap_p95_mm": 19.17
+    },
+    "feminine/neutral/Face_Head_Width+1": {
+     "covered": 368,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 17.79,
+     "gap_p95_mm": 19.29
+    },
+    "feminine/neutral/Face_Head_Length-1": {
+     "covered": 368,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 17.74,
+     "gap_p95_mm": 19.27
+    },
+    "feminine/neutral/Face_Head_Length+1": {
+     "covered": 366,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 17.8,
+     "gap_p95_mm": 19.21
+    }
+   },
+   "Hair_Buzz": {
+    "masculine/neutral/Face_Head_Width-1": {
+     "covered": 322,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 2.49,
+     "gap_p95_mm": 2.49
+    },
+    "masculine/neutral/Face_Head_Width+1": {
+     "covered": 322,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 2.49,
+     "gap_p95_mm": 2.49
+    },
+    "masculine/neutral/Face_Head_Length-1": {
+     "covered": 334,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 2.49,
+     "gap_p95_mm": 2.49
+    },
+    "masculine/neutral/Face_Head_Length+1": {
+     "covered": 314,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 2.49,
+     "gap_p95_mm": 2.49
+    },
+    "feminine/neutral/Face_Head_Width-1": {
+     "covered": 345,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 2.44,
+     "gap_p95_mm": 2.48
+    },
+    "feminine/neutral/Face_Head_Width+1": {
+     "covered": 345,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 2.45,
+     "gap_p95_mm": 2.48
+    },
+    "feminine/neutral/Face_Head_Length-1": {
+     "covered": 345,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 2.45,
+     "gap_p95_mm": 2.48
+    },
+    "feminine/neutral/Face_Head_Length+1": {
+     "covered": 347,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 2.45,
+     "gap_p95_mm": 2.48
+    }
+   },
+   "Hair_Ponytail": {
+    "masculine/neutral/Face_Head_Width-1": {
+     "covered": 499,
+     "poke": 18,
+     "poke_pct": 3.61,
+     "poke_max_mm": 14.21,
+     "poke_p90_mm": 8.96,
+     "where": {
+      "ear": 18
+     },
+     "exposed_over_opening": 13,
+     "exposed_where": {
+      "ear": 13
+     },
+     "gap_median_mm": 17.56,
+     "gap_p95_mm": 20.66
+    },
+    "masculine/neutral/Face_Head_Width+1": {
+     "covered": 500,
+     "poke": 18,
+     "poke_pct": 3.6,
+     "poke_max_mm": 10.68,
+     "poke_p90_mm": 9.61,
+     "where": {
+      "ear": 18
+     },
+     "exposed_over_opening": 10,
+     "exposed_where": {
+      "ear": 10
+     },
+     "gap_median_mm": 17.78,
+     "gap_p95_mm": 23.89
+    },
+    "masculine/neutral/Face_Head_Length-1": {
+     "covered": 497,
+     "poke": 17,
+     "poke_pct": 3.42,
+     "poke_max_mm": 9.84,
+     "poke_p90_mm": 9.35,
+     "where": {
+      "ear": 17
+     },
+     "exposed_over_opening": 11,
+     "exposed_where": {
+      "ear": 11
+     },
+     "gap_median_mm": 17.79,
+     "gap_p95_mm": 21.27
+    },
+    "masculine/neutral/Face_Head_Length+1": {
+     "covered": 497,
+     "poke": 17,
+     "poke_pct": 3.42,
+     "poke_max_mm": 9.48,
+     "poke_p90_mm": 9.26,
+     "where": {
+      "ear": 17
+     },
+     "exposed_over_opening": 11,
+     "exposed_where": {
+      "ear": 11
+     },
+     "gap_median_mm": 17.75,
+     "gap_p95_mm": 21.37
+    },
+    "feminine/neutral/Face_Head_Width-1": {
+     "covered": 500,
+     "poke": 17,
+     "poke_pct": 3.4,
+     "poke_max_mm": 14.62,
+     "poke_p90_mm": 12.79,
+     "where": {
+      "ear": 17
+     },
+     "exposed_over_opening": 8,
+     "exposed_where": {
+      "ear": 6,
+      "forehead/face": 2
+     },
+     "gap_median_mm": 17.53,
+     "gap_p95_mm": 29.29
+    },
+    "feminine/neutral/Face_Head_Width+1": {
+     "covered": 484,
+     "poke": 13,
+     "poke_pct": 2.69,
+     "poke_max_mm": 13.96,
+     "poke_p90_mm": 9.72,
+     "where": {
+      "ear": 13
+     },
+     "exposed_over_opening": 9,
+     "exposed_where": {
+      "ear": 9
+     },
+     "gap_median_mm": 17.56,
+     "gap_p95_mm": 22.91
+    },
+    "feminine/neutral/Face_Head_Length-1": {
+     "covered": 488,
+     "poke": 14,
+     "poke_pct": 2.87,
+     "poke_max_mm": 14.48,
+     "poke_p90_mm": 13.15,
+     "where": {
+      "ear": 14
+     },
+     "exposed_over_opening": 7,
+     "exposed_where": {
+      "ear": 7
+     },
+     "gap_median_mm": 17.48,
+     "gap_p95_mm": 23.03
+    },
+    "feminine/neutral/Face_Head_Length+1": {
+     "covered": 489,
+     "poke": 15,
+     "poke_pct": 3.07,
+     "poke_max_mm": 14.56,
+     "poke_p90_mm": 13.04,
+     "where": {
+      "ear": 15
+     },
+     "exposed_over_opening": 7,
+     "exposed_where": {
+      "ear": 7
+     },
+     "gap_median_mm": 17.63,
+     "gap_p95_mm": 23.35
+    }
+   }
+  },
+  "hair_ears_out": {
+   "Hair_Swept": {
+    "masculine/neutral": {
+     "covered": 90,
+     "poke": 1,
+     "poke_pct": 1.11,
+     "poke_max_mm": 8.35,
+     "poke_p90_mm": 8.35,
+     "where": {
+      "ear": 1
+     },
+     "exposed_over_opening": 12,
+     "exposed_where": {
+      "ear": 12
+     },
+     "gap_median_mm": 13.23,
+     "gap_p95_mm": 31.65
+    },
+    "feminine/neutral": {
+     "covered": 84,
+     "poke": 3,
+     "poke_pct": 3.57,
+     "poke_max_mm": 13.01,
+     "poke_p90_mm": 12.83,
+     "where": {
+      "ear": 3
+     },
+     "exposed_over_opening": 5,
+     "exposed_where": {
+      "ear": 5
+     },
+     "gap_median_mm": 10.62,
+     "gap_p95_mm": 37.69
+    }
+   },
+   "Hair_Bob": {
+    "masculine/neutral": {
+     "covered": 302,
+     "poke": 16,
+     "poke_pct": 5.3,
+     "poke_max_mm": 12.45,
+     "poke_p90_mm": 9.83,
+     "where": {
+      "ear": 16
+     },
+     "exposed_over_opening": 13,
+     "exposed_where": {
+      "ear": 13
+     },
+     "gap_median_mm": 20.58,
+     "gap_p95_mm": 43.32
+    },
+    "feminine/neutral": {
+     "covered": 347,
+     "poke": 12,
+     "poke_pct": 3.46,
+     "poke_max_mm": 13.9,
+     "poke_p90_mm": 9.48,
+     "where": {
+      "ear": 12
+     },
+     "exposed_over_opening": 1,
+     "exposed_where": {
+      "ear": 1
+     },
+     "gap_median_mm": 15.72,
+     "gap_p95_mm": 40.24
+    }
+   },
+   "Hair_Long": {
+    "masculine/neutral": {
+     "covered": 355,
+     "poke": 1,
+     "poke_pct": 0.28,
+     "poke_max_mm": 4.39,
+     "poke_p90_mm": 4.39,
+     "where": {
+      "ear": 1
+     },
+     "exposed_over_opening": 13,
+     "exposed_where": {
+      "ear": 13
+     },
+     "gap_median_mm": 15.2,
+     "gap_p95_mm": 43.5
+    },
+    "feminine/neutral": {
+     "covered": 375,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 15,
+     "exposed_where": {
+      "ear": 15
+     },
+     "gap_median_mm": 11.32,
+     "gap_p95_mm": 37.56
+    }
+   },
+   "Hair_Crop": {
+    "masculine/neutral": {
+     "covered": 21,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 10.63,
+     "gap_p95_mm": 34.06
+    },
+    "feminine/neutral": {
+     "covered": 23,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 1,
+     "exposed_where": {
+      "ear": 1
+     },
+     "gap_median_mm": 18.24,
+     "gap_p95_mm": 32.95
+    }
+   },
+   "Hair_Buzz": {
+    "masculine/neutral": {
+     "covered": 10,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 13.61,
+     "gap_p95_mm": 36.3
+    },
+    "feminine/neutral": {
+     "covered": 10,
+     "poke": 0,
+     "poke_pct": 0.0,
+     "poke_max_mm": 0.0,
+     "poke_p90_mm": 0.0,
+     "where": {},
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 16.44,
+     "gap_p95_mm": 42.54
+    }
+   },
+   "Hair_Ponytail": {
+    "masculine/neutral": {
+     "covered": 99,
+     "poke": 17,
+     "poke_pct": 17.17,
+     "poke_max_mm": 13.98,
+     "poke_p90_mm": 13.77,
+     "where": {
+      "ear": 17
+     },
+     "exposed_over_opening": 12,
+     "exposed_where": {
+      "ear": 12
+     },
+     "gap_median_mm": 12.4,
+     "gap_p95_mm": 42.3
+    },
+    "feminine/neutral": {
+     "covered": 84,
+     "poke": 10,
+     "poke_pct": 11.9,
+     "poke_max_mm": 13.85,
+     "poke_p90_mm": 12.22,
+     "where": {
+      "ear": 10
+     },
+     "exposed_over_opening": 10,
+     "exposed_where": {
+      "ear": 10
+     },
+     "gap_median_mm": 10.09,
+     "gap_p95_mm": 41.47
+    }
+   }
+  }
+ },
+ "face_parts": {
+  "masculine/neutral": {
+   "Brows": {
+    "min_mm": 0.3,
+    "median_mm": 1.05,
+    "max_mm": 1.9,
+    "pct_below_skin_1mm": 0.0,
+    "pct_floating_over_3mm": 0.0
+   },
+   "Lashes": {
+    "min_mm": -0.16,
+    "median_mm": 0.58,
+    "max_mm": 5.01,
+    "pct_below_skin_1mm": 0.0,
+    "pct_floating_over_3mm": 14.6,
+    "inside_eyeball_verts": 0,
+    "inside_eyeball_max_mm": 0.0
+   }
+  },
+  "feminine/neutral": {
+   "Brows": {
+    "min_mm": 0.27,
+    "median_mm": 0.96,
+    "max_mm": 1.84,
+    "pct_below_skin_1mm": 0.0,
+    "pct_floating_over_3mm": 0.0
+   },
+   "Lashes": {
+    "min_mm": -0.16,
+    "median_mm": 0.57,
+    "max_mm": 4.85,
+    "pct_below_skin_1mm": 0.0,
+    "pct_floating_over_3mm": 10.4,
+    "inside_eyeball_verts": 0,
+    "inside_eyeball_max_mm": 0.0
+   }
+  },
+  "masculine/brow_raise": {
+   "Brows": {
+    "min_mm": 0.3,
+    "median_mm": 1.05,
+    "max_mm": 1.9,
+    "pct_below_skin_1mm": 0.0,
+    "pct_floating_over_3mm": 0.0
+   },
+   "Lashes": {
+    "min_mm": -0.15,
+    "median_mm": 0.56,
+    "max_mm": 4.85,
+    "pct_below_skin_1mm": 0.0,
+    "pct_floating_over_3mm": 14.6,
+    "inside_eyeball_verts": 0,
+    "inside_eyeball_max_mm": 0.0
+   }
+  },
+  "masculine/brow_lower": {
+   "Brows": {
+    "min_mm": 0.3,
+    "median_mm": 1.05,
+    "max_mm": 1.9,
+    "pct_below_skin_1mm": 0.0,
+    "pct_floating_over_3mm": 0.0
+   },
+   "Lashes": {
+    "min_mm": -0.17,
+    "median_mm": 0.79,
+    "max_mm": 5.0,
+    "pct_below_skin_1mm": 0.0,
+    "pct_floating_over_3mm": 14.6,
+    "inside_eyeball_verts": 0,
+    "inside_eyeball_max_mm": 0.0
+   }
+  },
+  "masculine/blink": {
+   "Brows": {
+    "min_mm": 0.23,
+    "median_mm": 0.94,
+    "max_mm": 1.9,
+    "pct_below_skin_1mm": 0.0,
+    "pct_floating_over_3mm": 0.0
+   },
+   "Lashes": {
+    "min_mm": -0.46,
+    "median_mm": 0.6,
+    "max_mm": 5.04,
+    "pct_below_skin_1mm": 0.0,
+    "pct_floating_over_3mm": 16.7,
+    "inside_eyeball_verts": 0,
+    "inside_eyeball_max_mm": 0.0
+   }
+  },
+  "feminine/blink": {
+   "Brows": {
+    "min_mm": 0.24,
+    "median_mm": 0.9,
+    "max_mm": 1.84,
+    "pct_below_skin_1mm": 0.0,
+    "pct_floating_over_3mm": 0.0
+   },
+   "Lashes": {
+    "min_mm": -0.13,
+    "median_mm": 0.89,
+    "max_mm": 7.5,
+    "pct_below_skin_1mm": 0.0,
+    "pct_floating_over_3mm": 31.2,
+    "inside_eyeball_verts": 0,
+    "inside_eyeball_max_mm": 0.0
+   }
+  },
+  "masculine/Face_Brows_Height+1": {
+   "Brows": {
+    "min_mm": 0.3,
+    "median_mm": 1.05,
+    "max_mm": 1.9,
+    "pct_below_skin_1mm": 0.0,
+    "pct_floating_over_3mm": 0.0
+   },
+   "Lashes": {
+    "min_mm": -0.13,
+    "median_mm": 0.65,
+    "max_mm": 5.03,
+    "pct_below_skin_1mm": 0.0,
+    "pct_floating_over_3mm": 14.6,
+    "inside_eyeball_verts": 0,
+    "inside_eyeball_max_mm": 0.0
+   }
+  },
+  "masculine/Face_Eyes_Size+1": {
+   "Brows": {
+    "min_mm": 0.05,
+    "median_mm": 0.89,
+    "max_mm": 1.5,
+    "pct_below_skin_1mm": 0.0,
+    "pct_floating_over_3mm": 0.0
+   },
+   "Lashes": {
+    "min_mm": -0.16,
+    "median_mm": 0.58,
+    "max_mm": 5.1,
+    "pct_below_skin_1mm": 0.0,
+    "pct_floating_over_3mm": 14.6,
+    "inside_eyeball_verts": 0,
+    "inside_eyeball_max_mm": 0.0
+   }
+  }
+ },
+ "face": {
+  "masculine": {
+   "neutral": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Eyes_Spacing-1": {
+    "skin_inside_eyeball_verts": 595,
+    "skin_inside_eyeball_max_mm": 24.19,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Eyes_Spacing+1": {
+    "skin_inside_eyeball_verts": 530,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Eyes_Height-1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 56.9,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Eyes_Height+1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.8,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Eyes_Size-1": {
+    "skin_inside_eyeball_verts": 527,
+    "skin_inside_eyeball_max_mm": 21.25,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.06,
+    "front_eye_visible_pct": 60.8,
+    "lid_margin_gap_mm": [
+     1.67,
+     1.63
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Eyes_Size+1": {
+    "skin_inside_eyeball_verts": 603,
+    "skin_inside_eyeball_max_mm": 27.04,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 7.71,
+    "front_eye_visible_pct": 55.0,
+    "lid_margin_gap_mm": [
+     2.14,
+     2.12
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 124,
+    "self_intersections_vs_neutral": 16
+   },
+   "Face_Eyes_Tilt-1": {
+    "skin_inside_eyeball_verts": 530,
+    "skin_inside_eyeball_max_mm": 24.15,
+    "front_eye_inside_lid_flesh_verts": 163,
+    "front_eye_inside_lid_flesh_max_mm": 6.51,
+    "front_eye_visible_pct": 59.8,
+    "lid_margin_gap_mm": [
+     1.05,
+     1.05
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Eyes_Tilt+1": {
+    "skin_inside_eyeball_verts": 522,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 165,
+    "front_eye_inside_lid_flesh_max_mm": 7.98,
+    "front_eye_visible_pct": 56.6,
+    "lid_margin_gap_mm": [
+     1.1,
+     1.1
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Brows_Height-1": {
+    "skin_inside_eyeball_verts": 540,
+    "skin_inside_eyeball_max_mm": 24.15,
+    "front_eye_inside_lid_flesh_verts": 162,
+    "front_eye_inside_lid_flesh_max_mm": 11.29,
+    "front_eye_visible_pct": 56.9,
+    "lid_margin_gap_mm": [
+     1.92,
+     1.9
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Brows_Height+1": {
+    "skin_inside_eyeball_verts": 515,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 129,
+    "front_eye_inside_lid_flesh_max_mm": 6.52,
+    "front_eye_visible_pct": 55.9,
+    "lid_margin_gap_mm": [
+     1.15,
+     1.1
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Nose_Width-1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Nose_Width+1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Nose_Length-1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Nose_Length+1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Nose_Bridge-1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Nose_Bridge+1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Nose_Tip-1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Nose_Tip+1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Mouth_Width-1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.89
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Mouth_Width+1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 57.6,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Lips_Full-1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 2,
+    "self_intersections_vs_neutral": -106
+   },
+   "Face_Lips_Full+1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 105,
+    "self_intersections_vs_neutral": -3
+   },
+   "Face_Chin_Length-1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Chin_Length+1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Chin_Forward-1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Chin_Forward+1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Jaw_Width-1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Jaw_Width+1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 112,
+    "self_intersections_vs_neutral": 4
+   },
+   "Face_Cheekbones-1": {
+    "skin_inside_eyeball_verts": 547,
+    "skin_inside_eyeball_max_mm": 24.54,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.88,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.59,
+     1.59
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Cheekbones+1": {
+    "skin_inside_eyeball_verts": 490,
+    "skin_inside_eyeball_max_mm": 23.91,
+    "front_eye_inside_lid_flesh_verts": 152,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 57.6,
+    "lid_margin_gap_mm": [
+     0.23,
+     0.22
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Head_Width-1": {
+    "skin_inside_eyeball_verts": 587,
+    "skin_inside_eyeball_max_mm": 25.08,
+    "front_eye_inside_lid_flesh_verts": 150,
+    "front_eye_inside_lid_flesh_max_mm": 7.27,
+    "front_eye_visible_pct": 61.7,
+    "lid_margin_gap_mm": [
+     0.39,
+     0.35
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Head_Width+1": {
+    "skin_inside_eyeball_verts": 418,
+    "skin_inside_eyeball_max_mm": 23.81,
+    "front_eye_inside_lid_flesh_verts": 130,
+    "front_eye_inside_lid_flesh_max_mm": 7.96,
+    "front_eye_visible_pct": 61.4,
+    "lid_margin_gap_mm": [
+     0.36,
+     0.36
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Head_Length-1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Head_Length+1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Ears_Size-1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Ears_Size+1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 118,
+    "self_intersections_vs_neutral": 10
+   },
+   "Face_Ears_Out-1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Ears_Out+1": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "smile": {
+    "skin_inside_eyeball_verts": 541,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 56.9,
+    "lid_margin_gap_mm": [
+     1.89,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 18,
+    "teeth_inside_flesh_max_mm": 13.2,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "frown": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 116,
+    "self_intersections_vs_neutral": 8
+   },
+   "jaw_open": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 62,
+    "teeth_inside_flesh_max_mm": 17.91,
+    "head_self_intersecting_tri_pairs": 8,
+    "self_intersections_vs_neutral": -100
+   },
+   "jaw_open+smile": {
+    "skin_inside_eyeball_verts": 541,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 56.9,
+    "lid_margin_gap_mm": [
+     1.89,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 36,
+    "teeth_inside_flesh_max_mm": 14.35,
+    "head_self_intersecting_tri_pairs": 12,
+    "self_intersections_vs_neutral": -96
+   },
+   "blink": {
+    "skin_inside_eyeball_verts": 508,
+    "skin_inside_eyeball_max_mm": 23.66,
+    "front_eye_inside_lid_flesh_verts": 197,
+    "front_eye_inside_lid_flesh_max_mm": 22.72,
+    "front_eye_visible_pct": 19.9,
+    "lid_margin_gap_mm": [
+     0.44,
+     0.49
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 442,
+    "self_intersections_vs_neutral": 334
+   },
+   "brow_raise": {
+    "skin_inside_eyeball_verts": 508,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 113,
+    "front_eye_inside_lid_flesh_max_mm": 6.51,
+    "front_eye_visible_pct": 57.2,
+    "lid_margin_gap_mm": [
+     1.09,
+     1.09
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   },
+   "sneer": {
+    "skin_inside_eyeball_verts": 542,
+    "skin_inside_eyeball_max_mm": 24.14,
+    "front_eye_inside_lid_flesh_verts": 160,
+    "front_eye_inside_lid_flesh_max_mm": 6.89,
+    "front_eye_visible_pct": 58.2,
+    "lid_margin_gap_mm": [
+     1.91,
+     1.88
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 13.19,
+    "head_self_intersecting_tri_pairs": 108,
+    "self_intersections_vs_neutral": 0
+   }
+  },
+  "feminine": {
+   "neutral": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Eyes_Spacing-1": {
+    "skin_inside_eyeball_verts": 438,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.12,
+     0.12
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Eyes_Spacing+1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 103,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.2,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Eyes_Height-1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Eyes_Height+1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Eyes_Size-1": {
+    "skin_inside_eyeball_verts": 362,
+    "skin_inside_eyeball_max_mm": 24.45,
+    "front_eye_inside_lid_flesh_verts": 67,
+    "front_eye_inside_lid_flesh_max_mm": 5.13,
+    "front_eye_visible_pct": 53.1,
+    "lid_margin_gap_mm": [
+     0.37,
+     0.37
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Eyes_Size+1": {
+    "skin_inside_eyeball_verts": 486,
+    "skin_inside_eyeball_max_mm": 29.61,
+    "front_eye_inside_lid_flesh_verts": 132,
+    "front_eye_inside_lid_flesh_max_mm": 7.04,
+    "front_eye_visible_pct": 64.3,
+    "lid_margin_gap_mm": [
+     0.6,
+     0.59
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 90,
+    "self_intersections_vs_neutral": -4
+   },
+   "Face_Eyes_Tilt-1": {
+    "skin_inside_eyeball_verts": 424,
+    "skin_inside_eyeball_max_mm": 27.52,
+    "front_eye_inside_lid_flesh_verts": 97,
+    "front_eye_inside_lid_flesh_max_mm": 5.32,
+    "front_eye_visible_pct": 58.5,
+    "lid_margin_gap_mm": [
+     0.37,
+     0.37
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Eyes_Tilt+1": {
+    "skin_inside_eyeball_verts": 400,
+    "skin_inside_eyeball_max_mm": 27.85,
+    "front_eye_inside_lid_flesh_verts": 106,
+    "front_eye_inside_lid_flesh_max_mm": 6.91,
+    "front_eye_visible_pct": 55.3,
+    "lid_margin_gap_mm": [
+     0.41,
+     0.41
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Brows_Height-1": {
+    "skin_inside_eyeball_verts": 438,
+    "skin_inside_eyeball_max_mm": 27.65,
+    "front_eye_inside_lid_flesh_verts": 134,
+    "front_eye_inside_lid_flesh_max_mm": 10.96,
+    "front_eye_visible_pct": 59.2,
+    "lid_margin_gap_mm": [
+     0.17,
+     0.17
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Brows_Height+1": {
+    "skin_inside_eyeball_verts": 390,
+    "skin_inside_eyeball_max_mm": 27.81,
+    "front_eye_inside_lid_flesh_verts": 77,
+    "front_eye_inside_lid_flesh_max_mm": 2.32,
+    "front_eye_visible_pct": 53.4,
+    "lid_margin_gap_mm": [
+     0.19,
+     0.18
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Nose_Width-1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Nose_Width+1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Nose_Length-1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Nose_Length+1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 102,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Nose_Bridge-1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Nose_Bridge+1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Nose_Tip-1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 102,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Nose_Tip+1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Mouth_Width-1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 82,
+    "self_intersections_vs_neutral": -12
+   },
+   "Face_Mouth_Width+1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 90,
+    "self_intersections_vs_neutral": -4
+   },
+   "Face_Lips_Full-1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 12,
+    "self_intersections_vs_neutral": -82
+   },
+   "Face_Lips_Full+1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 103,
+    "self_intersections_vs_neutral": 9
+   },
+   "Face_Chin_Length-1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Chin_Length+1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Chin_Forward-1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Chin_Forward+1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Jaw_Width-1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Jaw_Width+1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Cheekbones-1": {
+    "skin_inside_eyeball_verts": 416,
+    "skin_inside_eyeball_max_mm": 28.23,
+    "front_eye_inside_lid_flesh_verts": 107,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 58.8,
+    "lid_margin_gap_mm": [
+     0.22,
+     0.22
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 90,
+    "self_intersections_vs_neutral": -4
+   },
+   "Face_Cheekbones+1": {
+    "skin_inside_eyeball_verts": 392,
+    "skin_inside_eyeball_max_mm": 27.26,
+    "front_eye_inside_lid_flesh_verts": 94,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 58.5,
+    "lid_margin_gap_mm": [
+     0.13,
+     0.13
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Head_Width-1": {
+    "skin_inside_eyeball_verts": 472,
+    "skin_inside_eyeball_max_mm": 28.74,
+    "front_eye_inside_lid_flesh_verts": 100,
+    "front_eye_inside_lid_flesh_max_mm": 5.15,
+    "front_eye_visible_pct": 57.6,
+    "lid_margin_gap_mm": [
+     0.36,
+     0.39
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Head_Width+1": {
+    "skin_inside_eyeball_verts": 362,
+    "skin_inside_eyeball_max_mm": 25.97,
+    "front_eye_inside_lid_flesh_verts": 77,
+    "front_eye_inside_lid_flesh_max_mm": 6.71,
+    "front_eye_visible_pct": 59.2,
+    "lid_margin_gap_mm": [
+     0.18,
+     0.18
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Head_Length-1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Head_Length+1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.13,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Ears_Size-1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Ears_Size+1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 102,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Ears_Out-1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "Face_Ears_Out+1": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "smile": {
+    "skin_inside_eyeball_verts": 412,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 102,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 58.5,
+    "lid_margin_gap_mm": [
+     0.24,
+     0.24
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 14,
+    "self_intersections_vs_neutral": -80
+   },
+   "frown": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "jaw_open": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 102,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 192,
+    "teeth_inside_flesh_max_mm": 18.1,
+    "head_self_intersecting_tri_pairs": 4,
+    "self_intersections_vs_neutral": -90
+   },
+   "jaw_open+smile": {
+    "skin_inside_eyeball_verts": 412,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 101,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.24,
+     0.24
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 185,
+    "teeth_inside_flesh_max_mm": 17.84,
+    "head_self_intersecting_tri_pairs": 4,
+    "self_intersections_vs_neutral": -90
+   },
+   "blink": {
+    "skin_inside_eyeball_verts": 444,
+    "skin_inside_eyeball_max_mm": 27.82,
+    "front_eye_inside_lid_flesh_verts": 170,
+    "front_eye_inside_lid_flesh_max_mm": 25.5,
+    "front_eye_visible_pct": 22.8,
+    "lid_margin_gap_mm": [
+     0.41,
+     0.41
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 492,
+    "self_intersections_vs_neutral": 398
+   },
+   "brow_raise": {
+    "skin_inside_eyeball_verts": 386,
+    "skin_inside_eyeball_max_mm": 27.82,
+    "front_eye_inside_lid_flesh_verts": 71,
+    "front_eye_inside_lid_flesh_max_mm": 4.53,
+    "front_eye_visible_pct": 54.3,
+    "lid_margin_gap_mm": [
+     0.14,
+     0.12
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   },
+   "sneer": {
+    "skin_inside_eyeball_verts": 410,
+    "skin_inside_eyeball_max_mm": 27.76,
+    "front_eye_inside_lid_flesh_verts": 102,
+    "front_eye_inside_lid_flesh_max_mm": 6.14,
+    "front_eye_visible_pct": 57.9,
+    "lid_margin_gap_mm": [
+     0.21,
+     0.21
+    ],
+    "teeth_verts_inside_lips_or_gums_flesh": 17,
+    "teeth_inside_flesh_max_mm": 12.1,
+    "head_self_intersecting_tri_pairs": 94,
+    "self_intersections_vs_neutral": 0
+   }
+  },
+  "feminine_eyes_not_moved": {
+   "skin_inside_eyeball_verts": 176,
+   "skin_inside_eyeball_max_mm": 17.58,
+   "front_eye_inside_lid_flesh_verts": 44,
+   "front_eye_inside_lid_flesh_max_mm": 11.35,
+   "front_eye_visible_pct": 46.3,
+   "lid_margin_gap_mm": [
+    1.32,
+    1.32
+   ]
+  }
+ },
+ "shapes": {
+  "body_shape_max_move_mm": {
+   "Blink_Left": 29.94,
+   "Blink_Right": 29.94,
+   "Eye_Closed_Left": 27.13,
+   "Eye_Closed_Right": 27.13,
+   "Eye_Squint_Left": 11.48,
+   "Eye_Squint_Right": 11.48,
+   "Eye_Wide_Left": 8.41,
+   "Eye_Wide_Right": 8.41,
+   "Brow_Raise_Left": 9.01,
+   "Brow_Raise_Right": 9.01,
+   "Brow_Lower_Left": 7.46,
+   "Brow_Lower_Right": 7.46,
+   "Brow_Inward_Left": 4.3,
+   "Brow_Inward_Right": 4.3,
+   "Mouth_Smile_Left": 13.34,
+   "Mouth_Smile_Right": 13.34,
+   "Mouth_Frown_Left": 7.3,
+   "Mouth_Frown_Right": 7.3,
+   "Mouth_Open": 6.16,
+   "Mouth_Wide": 7.71,
+   "Mouth_Narrow": 8.49,
+   "Mouth_Pucker": 14.01,
+   "Mouth_Left": 6.93,
+   "Mouth_Right": 6.93,
+   "Upper_Lip_Raise": 3.62,
+   "Upper_Lip_Raise_Left": 3.34,
+   "Upper_Lip_Raise_Right": 3.34,
+   "Lower_Lip_Lower": 4.46,
+   "Lower_Lip_Lower_Left": 4.14,
+   "Lower_Lip_Lower_Right": 4.14,
+   "Lip_Corner_Pull_Left": 9.01,
+   "Lip_Corner_Pull_Right": 9.01,
+   "Cheek_Raise_Left": 4.61,
+   "Cheek_Raise_Right": 4.61,
+   "Cheek_Puff": 5.51,
+   "Nose_Sneer_Left": 3.36,
+   "Nose_Sneer_Right": 3.36,
+   "Jaw_Open": 3.35,
+   "Jaw_Forward": 7.0,
+   "Jaw_Left": 7.0,
+   "Jaw_Right": 7.0,
+   "Face_Eyes_Spacing": 5.0,
+   "Face_Eyes_Height": 5.0,
+   "Face_Eyes_Size": 8.22,
+   "Face_Eyes_Tilt": 4.63,
+   "Face_Brows_Height": 10.01,
+   "Face_Nose_Width": 2.25,
+   "Face_Nose_Length": 3.02,
+   "Face_Nose_Bridge": 2.93,
+   "Face_Nose_Tip": 4.12,
+   "Face_Mouth_Width": 6.04,
+   "Face_Lips_Full": 2.51,
+   "Face_Chin_Length": 7.33,
+   "Face_Chin_Forward": 5.5,
+   "Face_Jaw_Width": 4.25,
+   "Face_Cheekbones": 4.13,
+   "Face_Head_Width": 9.53,
+   "Face_Head_Length": 12.0,
+   "Face_Ears_Size": 10.9,
+   "Face_Ears_Out": 6.32,
+   "Frame_Feminine": 113.8,
+   "Build_Heavy": 54.96,
+   "Build_Slim": 19.24,
+   "Build_Muscular": 13.31,
+   "Mask_Torso": 11.0,
+   "Mask_Hips": 8.73,
+   "Mask_UpperArms_Top": 11.0,
+   "Mask_UpperArms_Low": 11.0,
+   "Mask_Forearms": 11.0,
+   "Mask_Thighs_Top": 11.0,
+   "Mask_Thighs_Low": 11.0,
+   "Mask_Shins_Top": 11.0,
+   "Mask_Shins_Low": 11.0,
+   "Mask_Feet": 7.7
+  },
+  "body_shape_verts_moved_over_0.5mm": {
+   "Blink_Left": 400,
+   "Blink_Right": 400,
+   "Eye_Closed_Left": 400,
+   "Eye_Closed_Right": 400,
+   "Eye_Squint_Left": 436,
+   "Eye_Squint_Right": 436,
+   "Eye_Wide_Left": 342,
+   "Eye_Wide_Right": 342,
+   "Brow_Raise_Left": 313,
+   "Brow_Raise_Right": 313,
+   "Brow_Lower_Left": 296,
+   "Brow_Lower_Right": 296,
+   "Brow_Inward_Left": 113,
+   "Brow_Inward_Right": 113,
+   "Mouth_Smile_Left": 374,
+   "Mouth_Smile_Right": 374,
+   "Mouth_Frown_Left": 213,
+   "Mouth_Frown_Right": 213,
+   "Mouth_Open": 154,
+   "Mouth_Wide": 552,
+   "Mouth_Narrow": 582,
+   "Mouth_Pucker": 456,
+   "Mouth_Left": 571,
+   "Mouth_Right": 571,
+   "Upper_Lip_Raise": 93,
+   "Upper_Lip_Raise_Left": 51,
+   "Upper_Lip_Raise_Right": 51,
+   "Lower_Lip_Lower": 99,
+   "Lower_Lip_Lower_Left": 53,
+   "Lower_Lip_Lower_Right": 53,
+   "Lip_Corner_Pull_Left": 332,
+   "Lip_Corner_Pull_Right": 332,
+   "Cheek_Raise_Left": 297,
+   "Cheek_Raise_Right": 297,
+   "Cheek_Puff": 178,
+   "Nose_Sneer_Left": 132,
+   "Nose_Sneer_Right": 132,
+   "Jaw_Open": 337,
+   "Jaw_Forward": 569,
+   "Jaw_Left": 569,
+   "Jaw_Right": 569,
+   "Face_Eyes_Spacing": 1172,
+   "Face_Eyes_Height": 1177,
+   "Face_Eyes_Size": 1189,
+   "Face_Eyes_Tilt": 1035,
+   "Face_Brows_Height": 578,
+   "Face_Nose_Width": 158,
+   "Face_Nose_Length": 159,
+   "Face_Nose_Bridge": 17,
+   "Face_Nose_Tip": 9,
+   "Face_Mouth_Width": 500,
+   "Face_Lips_Full": 86,
+   "Face_Chin_Length": 23,
+   "Face_Chin_Forward": 23,
+   "Face_Jaw_Width": 148,
+   "Face_Cheekbones": 394,
+   "Face_Head_Width": 2158,
+   "Face_Head_Length": 388,
+   "Face_Ears_Size": 512,
+   "Face_Ears_Out": 368,
+   "Frame_Feminine": 12502,
+   "Build_Heavy": 8111,
+   "Build_Slim": 6042,
+   "Build_Muscular": 3470,
+   "Mask_Torso": 1703,
+   "Mask_Hips": 701,
+   "Mask_UpperArms_Top": 762,
+   "Mask_UpperArms_Low": 584,
+   "Mask_Forearms": 1000,
+   "Mask_Thighs_Top": 980,
+   "Mask_Thighs_Low": 914,
+   "Mask_Shins_Top": 1222,
+   "Mask_Shins_Low": 1436,
+   "Mask_Feet": 1590
+  },
+  "eyeball_diameter_mm": 74.7,
+  "iris_diameter_mm": 28.37,
+  "reference_eye": "adult eyeball about 24 mm, iris about 11.7 mm (scale by the head height ratio for this head)",
+  "sole_overhang_mm": {
+   "min": -1.92,
+   "median": 6.15,
+   "max": 25.14
+  },
+  "sole_top_z_mm": 30.0,
+  "upper_lowest_z_mm": 22.0
+ },
+ "proportions": {
+  "masculine": {
+   "height_m": 1.75,
+   "menton_z_m": 1.455,
+   "head_height_m": 0.295,
+   "heads_tall": 5.93,
+   "head_height_ratio": 0.169,
+   "shoulder_joint_width_m": 0.349,
+   "bideltoid_width_m": 0.444,
+   "shoulder_width_ratio_bideltoid": 0.254,
+   "hand_length_m": 0.216,
+   "hand_length_ratio": 0.123,
+   "foot_length_m": 0.253,
+   "foot_length_ratio": 0.144,
+   "hip_joint_height_ratio": 0.491,
+   "knee_height_ratio": 0.272,
+   "shoulder_joint_height_ratio": 0.77,
+   "eye_height_ratio": 0.909,
+   "upper_arm_ratio": 0.155,
+   "forearm_ratio": 0.127,
+   "head_bone_z_m": 1.496
+  },
+  "feminine": {
+   "height_m": 1.75,
+   "menton_z_m": 1.476,
+   "head_height_m": 0.274,
+   "heads_tall": 6.39,
+   "head_height_ratio": 0.156,
+   "shoulder_joint_width_m": 0.245,
+   "bideltoid_width_m": 0.345,
+   "shoulder_width_ratio_bideltoid": 0.197,
+   "hand_length_m": 0.193,
+   "hand_length_ratio": 0.11,
+   "foot_length_m": 0.234,
+   "foot_length_ratio": 0.134,
+   "hip_joint_height_ratio": 0.532,
+   "knee_height_ratio": 0.3,
+   "shoulder_joint_height_ratio": 0.773,
+   "eye_height_ratio": 0.907,
+   "upper_arm_ratio": 0.138,
+   "forearm_ratio": 0.121,
+   "head_bone_z_m": 1.501
+  },
+  "reference": {
+   "head_height_ratio": 0.13,
+   "heads_tall": 7.7,
+   "shoulder_width_ratio": 0.259,
+   "hand_length_ratio": 0.108,
+   "foot_length_ratio": 0.152,
+   "hip_joint_height_ratio": 0.53,
+   "knee_height_ratio": 0.285,
+   "shoulder_height_ratio": 0.818,
+   "upper_arm_ratio": 0.186,
+   "forearm_ratio": 0.146,
+   "eye_height_ratio": 0.936,
+   "source": "Drillis & Contini (1966) segment lengths as fractions of stature, reproduced in D. A. Winter, Biomechanics and Motor Control of Human Movement, 4th ed., 2009, fig. 4.1; heads tall = 1/0.130"
+  }
+ },
+ "deformation": {
+  "masculine": {
+   "rest": {
+    "body_through_outfit": {
+     "covered": 6692,
+     "poke": 31,
+     "poke_pct": 0.46,
+     "poke_max_mm": 14.63,
+     "poke_p90_mm": 13.17,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "RightFoot": 2
+     },
+     "exposed_over_opening": 23,
+     "exposed_where": {
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 24.87,
+     "gap_p95_mm": 41.0
+    },
+    "tee_through_jacket": {
+     "covered": 1140,
+     "poke": 7,
+     "poke_pct": 0.61,
+     "poke_max_mm": 11.78,
+     "poke_p90_mm": 11.78,
+     "where": {
+      "UpperChest": 2,
+      "Hips": 2,
+      "LeftShoulder": 1,
+      "Spine": 1,
+      "RightShoulder": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 8.18,
+     "gap_p95_mm": 11.46
+    },
+    "waist_gap_mm_max": 44.0,
+    "waist_gap_mm_sum_16_dirs": 288.0
+   },
+   "elbow_135": {
+    "local_volume_ratio": 0.576,
+    "ring_area_ratio": 0.374,
+    "ring_points": 46,
+    "region_radius_m": 0.075,
+    "body_through_outfit": {
+     "covered": 6784,
+     "poke": 40,
+     "poke_pct": 0.59,
+     "poke_max_mm": 14.63,
+     "poke_p90_mm": 12.48,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "LeftThumbIntermediate": 7,
+      "LeftThumbDistal": 2,
+      "RightFoot": 2
+     },
+     "exposed_over_opening": 23,
+     "exposed_where": {
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 24.57,
+     "gap_p95_mm": 41.07
+    },
+    "tee_through_jacket": {
+     "covered": 1152,
+     "poke": 7,
+     "poke_pct": 0.61,
+     "poke_max_mm": 11.78,
+     "poke_p90_mm": 11.78,
+     "where": {
+      "UpperChest": 2,
+      "Hips": 2,
+      "LeftShoulder": 1,
+      "Spine": 1,
+      "RightShoulder": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 8.29,
+     "gap_p95_mm": 12.16
+    },
+    "waist_gap_mm_max": 44.0,
+    "waist_gap_mm_sum_16_dirs": 288.0
+   },
+   "knee_135": {
+    "local_volume_ratio": 0.745,
+    "ring_area_ratio": 0.444,
+    "ring_points": 58,
+    "region_radius_m": 0.1,
+    "body_through_outfit": {
+     "covered": 6663,
+     "poke": 33,
+     "poke_pct": 0.5,
+     "poke_max_mm": 14.67,
+     "poke_p90_mm": 13.51,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "LeftLowerLeg": 2,
+      "RightFoot": 2
+     },
+     "exposed_over_opening": 38,
+     "exposed_where": {
+      "LeftLowerLeg": 11,
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "LeftUpperLeg": 4,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 24.22,
+     "gap_p95_mm": 40.05
+    },
+    "tee_through_jacket": {
+     "covered": 1140,
+     "poke": 7,
+     "poke_pct": 0.61,
+     "poke_max_mm": 11.78,
+     "poke_p90_mm": 11.78,
+     "where": {
+      "UpperChest": 2,
+      "Hips": 2,
+      "LeftShoulder": 1,
+      "Spine": 1,
+      "RightShoulder": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 8.18,
+     "gap_p95_mm": 11.46
+    },
+    "waist_gap_mm_max": 44.0,
+    "waist_gap_mm_sum_16_dirs": 288.0
+   },
+   "shoulder_abd_90": {
+    "local_volume_ratio": 0.853,
+    "ring_area_ratio": 0.94,
+    "ring_points": 23,
+    "region_radius_m": 0.09,
+    "body_through_outfit": {
+     "covered": 6698,
+     "poke": 31,
+     "poke_pct": 0.46,
+     "poke_max_mm": 14.63,
+     "poke_p90_mm": 13.17,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "RightFoot": 2
+     },
+     "exposed_over_opening": 23,
+     "exposed_where": {
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 24.8,
+     "gap_p95_mm": 41.0
+    },
+    "tee_through_jacket": {
+     "covered": 1149,
+     "poke": 7,
+     "poke_pct": 0.61,
+     "poke_max_mm": 11.78,
+     "poke_p90_mm": 11.78,
+     "where": {
+      "UpperChest": 2,
+      "Hips": 2,
+      "LeftShoulder": 1,
+      "Spine": 1,
+      "RightShoulder": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 8.22,
+     "gap_p95_mm": 11.49
+    },
+    "waist_gap_mm_max": 44.0,
+    "waist_gap_mm_sum_16_dirs": 288.0
+   },
+   "shoulder_abd_150": {
+    "local_volume_ratio": 0.559,
+    "ring_area_ratio": 0.653,
+    "ring_points": 23,
+    "region_radius_m": 0.09,
+    "body_through_outfit": {
+     "covered": 6684,
+     "poke": 31,
+     "poke_pct": 0.46,
+     "poke_max_mm": 14.63,
+     "poke_p90_mm": 13.17,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "RightFoot": 2
+     },
+     "exposed_over_opening": 23,
+     "exposed_where": {
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 24.84,
+     "gap_p95_mm": 41.0
+    },
+    "tee_through_jacket": {
+     "covered": 1153,
+     "poke": 15,
+     "poke_pct": 1.3,
+     "poke_max_mm": 11.78,
+     "poke_p90_mm": 11.4,
+     "where": {
+      "LeftShoulder": 7,
+      "UpperChest": 2,
+      "Hips": 2,
+      "LeftUpperArm": 2,
+      "Spine": 1,
+      "RightShoulder": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 7.86,
+     "gap_p95_mm": 11.4
+    },
+    "waist_gap_mm_max": 44.0,
+    "waist_gap_mm_sum_16_dirs": 288.0
+   },
+   "hip_flex_100": {
+    "local_volume_ratio": 0.673,
+    "ring_area_ratio": 0.839,
+    "ring_points": 31,
+    "region_radius_m": 0.12,
+    "body_through_outfit": {
+     "covered": 6723,
+     "poke": 32,
+     "poke_pct": 0.48,
+     "poke_max_mm": 14.63,
+     "poke_p90_mm": 13.09,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "RightFoot": 2,
+      "LeftUpperLeg": 1
+     },
+     "exposed_over_opening": 23,
+     "exposed_where": {
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 24.39,
+     "gap_p95_mm": 40.92
+    },
+    "tee_through_jacket": {
+     "covered": 1141,
+     "poke": 7,
+     "poke_pct": 0.61,
+     "poke_max_mm": 11.78,
+     "poke_p90_mm": 11.78,
+     "where": {
+      "UpperChest": 2,
+      "Hips": 2,
+      "LeftShoulder": 1,
+      "Spine": 1,
+      "RightShoulder": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 8.2,
+     "gap_p95_mm": 11.5
+    },
+    "waist_gap_mm_max": 78.0,
+    "waist_gap_mm_sum_16_dirs": 370.0
+   },
+   "wrist_70": {
+    "local_volume_ratio": 0.819,
+    "ring_area_ratio": 0.798,
+    "ring_points": 37,
+    "region_radius_m": 0.05,
+    "body_through_outfit": {
+     "covered": 6704,
+     "poke": 31,
+     "poke_pct": 0.46,
+     "poke_max_mm": 14.63,
+     "poke_p90_mm": 13.17,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "RightFoot": 2
+     },
+     "exposed_over_opening": 23,
+     "exposed_where": {
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 24.86,
+     "gap_p95_mm": 41.0
+    },
+    "tee_through_jacket": {
+     "covered": 1140,
+     "poke": 7,
+     "poke_pct": 0.61,
+     "poke_max_mm": 11.78,
+     "poke_p90_mm": 11.78,
+     "where": {
+      "UpperChest": 2,
+      "Hips": 2,
+      "LeftShoulder": 1,
+      "Spine": 1,
+      "RightShoulder": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 8.18,
+     "gap_p95_mm": 11.46
+    },
+    "waist_gap_mm_max": 44.0,
+    "waist_gap_mm_sum_16_dirs": 288.0
+   },
+   "spine_twist_45": {
+    "local_volume_ratio": 0.974,
+    "ring_area_ratio": 0.973,
+    "ring_points": 40,
+    "region_radius_m": 0.16,
+    "body_through_outfit": {
+     "covered": 6697,
+     "poke": 31,
+     "poke_pct": 0.46,
+     "poke_max_mm": 14.63,
+     "poke_p90_mm": 13.17,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "RightFoot": 2
+     },
+     "exposed_over_opening": 23,
+     "exposed_where": {
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 24.83,
+     "gap_p95_mm": 41.0
+    },
+    "tee_through_jacket": {
+     "covered": 1148,
+     "poke": 8,
+     "poke_pct": 0.7,
+     "poke_max_mm": 11.98,
+     "poke_p90_mm": 11.61,
+     "where": {
+      "UpperChest": 3,
+      "Spine": 2,
+      "LeftShoulder": 1,
+      "RightShoulder": 1,
+      "Hips": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 8.06,
+     "gap_p95_mm": 11.38
+    },
+    "waist_gap_mm_max": 58.0,
+    "waist_gap_mm_sum_16_dirs": 296.0
+   },
+   "fist": {
+    "hand_self_intersecting_tri_pairs": 447,
+    "hand_self_intersections_at_rest": 0,
+    "body_through_outfit": {
+     "covered": 6696,
+     "poke": 31,
+     "poke_pct": 0.46,
+     "poke_max_mm": 14.63,
+     "poke_p90_mm": 13.17,
+     "where": {
+      "LeftToes": 21,
+      "RightToes": 8,
+      "RightFoot": 2
+     },
+     "exposed_over_opening": 23,
+     "exposed_where": {
+      "LeftFoot": 9,
+      "LeftToes": 6,
+      "RightToes": 5,
+      "RightFoot": 3
+     },
+     "gap_median_mm": 24.89,
+     "gap_p95_mm": 41.0
+    },
+    "tee_through_jacket": {
+     "covered": 1140,
+     "poke": 7,
+     "poke_pct": 0.61,
+     "poke_max_mm": 11.78,
+     "poke_p90_mm": 11.78,
+     "where": {
+      "UpperChest": 2,
+      "Hips": 2,
+      "LeftShoulder": 1,
+      "Spine": 1,
+      "RightShoulder": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 8.18,
+     "gap_p95_mm": 11.46
+    },
+    "waist_gap_mm_max": 44.0,
+    "waist_gap_mm_sum_16_dirs": 288.0
+   }
+  },
+  "feminine": {
+   "rest": {
+    "body_through_outfit": {
+     "covered": 6763,
+     "poke": 32,
+     "poke_pct": 0.47,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.59,
+     "where": {
+      "LeftToes": 19,
+      "RightToes": 7,
+      "RightFoot": 6
+     },
+     "exposed_over_opening": 21,
+     "exposed_where": {
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "RightToes": 4,
+      "RightFoot": 2
+     },
+     "gap_median_mm": 24.01,
+     "gap_p95_mm": 39.97
+    },
+    "tee_through_jacket": {
+     "covered": 1163,
+     "poke": 9,
+     "poke_pct": 0.77,
+     "poke_max_mm": 11.13,
+     "poke_p90_mm": 10.99,
+     "where": {
+      "UpperChest": 6,
+      "LeftShoulder": 1,
+      "RightShoulder": 1,
+      "Hips": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 7.47,
+     "gap_p95_mm": 12.53
+    },
+    "waist_gap_mm_max": 48.0,
+    "waist_gap_mm_sum_16_dirs": 258.0
+   },
+   "elbow_135": {
+    "local_volume_ratio": 0.653,
+    "ring_area_ratio": 0.38,
+    "ring_points": 46,
+    "region_radius_m": 0.075,
+    "body_through_outfit": {
+     "covered": 6826,
+     "poke": 32,
+     "poke_pct": 0.47,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.59,
+     "where": {
+      "LeftToes": 19,
+      "RightToes": 7,
+      "RightFoot": 6
+     },
+     "exposed_over_opening": 25,
+     "exposed_where": {
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "LeftThumbDistal": 4,
+      "RightToes": 4,
+      "RightFoot": 2
+     },
+     "gap_median_mm": 23.93,
+     "gap_p95_mm": 40.13
+    },
+    "tee_through_jacket": {
+     "covered": 1172,
+     "poke": 10,
+     "poke_pct": 0.85,
+     "poke_max_mm": 11.13,
+     "poke_p90_mm": 10.97,
+     "where": {
+      "UpperChest": 6,
+      "LeftShoulder": 1,
+      "LeftUpperArm": 1,
+      "RightShoulder": 1,
+      "Hips": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 7.47,
+     "gap_p95_mm": 12.6
+    },
+    "waist_gap_mm_max": 48.0,
+    "waist_gap_mm_sum_16_dirs": 260.0
+   },
+   "knee_135": {
+    "local_volume_ratio": 0.706,
+    "ring_area_ratio": 0.454,
+    "ring_points": 58,
+    "region_radius_m": 0.1,
+    "body_through_outfit": {
+     "covered": 6727,
+     "poke": 36,
+     "poke_pct": 0.54,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.58,
+     "where": {
+      "LeftToes": 19,
+      "RightFoot": 9,
+      "RightToes": 7,
+      "LeftFoot": 1
+     },
+     "exposed_over_opening": 33,
+     "exposed_where": {
+      "LeftLowerLeg": 9,
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "RightToes": 4,
+      "LeftUpperLeg": 3,
+      "RightFoot": 2
+     },
+     "gap_median_mm": 23.61,
+     "gap_p95_mm": 39.19
+    },
+    "tee_through_jacket": {
+     "covered": 1163,
+     "poke": 9,
+     "poke_pct": 0.77,
+     "poke_max_mm": 11.13,
+     "poke_p90_mm": 10.99,
+     "where": {
+      "UpperChest": 6,
+      "LeftShoulder": 1,
+      "RightShoulder": 1,
+      "Hips": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 7.47,
+     "gap_p95_mm": 12.53
+    },
+    "waist_gap_mm_max": 48.0,
+    "waist_gap_mm_sum_16_dirs": 258.0
+   },
+   "shoulder_abd_90": {
+    "local_volume_ratio": 0.992,
+    "ring_area_ratio": 0.935,
+    "ring_points": 40,
+    "region_radius_m": 0.09,
+    "body_through_outfit": {
+     "covered": 6764,
+     "poke": 32,
+     "poke_pct": 0.47,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.59,
+     "where": {
+      "LeftToes": 19,
+      "RightToes": 7,
+      "RightFoot": 6
+     },
+     "exposed_over_opening": 21,
+     "exposed_where": {
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "RightToes": 4,
+      "RightFoot": 2
+     },
+     "gap_median_mm": 24.01,
+     "gap_p95_mm": 39.97
+    },
+    "tee_through_jacket": {
+     "covered": 1166,
+     "poke": 9,
+     "poke_pct": 0.77,
+     "poke_max_mm": 11.13,
+     "poke_p90_mm": 10.99,
+     "where": {
+      "UpperChest": 6,
+      "LeftShoulder": 1,
+      "RightShoulder": 1,
+      "Hips": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 7.43,
+     "gap_p95_mm": 12.5
+    },
+    "waist_gap_mm_max": 48.0,
+    "waist_gap_mm_sum_16_dirs": 258.0
+   },
+   "shoulder_abd_150": {
+    "local_volume_ratio": 0.773,
+    "ring_area_ratio": 0.672,
+    "ring_points": 40,
+    "region_radius_m": 0.09,
+    "body_through_outfit": {
+     "covered": 6757,
+     "poke": 32,
+     "poke_pct": 0.47,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.59,
+     "where": {
+      "LeftToes": 19,
+      "RightToes": 7,
+      "RightFoot": 6
+     },
+     "exposed_over_opening": 21,
+     "exposed_where": {
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "RightToes": 4,
+      "RightFoot": 2
+     },
+     "gap_median_mm": 24.02,
+     "gap_p95_mm": 40.02
+    },
+    "tee_through_jacket": {
+     "covered": 1169,
+     "poke": 15,
+     "poke_pct": 1.28,
+     "poke_max_mm": 11.13,
+     "poke_p90_mm": 10.88,
+     "where": {
+      "LeftShoulder": 7,
+      "UpperChest": 6,
+      "RightShoulder": 1,
+      "Hips": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 7.18,
+     "gap_p95_mm": 12.15
+    },
+    "waist_gap_mm_max": 48.0,
+    "waist_gap_mm_sum_16_dirs": 258.0
+   },
+   "hip_flex_100": {
+    "local_volume_ratio": 0.744,
+    "ring_area_ratio": 0.893,
+    "ring_points": 31,
+    "region_radius_m": 0.12,
+    "body_through_outfit": {
+     "covered": 6754,
+     "poke": 36,
+     "poke_pct": 0.53,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.58,
+     "where": {
+      "LeftToes": 19,
+      "RightFoot": 9,
+      "RightToes": 7,
+      "LeftFoot": 1
+     },
+     "exposed_over_opening": 21,
+     "exposed_where": {
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "RightToes": 4,
+      "RightFoot": 2
+     },
+     "gap_median_mm": 23.53,
+     "gap_p95_mm": 39.97
+    },
+    "tee_through_jacket": {
+     "covered": 1165,
+     "poke": 10,
+     "poke_pct": 0.86,
+     "poke_max_mm": 11.13,
+     "poke_p90_mm": 10.97,
+     "where": {
+      "UpperChest": 6,
+      "Hips": 2,
+      "LeftShoulder": 1,
+      "RightShoulder": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 7.47,
+     "gap_p95_mm": 12.29
+    },
+    "waist_gap_mm_max": 144.0,
+    "waist_gap_mm_sum_16_dirs": 476.0
+   },
+   "wrist_70": {
+    "local_volume_ratio": 0.854,
+    "ring_area_ratio": 0.805,
+    "ring_points": 43,
+    "region_radius_m": 0.05,
+    "body_through_outfit": {
+     "covered": 6775,
+     "poke": 32,
+     "poke_pct": 0.47,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.59,
+     "where": {
+      "LeftToes": 19,
+      "RightToes": 7,
+      "RightFoot": 6
+     },
+     "exposed_over_opening": 21,
+     "exposed_where": {
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "RightToes": 4,
+      "RightFoot": 2
+     },
+     "gap_median_mm": 24.01,
+     "gap_p95_mm": 39.97
+    },
+    "tee_through_jacket": {
+     "covered": 1163,
+     "poke": 9,
+     "poke_pct": 0.77,
+     "poke_max_mm": 11.13,
+     "poke_p90_mm": 10.99,
+     "where": {
+      "UpperChest": 6,
+      "LeftShoulder": 1,
+      "RightShoulder": 1,
+      "Hips": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 7.47,
+     "gap_p95_mm": 12.53
+    },
+    "waist_gap_mm_max": 48.0,
+    "waist_gap_mm_sum_16_dirs": 258.0
+   },
+   "spine_twist_45": {
+    "local_volume_ratio": 0.973,
+    "ring_area_ratio": 0.971,
+    "ring_points": 84,
+    "region_radius_m": 0.16,
+    "body_through_outfit": {
+     "covered": 6764,
+     "poke": 32,
+     "poke_pct": 0.47,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.59,
+     "where": {
+      "LeftToes": 19,
+      "RightToes": 7,
+      "RightFoot": 6
+     },
+     "exposed_over_opening": 21,
+     "exposed_where": {
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "RightToes": 4,
+      "RightFoot": 2
+     },
+     "gap_median_mm": 24.0,
+     "gap_p95_mm": 39.97
+    },
+    "tee_through_jacket": {
+     "covered": 1165,
+     "poke": 8,
+     "poke_pct": 0.69,
+     "poke_max_mm": 11.15,
+     "poke_p90_mm": 11.14,
+     "where": {
+      "UpperChest": 5,
+      "LeftShoulder": 1,
+      "RightShoulder": 1,
+      "Hips": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 7.47,
+     "gap_p95_mm": 12.24
+    },
+    "waist_gap_mm_max": 48.0,
+    "waist_gap_mm_sum_16_dirs": 250.0
+   },
+   "fist": {
+    "hand_self_intersecting_tri_pairs": 348,
+    "hand_self_intersections_at_rest": 0,
+    "body_through_outfit": {
+     "covered": 6761,
+     "poke": 32,
+     "poke_pct": 0.47,
+     "poke_max_mm": 14.5,
+     "poke_p90_mm": 12.59,
+     "where": {
+      "LeftToes": 19,
+      "RightToes": 7,
+      "RightFoot": 6
+     },
+     "exposed_over_opening": 21,
+     "exposed_where": {
+      "LeftToes": 8,
+      "LeftFoot": 7,
+      "RightToes": 4,
+      "RightFoot": 2
+     },
+     "gap_median_mm": 24.01,
+     "gap_p95_mm": 39.97
+    },
+    "tee_through_jacket": {
+     "covered": 1163,
+     "poke": 9,
+     "poke_pct": 0.77,
+     "poke_max_mm": 11.13,
+     "poke_p90_mm": 10.99,
+     "where": {
+      "UpperChest": 6,
+      "LeftShoulder": 1,
+      "RightShoulder": 1,
+      "Hips": 1
+     },
+     "exposed_over_opening": 0,
+     "exposed_where": {},
+     "gap_median_mm": 7.47,
+     "gap_p95_mm": 12.53
+    },
+    "waist_gap_mm_max": 48.0,
+    "waist_gap_mm_sum_16_dirs": 258.0
+   }
+  },
+  "default_file_cut_edges": {
+   "rest": {
+    "cut_edge_verts": 130,
+    "uncovered": 0
+   },
+   "elbow_135": {
+    "cut_edge_verts": 130,
+    "uncovered": 0
+   },
+   "knee_135": {
+    "cut_edge_verts": 130,
+    "uncovered": 0
+   },
+   "shoulder_abd_90": {
+    "cut_edge_verts": 130,
+    "uncovered": 0
+   },
+   "shoulder_abd_150": {
+    "cut_edge_verts": 130,
+    "uncovered": 6
+   },
+   "hip_flex_100": {
+    "cut_edge_verts": 130,
+    "uncovered": 0
+   },
+   "wrist_70": {
+    "cut_edge_verts": 130,
+    "uncovered": 0
+   },
+   "spine_twist_45": {
+    "cut_edge_verts": 130,
+    "uncovered": 0
+   },
+   "fist": {
+    "cut_edge_verts": 130,
+    "uncovered": 0
+   }
+  }
+ }
+}

@@ -77,7 +77,7 @@ These are per feature, and only when a real game needs them (policy: fix correct
 | Feature | Fit | When |
 |---|---|---|
 | Cloth | A GPU or CPU position-based dynamics solver on a skinned mesh's vertices, colliding with capsules from the rig | When a game's characters need capes or flags. A vertex-shader wind sway covers foliage already |
-| Soft bodies | Rapier has no soft bodies; PBD as for cloth | Same as cloth |
+| Soft bodies | Rapier has had soft bodies since 0.36.0 (the vendored 0.36.1 has cloth, tube, rope and FEM builders and particle attachments, `vendor/rapier3d/src/dynamics/soft_body/`); the engine doesn't expose them yet | Same as cloth |
 | Hair | Strands are heavy; cards with physics on their roots are what games ship | After cloth |
 | Motion matching | Needs a large mocap database per game; deferred (section 9) | Deferred |
 | Active ragdolls | Ragdolls exist (`Ragdoll`); active ones add joint motors toward the animated pose, which rapier supports | The cheapest of these; a candidate if a game wants hit reactions |

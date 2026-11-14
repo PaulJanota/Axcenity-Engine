@@ -31,6 +31,7 @@ mod behavior_trees;
 mod block_undo;
 mod branding;
 mod character_studio;
+mod character_workspace;
 mod chrome;
 mod collab_trust;
 mod collision_groups;
@@ -482,6 +483,10 @@ pub struct EditorApp {
     effect_editor: Box<crate::effect_editor::EffectEditor>,
     /// The Character Studio tab (facial animation F6).
     character_studio: Box<crate::character_studio::CharacterStudio>,
+    /// The Character Studio workspace, open in place of the start screen
+    /// (`docs/research/character-studio.md` CS2), and where it keeps files.
+    character_workspace: Option<Box<crate::character_workspace::CharacterWorkspace>>,
+    characters_folder: Option<PathBuf>,
     /// The block script whose tab is under the mouse, set as it's drawn:
     /// Ctrl+Z and Ctrl+Y are its then, and the world's keys aren't taken.
     block_tab_pointer: Option<String>,
@@ -1116,6 +1121,8 @@ impl EditorApp {
             object_viewer: Default::default(),
             effect_editor: Default::default(),
             character_studio: Default::default(),
+            character_workspace: None,
+            characters_folder: None,
             block_tab_pointer: None,
             scene_drawn_pass: None,
             ui_designer: UiDesigner::default(),
@@ -1835,6 +1842,8 @@ impl EditorApp {
                 // The panels were drawn before it ran.
                 ctx.request_repaint();
             }
+        } else if self.character_workspace.is_some() {
+            self.character_workspace_ui(ui, render_state);
         } else {
             self.start_screen(ui);
         }

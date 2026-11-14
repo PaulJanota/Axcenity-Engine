@@ -102,7 +102,7 @@ R15 is built: sculpt brushes and the Mesh Filter (#317), masks saved (#322), `_C
 
 `docs/research/facial-animation.md` (Paul's facial animation spec, 2026-11-14): blend shapes imported (F1) and morphed on the GPU (F2, [ADR-0028](../Architecture/Architecture-Decisions/ADR-0028-Facial-Animation-Morph-Targets-On-GPU-And-FaceControls.md)), face profiles and `FaceControls` (F3), expressions, face layers, blinking and gaze (F4), lip sync (F5), Character Studio's Face workspace (F6), facial LOD, profiling and replication (F7). F0–F7 built (PRs #358, #360, #367, #377, #384, #385, #389, #392, #393 F7a facial LOD, F7b replication).
 
-`docs/research/character-studio.md` (Paul's character redesign and Character Studio brief, 2026-11-14): CS1 the smooth stylized default humanoid on CC0 base meshes ([ADR-0030](../Architecture/Architecture-Decisions/ADR-0030-Smooth-Stylized-Humanoid-On-CC0-Base-Meshes-With-Mask-Shapes.md)) **done**; CS2 the Character Studio workspace from the start screen, CS3 live customization (`HumanoidDescription`), CS4 face and animation preview, CS5 character files, CS6 polish next.
+`docs/research/character-studio.md` (Paul's character redesign and Character Studio brief, 2026-11-14): CS1 the smooth stylized default humanoid on CC0 base meshes ([ADR-0030](../Architecture/Architecture-Decisions/ADR-0030-Smooth-Stylized-Humanoid-On-CC0-Base-Meshes-With-Mask-Shapes.md)) **done**; CS2 the Character Studio workspace from the start screen ([ADR-0031](../Architecture/Architecture-Decisions/ADR-0031-Character-Studio-Is-A-Workspace-Of-Its-Own.md)) **done**; CS3 live customization (`HumanoidDescription`), CS4 face and animation preview, CS5 character files, CS6 polish next.
 
 ## Feature plan (unified plan, Phases 1–93)
 

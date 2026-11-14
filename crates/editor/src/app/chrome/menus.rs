@@ -73,7 +73,9 @@ impl EditorApp {
                 }
                 ui.add_space(4.0);
                 // On macOS they're in the system menu bar instead (`native_menu.rs`).
-                if !window_frame::NATIVE_MENU {
+                // Character Studio is a workspace of its own: the Game
+                // Editor's menus aren't shown over it.
+                if !window_frame::NATIVE_MENU && self.character_workspace.is_none() {
                     self.header_menus(ui);
                 }
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {

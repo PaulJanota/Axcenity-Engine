@@ -1,0 +1,12 @@
+category = "feature"
+subsystem = "editor"
+title = "Character Studio opens from the start screen"
+details = "Character Studio is now a workspace of its own: pick Character Studio on the start screen (or run axcenity-editor --character-studio) to make a character with no project open. Start from a preset (Everyday, Casual, Athlete, Long hair, Base body), shape the build and muscle, pick one of six hairstyles or none, and dress the character piece by piece (top, outerwear, bottoms, shoes), all on a live, idling character. Turn, pan and zoom round it, jump to the full body, face, front, side or back, and change the lighting and backdrop. Every change can be undone, and Save keeps the character as a .character.json file listed on the start page. The Game Editor's menus aren't shown while it's open."
+features = ["animation.facial"]
+fixes = []
+introduces_issues = []
+prs = []
+commits = []
+stability = "experimental"
+public = true
+evidence = "verified"

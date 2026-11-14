@@ -1459,9 +1459,13 @@ impl EditorApp {
     pub(super) fn title(&self) -> String {
         // A `*` after the name means unsaved changes, as in most editors.
         let unsaved = if self.unsaved() { "*" } else { "" };
-        match &self.project {
-            Some(project) => format!("{}{unsaved} - Axcenity Editor", project.name),
-            None => "Axcenity Editor".to_string(),
+        match (&self.project, &self.character_workspace) {
+            (Some(project), _) => format!("{}{unsaved} - Axcenity Editor", project.name),
+            (None, Some(workspace)) => {
+                let unsaved = if workspace.dirty() { "*" } else { "" };
+                format!("{}{unsaved} - Character Studio", workspace.look().name)
+            }
+            (None, None) => "Axcenity Editor".to_string(),
         }
     }
     /// Fills the window under the menu bar with the start screen, and opens
@@ -1512,6 +1516,12 @@ impl EditorApp {
             Some(StartAction::CollaborateSettings) => {
                 self.settings.page = super::settings::SettingsPage::TeamCreate;
                 self.settings.open = true;
+            }
+            Some(StartAction::NewCharacter(preset)) => {
+                self.open_character_workspace(Some(preset), None)
+            }
+            Some(StartAction::OpenCharacter(file)) => {
+                self.open_character_workspace(None, Some(&file))
             }
             None => {}
         }

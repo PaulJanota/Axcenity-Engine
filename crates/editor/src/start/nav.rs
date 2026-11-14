@@ -94,12 +94,18 @@ impl StartNav {
 
 /// The pages, in the order both layouts list them: the page, its icon, its
 /// name, and what its tooltip adds.
-const PAGES: [(Page, &str, &str, &str); 6] = [
+const PAGES: [(Page, &str, &str, &str); 7] = [
     (
         Page::Projects,
         icons::SQUARES_FOUR,
         "Projects",
         "Your projects, and templates to start from",
+    ),
+    (
+        Page::Characters,
+        icons::USER_FOCUS,
+        "Character Studio",
+        "Create and customize characters, no project needed",
     ),
     (
         Page::Team,

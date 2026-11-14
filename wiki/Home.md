@@ -88,11 +88,11 @@ The engine's persistent engineering memory: what exists, why it exists, how it w
 
 | Date | Page | Change |
 |---|---|---|
+| 2026-11-14 | ADR-0031, Specialized editors | Character Studio opens from the start screen as a workspace of its own (CS2) |
 | 2026-11-14 | ADR-0030, Characters, roadmap | The default humanoid redesigned: smooth stylized, new outfit and hair, body and face shapes (CS1) |
 | 2026-11-14 | Lighting and atmosphere | Ray traced reflections: glossy surfaces mirror what's around them, even off screen |
 | 2026-11-14 | Lighting and atmosphere | Dynamic GI on graphics cards without ray tracing: the same probes, traced in software |
 | 2026-11-14 | Animation, roadmap | Character Studio edits faces: profile, controls, shape mapping, expressions, lip-sync timeline (F6) |
-| 2026-11-14 | ADR-0028, roadmap | Facial animation (F0–F7): GPU blend shapes, FaceControls, face profiles, lip sync, Character Studio |
 | 2026-11-14 | Lighting and atmosphere, roadmap | What played games get of ray tracing, and the plan to close the gaps (RL1–RL5) |
 
 Keep the five newest rows here; the full list is [Documentation history](Changelog/Documentation-History.md).

@@ -1,6 +1,23 @@
 # Character Studio
 
-Character Studio is a document tab beside the Scene (View > Character Studio, the ribbon's Panels menu, or Ctrl+K "Character Studio"). It shows the selected character's face in a preview of its own, with the **Face** workspace (facial animation F6, decision D9 in [research/facial-animation.md](../research/facial-animation.md)). The default-humanoid work adds its body and customization workspaces to the same tab.
+Character Studio has two places: a **workspace** of its own, opened from the start screen with no project (`docs/research/character-studio.md` CS2, decision D9), for making and dressing characters; and the **tab** in the Game Editor, for a character's face.
+
+## The workspace
+
+Code: `crates/editor/src/character_workspace.rs` (the look, undo, the preview World, saving) with `character_workspace/ui.rs` (the layout) and `stage.rs` (camera, lighting, backdrop); the editor's side, which opens it and asks before leaving, is `app/character_workspace.rs`; the start page is `start/characters.rs`.
+
+- **Opening it.** The start screen's sidebar (or top bar) has **Character Studio**, after Projects. Its page has New Character, a card per preset and the saved characters with Open. `axcenity-editor --character-studio` opens straight into it. It needs no project; while it's open the Game Editor's menus aren't shown, and the window is titled with the character's name (`*` while unsaved).
+- **Its files** are in the editor's data folder, `Character Studio/` (on Windows `%APPDATA%\Axcenity Editor\data\Character Studio`): the default humanoid's model, parts, clips and state machine (`project::add_default_humanoid`, `add_humanoid_parts`, written where missing), and the saved characters, `characters/<name>.character.json`.
+- **The layout.** A toolbar (Home, the workspace's name, the character's name to type in, "Not saved", Undo, Redo, Reset, Save), the categories down the left (Presets, Body, Hair, Clothing, Stage), the viewport in the middle, the category's controls on the right, and a status line (where characters are saved, what was saved, what failed). The side panels narrow before the viewport does.
+- **The character** is the default humanoid built from its parts file (`project::modular_character`) in a preview World of the workspace's own, with a round floor. The engine's `Animators` pose it each frame, so it idles, and its parts follow the body. The look's body shapes are leaned on in the poses drawn: the build (`Build_Heavy`, `Build_Slim`, `Build_Muscular`) and the clothing masks the worn garments name in `Humanoid.customization.json` (`DEFAULT_HUMANOID_CUSTOMIZATION`). A game doesn't get them yet: that's the `HumanoidDescription` of CS3.
+- **Presets**: Everyday (the default), Casual, Athlete, Long hair and Base body. Picking one keeps the name. **Body**: Build (slim to heavy) and Muscle sliders; a drag is one undo step. **Hair**: the six styles and Bald. **Clothing**: Top, Outerwear, Bottoms and Shoes, each a row of choices with None. **Stage** (not saved with the character): lighting (Studio, Daylight, Sunset, Night: the preview's time of day), backdrop (Grey, Light, Dark, or the sky) and the views.
+- **The viewport**: drag to turn, right- or middle-drag to pan, scroll to zoom, double-click for the full body again; the view buttons over its top are Full body, Face, Front, Side and Back.
+- **Undo** is the workspace's own: each change of the look is a step (Ctrl+Z, Ctrl+Y or Ctrl+Shift+Z), Reset is one (it keeps the name). **Save** (Ctrl+S) writes the file; Home with unsaved changes asks Save, Don't Save or Cancel.
+- **The character file** (`Look`, `format_version` 1): `name`, `build` (-1 to 1), `muscle` (0 to 1), and the part worn in each slot (`hair`, `top`, `outerwear`, `bottom`, `shoes`; `null` for none). Missing values are the default character's, values out of range are brought in, and a file from a newer format is refused with a message.
+
+## The tab
+
+Character Studio's tab is a document tab beside the Scene (View > Character Studio, the ribbon's Panels menu, or Ctrl+K "Character Studio"). It shows the selected character's face in a preview of its own, with the **Face** workspace (facial animation F6, decision D9 in [research/facial-animation.md](../research/facial-animation.md)). The default-humanoid work adds its body and customization workspaces to the same tab.
 
 Code: `crates/editor/src/character_studio.rs` (state, preview, the tab) with `character_studio/rig.rs`, `expressions.rs` and `lip_sync.rs` (one per section); the editor's side, which applies what the tab asks for, is `app/character_studio.rs`.
 
@@ -34,4 +51,6 @@ Code: `crates/editor/src/character_studio.rs` (state, preview, the tab) with `ch
 
 ## Tests
 
-`character_studio/tests.rs` (what a selection shows, mapping shapes, retiming and adding visemes, the waveform, lip sync and expression previews, file names and listing) and `app/character_studio.rs` (the tab on Remy in hello-character: sliders with undo, saving an expression, a profile and a lip sync, Make from a WAV, Key in Animation). `AXCENITY_SNAPSHOTS=<folder>` saves each section, preview drawn, as `character-studio-*.png`. `anim`'s `face_tests.rs` covers `pose_face`, `face_point`, `FaceRig::moves` and `CompiledVisemes::apply`.
+The workspace: `character_workspace/tests.rs` (what a look wears, its body shapes and masks, the file's round trip and newer files refused, presets, dressing the preview with undo and save, every part posed with the look's shapes, every category drawn, the views) and `app/character_workspace.rs` (the start screen lists it, a preset opens it without the Game Editor's menus, leaving asks to save, a saved file opens clean).
+
+The tab: `character_studio/tests.rs` (what a selection shows, mapping shapes, retiming and adding visemes, the waveform, lip sync and expression previews, file names and listing) and `app/character_studio.rs` (the tab on Remy in hello-character: sliders with undo, saving an expression, a profile and a lip sync, Make from a WAV, Key in Animation). `AXCENITY_SNAPSHOTS=<folder>` saves each section, preview drawn, as `character-studio-*.png`. `anim`'s `face_tests.rs` covers `pose_face`, `face_point`, `FaceRig::moves` and `CompiledVisemes::apply`.

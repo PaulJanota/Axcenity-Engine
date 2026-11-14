@@ -18,6 +18,7 @@ use eframe::egui::{self, CornerRadius, FontId, Rect, RichText, Sense, Stroke, po
 
 mod backdrop;
 mod cards;
+mod characters;
 mod dialogs;
 pub(crate) mod docs;
 mod global;
@@ -178,6 +179,11 @@ pub enum StartAction {
     SetUpCollaborate,
     /// Settings, at Collaborate.
     CollaborateSettings,
+    /// Character Studio on a new character from the preset at this index
+    /// (`character_workspace::presets`; 0 is the default character).
+    NewCharacter(usize),
+    /// Character Studio on a saved character file.
+    OpenCharacter(PathBuf),
 }
 
 /// How joining a Collaborate session from the start screen is going, for
@@ -211,6 +217,7 @@ impl JoinProgress {
 enum Page {
     #[default]
     Projects,
+    Characters,
     Team,
     Global,
     Learn,
@@ -348,6 +355,8 @@ pub struct StartScreen {
     join: Option<JoinProgress>,
     /// What the Join dialog asked for this frame.
     join_asked: Option<StartAction>,
+    /// Where Character Studio keeps its files.
+    characters_folder: Option<PathBuf>,
 }
 
 impl StartScreen {
@@ -589,6 +598,11 @@ impl StartScreen {
                         match self.page {
                             Page::Projects => {
                                 if let Some(picked) = self.projects_page(ui, &ctx, projects) {
+                                    action = Some(picked);
+                                }
+                            }
+                            Page::Characters => {
+                                if let Some(picked) = self.characters_page(ui) {
                                     action = Some(picked);
                                 }
                             }

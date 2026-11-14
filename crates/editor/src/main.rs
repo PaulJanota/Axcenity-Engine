@@ -37,6 +37,7 @@ mod block_editor;
 mod build_game;
 mod build_tools;
 mod character_studio;
+mod character_workspace;
 mod command_palette;
 mod console;
 mod constraints;
@@ -217,7 +218,10 @@ fn main() -> eframe::Result {
     // is offered there, to join with a click.
     let mut rest: Vec<String> = Vec::new();
     let mut offered: Option<String> = None;
+    // `--character-studio`: open straight into Character Studio.
+    let character_studio = first.as_deref() == Some(character_workspace::FLAG.as_ref());
     let (folder, handoff) = match first {
+        Some(flag) if flag == character_workspace::FLAG => (None, None),
         Some(flag) if flag == relaunch::RESUME_FLAG => (None, args.next().map(PathBuf::from)),
         Some(flag) if flag == app::team::JOIN_FLAG || flag == app::team::OLD_JOIN_FLAG => {
             rest.push(app::team::JOIN_FLAG.to_owned());
@@ -279,6 +283,7 @@ fn main() -> eframe::Result {
             app.set_window_icon(window_icon());
             app.load_settings(ctx, creation_context.storage);
             app.set_global_assets(global_assets::default_folder());
+            app.set_characters_folder(character_workspace::default_folder());
             app.set_templates_folder(EditorApp::default_templates_folder());
             app.set_plugin_data(plugins::default_folder());
             app.cook_textures_in_background();
@@ -294,6 +299,8 @@ fn main() -> eframe::Result {
                 app.join_from_start(invite, None);
             } else if let Some(link) = offered {
                 app.offer_join(link);
+            } else if character_studio {
+                app.open_character_studio();
             }
             Ok(Box::new(app))
         }),

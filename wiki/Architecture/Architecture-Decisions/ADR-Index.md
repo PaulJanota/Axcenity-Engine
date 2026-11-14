@@ -44,6 +44,7 @@ Decisions with long-term consequences, so later work doesn't silently reverse th
 | [ADR-0028](ADR-0028-Facial-Animation-Morph-Targets-On-GPU-And-FaceControls.md) | Blend shapes morphed on the GPU before skinning (sparse deltas per mesh, weights per item); faces driven by a `FaceControls` Instance of standard controls, mapped to shapes and bones by `*.face.json` profiles found by fit (Axcenity, ARKit, VRM, Oculus visemes) | Accepted | 2026-11-14 |
 | [ADR-0029](ADR-0029-Server-Moved-Characters-And-Prediction.md) | With `Players.CharacterAuthority = "Server"`, the server moves players' characters from numbered moves paid from a real-time allowance; devices predict, rewind to the server's answer and take later moves again (no fixed ticks, no determinism) | Accepted | 2026-11-14 |
 | [ADR-0030](ADR-0030-Smooth-Stylized-Humanoid-On-CC0-Base-Meshes-With-Mask-Shapes.md) | The default humanoid is smooth stylized, built by script on Blender Studio's CC0 base meshes (masculine body plus a feminine frame shape), with the skeleton contract unchanged; clothes hide skin with mask blend shapes on one seamless body | Accepted | 2026-11-14 |
+| [ADR-0031](ADR-0031-Character-Studio-Is-A-Workspace-Of-Its-Own.md) | Character Studio is a workspace of its own: opened from the start screen with no project, in place of the start screen, with its own preview World, undo and files, sharing the engine's systems | Accepted | 2026-11-14 |
 
 ## Superseded and changed decisions found in the plans
 

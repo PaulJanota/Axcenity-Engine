@@ -39,25 +39,39 @@ pub static DEFAULT_HUMANOID_MODEL: &[u8] =
 pub static DEFAULT_HUMANOID_PARTS: &[u8] =
     include_bytes!("../../../assets/characters/humanoid/HumanoidParts.glb");
 
+/// What the parts file's shapes and garments need besides vertices
+/// (`Humanoid.customization.json`): the bones the frame and face shapes
+/// move, each garment's category and the clothing masks it needs, the
+/// hair styles and the default outfit. Character Studio reads it.
+pub static DEFAULT_HUMANOID_CUSTOMIZATION: &str =
+    include_str!("../../../assets/characters/humanoid/Humanoid.customization.json");
+
 /// The parts file, in a project ([`add_humanoid_parts`]).
 pub const DEFAULT_HUMANOID_PARTS_PATH: &str = "assets/models/Humanoid/HumanoidParts.glb";
 
-/// The parts in [`DEFAULT_HUMANOID_PARTS`], by object name: a base body
-/// (under clothes), the head with its face shapes, eyes, hands, clothes
-/// and the hair styles (no hair is Bald).
-pub const HUMANOID_PARTS: [&str; 12] = [
+/// The parts in [`DEFAULT_HUMANOID_PARTS`], by object name: the body (one
+/// seamless mesh, head included, with the face, frame, build, identity and
+/// clothing mask shapes), the face's eyes, teeth, brows and lashes, the
+/// clothes and the hair styles (no hair is bald). Which masks each garment
+/// needs is in `Humanoid.customization.json`.
+pub const HUMANOID_PARTS: [&str; 17] = [
     "Body",
-    "Head",
     "Eyes",
-    "Hands",
-    "Jacket",
-    "Shirt",
-    "Trousers",
-    "Shoes",
-    "Hair_Short",
-    "Hair_Medium",
+    "Teeth",
+    "Brows",
+    "Lashes",
+    "Shirt_Tee",
+    "Jacket_Cropped",
+    "Pants_Cargo",
+    "Shoes_Sneakers",
+    "Underwear_Briefs",
+    "Underwear_Top",
+    "Hair_Swept",
+    "Hair_Bob",
     "Hair_Long",
-    "Hair_Curly",
+    "Hair_Crop",
+    "Hair_Buzz",
+    "Hair_Ponytail",
 ];
 
 /// Its 32 starter animations (`HumanoidAnimations.glb`).
@@ -71,8 +85,8 @@ pub const STUDS_PER_METRE: f32 = 5.0 / 1.75;
 /// The model's box in its file (metres, glTF axes: Y up, facing +Z), its
 /// A-posed hands out to the sides and its hair above 1.75 m. A test checks
 /// it against the file.
-pub(crate) const MODEL_MIN: [f32; 3] = [-0.6655, 0.0, -0.1285];
-pub(crate) const MODEL_MAX: [f32; 3] = [0.6655, 1.7822, 0.214];
+pub(crate) const MODEL_MIN: [f32; 3] = [-0.6092, 0.0, -0.1511];
+pub(crate) const MODEL_MAX: [f32; 3] = [0.6092, 1.7819, 0.2153];
 
 /// The root part's size in studs: 0.30 m round (the spec's capsule radius)
 /// and 5 studs tall.
@@ -262,16 +276,15 @@ fn part_box(name: &str) -> Option<Corners> {
     boxes[index]
 }
 
-/// The parts that together cover the base body: with all of them on, a
-/// [`modular_character`]'s base body is hidden.
-pub const COVERING: [&str; 3] = ["Shirt", "Trousers", "Shoes"];
-
 /// The default character built from parts ([`HUMANOID_PARTS`]) instead of
-/// one mesh: like [`default_character`], but its `Body` is the base body
-/// from the parts file, and each of `parts` (the rest of
-/// [`HUMANOID_PARTS`]: a head, clothes, a hair style) is a MeshPart inside
-/// it that follows its pose ([`humanoid_part`]). One draw per part instead
-/// of one in all, for a character whose parts change. The project needs
+/// one mesh: like [`default_character`], but its `Body` is the body from
+/// the parts file (head included), and each of `parts` (the rest of
+/// [`HUMANOID_PARTS`]: the face's parts, clothes, a hair style) is a
+/// MeshPart inside it that follows its pose ([`humanoid_part`]). One draw
+/// per part instead of one in all, for a character whose parts change.
+/// Clothes cover the body by the body's mask shapes, which the character's
+/// appearance sets (Character Studio, `docs/research/character-studio.md`
+/// CS3); until then the body is drawn whole under them. The project needs
 /// [`add_default_humanoid`] and [`add_humanoid_parts`].
 pub fn modular_character(world: &mut World, position: Vector3, parts: &[&str]) -> InstanceId {
     let character = default_character(world, position);
@@ -297,15 +310,6 @@ pub fn modular_character(world: &mut World, position: Vector3, parts: &[&str]) -
     }
     for part in parts.iter().filter(|part| **part != "Body") {
         humanoid_part(world, body, part);
-    }
-    // Clothes cover all the base body but the head and hands (parts of
-    // their own), which would show through them at the shoulders and
-    // waist as they bend: dressed, the base body is hidden (it still
-    // leads the pose).
-    if COVERING.iter().all(|covering| parts.contains(covering)) {
-        world
-            .set_property(body, "Transparency", Value::Number(1.0))
-            .expect("a MeshPart has it");
     }
     character
 }
@@ -598,7 +602,7 @@ mod tests {
             (body.y - body_size.y * 0.5 - 10.0).abs() < 1e-4,
             "feet on the ground"
         );
-        assert!((body_size.y - 1.7822 * STUDS_PER_METRE).abs() < 1e-3);
+        assert!((body_size.y - 1.7819 * STUDS_PER_METRE).abs() < 1e-3);
         assert_eq!(
             property("Body", "Orientation"),
             Vector3::new(0.0, 180.0, 0.0)
@@ -639,7 +643,7 @@ mod tests {
         let mut world = World::new();
         let character = default_character(&mut world, Vector3::default());
         let body = world.find_first_child(character, "Body").unwrap();
-        let hair = humanoid_part(&mut world, body, "Hair_Curly");
+        let hair = humanoid_part(&mut world, body, "Hair_Crop");
         let instance = world.get(hair).unwrap();
         assert_eq!(instance.parent(), Some(body));
         assert_eq!(
@@ -649,15 +653,16 @@ mod tests {
     }
 
     #[test]
-    fn a_modular_character_leads_its_parts_from_the_base_body_hidden_when_dressed() {
+    fn a_modular_character_leads_its_parts_from_the_body() {
         let mut world = World::new();
         let dressed = [
-            "Head",
             "Eyes",
-            "Hands",
-            "Shirt",
-            "Trousers",
-            "Shoes",
+            "Teeth",
+            "Brows",
+            "Lashes",
+            "Shirt_Tee",
+            "Pants_Cargo",
+            "Shoes_Sneakers",
             "Hair_Long",
         ];
         let character = modular_character(&mut world, Vector3::new(4.0, 0.0, 0.0), &dressed);
@@ -667,7 +672,9 @@ mod tests {
             property(&world, body, "MeshId"),
             Some(Value::String(humanoid_part_mesh_id("Body")))
         );
-        assert_eq!(
+        // The body is the whole person, head included, so it stays drawn:
+        // clothes hide skin with its mask shapes, not by hiding it.
+        assert_ne!(
             property(&world, body, "Transparency"),
             Some(Value::Number(1.0))
         );
@@ -678,8 +685,8 @@ mod tests {
                 Some(Value::String(humanoid_part_mesh_id(part)))
             );
         }
-        // The base body's box: feet on the ground at the position, about
-        // 1.6 m (the head is a part of its own) of a 5-stud character.
+        // The body's box: feet on the ground at the position, the whole
+        // 1.75 m (5 studs) person.
         let size = property(&world, body, "Size")
             .and_then(|v| v.as_vector3())
             .unwrap();
@@ -687,14 +694,7 @@ mod tests {
             .and_then(|v| v.as_vector3())
             .unwrap();
         assert!((at.y - size.y * 0.5).abs() < 0.05, "{at:?} {size:?}");
-        assert!(size.y > 3.5 && size.y < 5.0, "{size:?}");
+        assert!(size.y > 4.8 && size.y < 5.2, "{size:?}");
         assert!((at.x - 4.0).abs() < 0.5);
-        // Undressed, it shows.
-        let bare = modular_character(&mut world, Vector3::default(), &["Head", "Hands"]);
-        let bare_body = world.find_first_child(bare, "Body").unwrap();
-        assert_eq!(
-            property(&world, bare_body, "Transparency"),
-            Some(Value::Number(0.0))
-        );
     }
 }

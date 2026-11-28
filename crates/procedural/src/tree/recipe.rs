@@ -33,6 +33,7 @@ pub struct TreeRecipe {
     pub pipe: f32,
     pub mesh: MeshDetail,
     pub bark: Bark,
+    pub leaves: Leaves,
 }
 
 impl Default for TreeRecipe {
@@ -209,6 +210,7 @@ impl Default for MeshDetail {
                     min_radius: 0.03,
                     base_radial: 2,
                     triangles: 25_000,
+                    leaves: 0.5,
                 },
                 LodDetail {
                     segment_scale: 2.5,
@@ -216,6 +218,7 @@ impl Default for MeshDetail {
                     min_radius: 0.07,
                     base_radial: 1,
                     triangles: 8_000,
+                    leaves: 0.25,
                 },
                 LodDetail {
                     segment_scale: 4.0,
@@ -223,6 +226,7 @@ impl Default for MeshDetail {
                     min_radius: 0.18,
                     base_radial: 1,
                     triangles: 2_000,
+                    leaves: 0.1,
                 },
             ],
         }
@@ -245,8 +249,12 @@ pub struct LodDetail {
     /// The trunk base's corners as a multiple of the trunk's (1: no
     /// buttresses); the relief is only on the most detailed copy.
     pub base_radial: u32,
-    /// The most triangles it may have.
+    /// The most triangles it may have, leaves included.
     pub triangles: u32,
+    /// The share of the leaf clusters it keeps (spread evenly over the
+    /// crown, the kept ones grown to cover about as much), each leaf of two
+    /// triangles instead of four.
+    pub leaves: f32,
 }
 
 impl Default for LodDetail {
@@ -257,6 +265,65 @@ impl Default for LodDetail {
             min_radius: 0.1,
             base_radial: 1,
             triangles: 25_000,
+            leaves: 0.5,
+        }
+    }
+}
+
+/// The leaves: clusters of a few leaves each along the outer parts of the
+/// finest limbs, fewer where the crown shades itself.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Leaves {
+    pub enabled: bool,
+    /// Clusters per place on a limb (one place per ring of its outer part),
+    /// on average.
+    pub clusters: f32,
+    /// Leaves in each cluster, fanned round its stalk.
+    pub per_cluster: u32,
+    /// A leaf's length in studs, give or take `size_jitter` (a share), and
+    /// its width as a share of its length.
+    pub size: f32,
+    pub size_jitter: f32,
+    pub width: f32,
+    /// Degrees each leaf leans out from its cluster's stalk.
+    pub spread: f32,
+    /// How far a leaf's tip hangs down and its halves fold up along the
+    /// middle, as shares of its length and width.
+    pub droop: f32,
+    pub fold: f32,
+    /// 0 to 1: how far each cluster turns to face out of the crown.
+    pub face_out: f32,
+    /// 0 to 1: how many clusters deep in the crown's own shade are left
+    /// out (where little light reaches, a real tree grows few leaves).
+    pub shade_thinning: f32,
+    /// Linear color.
+    pub color: [f32; 3],
+    pub roughness: f32,
+    /// How much light passes through a leaf from behind.
+    pub translucency: f32,
+    /// How far (studs) each leaf shivers in the wind.
+    pub flutter: f32,
+}
+
+impl Default for Leaves {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            clusters: 3.5,
+            per_cluster: 6,
+            size: 1.0,
+            size_jitter: 0.25,
+            width: 0.5,
+            spread: 55.0,
+            droop: 0.15,
+            fold: 0.2,
+            face_out: 0.5,
+            shade_thinning: 0.6,
+            color: [0.09, 0.2, 0.045],
+            roughness: 0.6,
+            translucency: 0.42,
+            flutter: 0.06,
         }
     }
 }
@@ -382,6 +449,7 @@ impl TreeRecipe {
             pipe: 0.6,
             mesh: MeshDetail::default(),
             bark: Bark::default(),
+            leaves: Leaves::default(),
         };
         match preset {
             Preset::Oak => TreeRecipe {
@@ -465,6 +533,19 @@ impl TreeRecipe {
                     color: [0.21, 0.13, 0.09],
                     ..Bark::default()
                 },
+                leaves: Leaves {
+                    clusters: 4.0,
+                    per_cluster: 9,
+                    size: 0.9,
+                    size_jitter: 0.15,
+                    width: 0.08,
+                    spread: 40.0,
+                    droop: 0.05,
+                    fold: 0.0,
+                    face_out: 0.2,
+                    color: [0.04, 0.11, 0.05],
+                    ..Leaves::default()
+                },
                 ..base
             },
             Preset::Birch => TreeRecipe {
@@ -501,6 +582,15 @@ impl TreeRecipe {
                     color: [0.72, 0.7, 0.66],
                     roughness: 0.8,
                     ..Bark::default()
+                },
+                leaves: Leaves {
+                    clusters: 4.0,
+                    size: 0.6,
+                    width: 0.6,
+                    droop: 0.25,
+                    color: [0.13, 0.25, 0.05],
+                    flutter: 0.09,
+                    ..Leaves::default()
                 },
                 ..base
             },
@@ -539,6 +629,10 @@ impl TreeRecipe {
                 bark: Bark {
                     color: [0.3, 0.27, 0.24],
                     ..Bark::default()
+                },
+                leaves: Leaves {
+                    enabled: false,
+                    ..Leaves::default()
                 },
                 ..base
             },

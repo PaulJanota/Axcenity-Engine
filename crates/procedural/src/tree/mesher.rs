@@ -26,6 +26,9 @@ pub struct TreeMesh {
     pub tangents: Vec<[f32; 4]>,
     /// Three per triangle, counter-clockwise seen from outside.
     pub indices: Vec<u32>,
+    /// Leaves only, one per position: out of the crown there (`xyz`) and
+    /// how much sky reaches it (`w`, 0 to 1); empty for bark.
+    pub crown: Vec<[f32; 4]>,
 }
 
 impl TreeMesh {
@@ -55,17 +58,18 @@ impl TreeMesh {
     }
 }
 
-/// One copy of the tree's bark: the trunk's base (empty when the recipe
-/// gives it none) and everything else.
+/// One copy of the tree: the trunk's base (empty when the recipe gives it
+/// none), the rest of the bark, and the leaves.
 #[derive(Clone, Debug, Default)]
-pub struct BarkLevel {
+pub struct TreeLevel {
     pub base: TreeMesh,
     pub bark: TreeMesh,
+    pub leaves: TreeMesh,
 }
 
-impl BarkLevel {
+impl TreeLevel {
     pub fn triangles(&self) -> usize {
-        self.base.triangles() + self.bark.triangles()
+        self.base.triangles() + self.bark.triangles() + self.leaves.triangles()
     }
 }
 
@@ -141,8 +145,8 @@ fn corners(recipe: &TreeRecipe, radius: f32, share: f32) -> u32 {
 
 /// The bark of every limb in `skeleton`, most detailed first, then each
 /// simpler copy, each within its triangle budget (thinner limbs are left
-/// out until it fits).
-pub fn bark_levels(recipe: &TreeRecipe, skeleton: &Skeleton) -> Vec<BarkLevel> {
+/// out until it fits). Their leaves are left empty for [`super::leaves`].
+pub fn bark_levels(recipe: &TreeRecipe, skeleton: &Skeleton) -> Vec<TreeLevel> {
     let frames: Vec<Vec<Vec3>> = skeleton.stems.iter().map(sides).collect();
     let details = std::iter::once(Detail::full(recipe)).chain(
         recipe
@@ -152,7 +156,7 @@ pub fn bark_levels(recipe: &TreeRecipe, skeleton: &Skeleton) -> Vec<BarkLevel> {
             .take(MAX_COPIES)
             .map(|lod| Detail::lod(recipe, lod)),
     );
-    let mut levels: Vec<BarkLevel> = Vec::new();
+    let mut levels: Vec<TreeLevel> = Vec::new();
     for mut detail in details {
         let mut level = mesh_level(recipe, skeleton, &frames, detail);
         // Thin limbs go first until it fits, then the base's detail, then
@@ -195,10 +199,10 @@ fn mesh_level(
     skeleton: &Skeleton,
     frames: &[Vec<Vec3>],
     detail: Detail,
-) -> BarkLevel {
+) -> TreeLevel {
     let stems = &skeleton.stems;
     let mut kept = vec![false; stems.len()];
-    let mut level = BarkLevel::default();
+    let mut level = TreeLevel::default();
     for (index, stem) in stems.iter().enumerate() {
         let parent = stem.parent.map(|(parent, _)| parent);
         kept[index] = match parent {

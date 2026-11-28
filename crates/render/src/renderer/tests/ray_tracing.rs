@@ -438,7 +438,7 @@ mod sun_shadows {
             // No shadow maps, so any shadow seen is ray traced.
             shadow_quality: Some(ShadowQuality::Off),
             ray_traced_shadows: Some(shadows),
-            // Every pixel traced (High's preset is Half).
+            // Every pixel traced (every preset's is Half).
             ray_traced_shadow_resolution: Some(crate::RayShadowResolution::Full),
             ..crate::GraphicsSettings::default()
         }
@@ -449,12 +449,13 @@ mod sun_shadows {
         let Some((device, queue)) = ray_test_device() else {
             return skipped();
         };
-        // The presets: every pixel at Ultra, one of each 2 × 2 below.
+        // The presets: one pixel of each 2 × 2 at every one, Ultra too
+        // (2026-11-28); Full is an override.
         let preset =
             |quality| crate::GraphicsSettings::preset(quality).ray_traced_shadow_resolution();
         assert_eq!(
             preset(crate::Quality::Ultra),
-            crate::RayShadowResolution::Full
+            crate::RayShadowResolution::Half
         );
         assert_eq!(
             preset(crate::Quality::High),

@@ -828,7 +828,7 @@ fn advanced_rows(
                     .on_hover_text(
                         "Full traces the sun's rays from every pixel. Half traces one pixel of \
                          each 2 × 2 (a different one each frame under TAA) and fills the rest \
-                         from those on the same surface. Full at Ultra, Half below.",
+                         from those on the same surface. Half at every preset.",
                     );
                 },
             );

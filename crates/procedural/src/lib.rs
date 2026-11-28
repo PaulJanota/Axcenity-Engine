@@ -40,6 +40,7 @@ pub mod terrain_scatter;
 mod terrain_scatter_tests;
 #[cfg(test)]
 mod tests;
+pub mod tree;
 
 use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;

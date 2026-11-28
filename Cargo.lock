@@ -1110,6 +1110,8 @@ dependencies = [
  "axcenity-terrain",
  "axcenity-workspace-hack",
  "glam 0.34.3",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

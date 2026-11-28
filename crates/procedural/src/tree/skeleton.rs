@@ -1,0 +1,288 @@
+//! A tree's limbs as center lines with a radius at each point, grown from
+//! a recipe: the trunk, then each level on the limbs of the level before.
+//! Meshing them is `mesher.rs`'s.
+
+use glam::{Quat, Vec3};
+
+use super::recipe::{BranchLevel, MAX_LEVELS, TreeRecipe};
+use crate::rng::Rng;
+
+/// One limb: the trunk (level 0) or a branch of a later level.
+#[derive(Clone, Debug)]
+pub struct Stem {
+    /// 0 for the trunk, 1 for the first branch level, and so on.
+    pub level: usize,
+    /// The limb it grows on and where along it (0 at its base, 1 at its
+    /// tip); `None` for the trunk.
+    pub parent: Option<(usize, f32)>,
+    /// Its center line from base to tip, at least two points. A branch's
+    /// first point is on its parent's center line, so its base is buried in
+    /// the parent and no gap shows where they meet.
+    pub points: Vec<Vec3>,
+    /// Its radius at each point, in studs.
+    pub radii: Vec<f32>,
+    /// Studs along the center line from its base to each point.
+    pub along: Vec<f32>,
+    /// Studs along its parent's center line from the trunk's base to where
+    /// it grows, so the bark's texture runs on from the parent's.
+    pub v_start: f32,
+    /// The most its radius may be anywhere: a little under its parent's
+    /// where it grows, so the pipe model never makes a limb burst out of
+    /// the one it grows on.
+    cap: f32,
+}
+
+impl Stem {
+    /// Its whole length in studs.
+    pub fn length(&self) -> f32 {
+        self.along.last().copied().unwrap_or(0.0)
+    }
+
+    /// The point, direction and radius at `t` (0 at its base, 1 at its tip).
+    pub fn at(&self, t: f32) -> (Vec3, Vec3, f32) {
+        let target = t.clamp(0.0, 1.0) * self.length();
+        let last = self.points.len() - 1;
+        let mut i = 0;
+        while i + 1 < last && self.along[i + 1] < target {
+            i += 1;
+        }
+        let span = (self.along[i + 1] - self.along[i]).max(1e-6);
+        let f = ((target - self.along[i]) / span).clamp(0.0, 1.0);
+        let point = self.points[i].lerp(self.points[i + 1], f);
+        let direction = (self.points[i + 1] - self.points[i]).normalize_or(Vec3::Y);
+        let radius = self.radii[i] + (self.radii[i + 1] - self.radii[i]) * f;
+        (point, direction, radius)
+    }
+
+    /// The unit direction at point `i` (along the segment after it; at the
+    /// tip, the segment before).
+    pub fn direction(&self, i: usize) -> Vec3 {
+        let last = self.points.len() - 1;
+        let (a, b) = if i < last {
+            (i, i + 1)
+        } else {
+            (last - 1, last)
+        };
+        (self.points[b] - self.points[a]).normalize_or(Vec3::Y)
+    }
+}
+
+/// Every limb of a tree, the trunk first, each before the limbs on it.
+#[derive(Clone, Debug)]
+pub struct Skeleton {
+    pub stems: Vec<Stem>,
+}
+
+/// The seed for variant `variant` of a recipe seeded with `seed`.
+pub(super) fn variant_seed(seed: u64, variant: u32) -> u64 {
+    Rng::new(seed, u64::from(variant) ^ 0x7EE5_0000_0000_0000).next()
+}
+
+/// Grows the limbs of `recipe`'s tree number `variant`.
+pub fn grow(recipe: &TreeRecipe, variant: u32) -> Skeleton {
+    let seed = variant_seed(recipe.seed, variant);
+    let mut stems = vec![trunk(recipe, seed)];
+    let mut parents = vec![0];
+    for (level_index, level) in recipe.levels.iter().take(MAX_LEVELS).enumerate() {
+        let mut grown = Vec::new();
+        for &parent in &parents {
+            for i in 0..level.count {
+                // Each limb's own generator, from its parent and number, so
+                // a change to one level's count doesn't move another's.
+                let mut rng = Rng::new(
+                    seed ^ ((level_index as u64 + 1) << 56),
+                    ((parent as u64) << 20) | u64::from(i),
+                );
+                if let Some(stem) =
+                    branch(recipe, level, level_index + 1, &stems, parent, i, &mut rng)
+                {
+                    stems.push(stem);
+                    grown.push(stems.len() - 1);
+                }
+            }
+        }
+        parents = grown;
+    }
+    pipe_radii(&mut stems, recipe.pipe);
+    Skeleton { stems }
+}
+
+/// How many segments a limb `length` studs long is cut into.
+fn segments(length: f32, segment_length: f32) -> usize {
+    let per = segment_length.max(0.05);
+    ((length / per).ceil() as usize).clamp(3, 32)
+}
+
+fn trunk(recipe: &TreeRecipe, seed: u64) -> Stem {
+    let trunk = &recipe.trunk;
+    let mut rng = Rng::new(seed, 0);
+    let length = trunk.length.max(0.1);
+    let radius = trunk.radius.max(0.01);
+    let lean_side = rng.range(0.0, std::f32::consts::TAU);
+    let lean = trunk.lean.to_radians();
+    let up =
+        Quat::from_axis_angle(Vec3::new(lean_side.cos(), 0.0, lean_side.sin()), lean) * Vec3::Y;
+    let phases = [
+        rng.range(0.0, std::f32::consts::TAU),
+        rng.range(0.0, std::f32::consts::TAU),
+    ];
+    let wave = std::f32::consts::TAU / trunk.wobble_length.max(0.5);
+    // The wobble grows from nothing at the ground, so the foot stands where
+    // the tree is placed.
+    let wobble = |h: f32| {
+        let grow = (h / length).min(1.0);
+        trunk.wobble
+            * grow
+            * Vec3::new(
+                (h * wave + phases[0]).sin(),
+                0.0,
+                (h * wave * 1.37 + phases[1]).sin(),
+            )
+    };
+    let sink = trunk.sink.max(0.0);
+    let n = segments(length + sink, recipe.mesh.segment_length);
+    let mut points = Vec::with_capacity(n + 1);
+    let mut radii = Vec::with_capacity(n + 1);
+    for k in 0..=n {
+        let h = -sink + (length + sink) * k as f32 / n as f32;
+        points.push(up * h + wobble(h.max(0.0)));
+        let t = (h / length).clamp(0.0, 1.0);
+        let taper = 1.0 + (trunk.tip_radius - 1.0) * t;
+        let flare = 1.0 + trunk.flare * (-h.max(0.0) / trunk.flare_height.max(0.1)).exp();
+        radii.push(radius * taper.max(0.0) * flare);
+    }
+    let along = lengths_along(&points);
+    Stem {
+        level: 0,
+        parent: None,
+        points,
+        radii,
+        along,
+        v_start: 0.0,
+        cap: f32::INFINITY,
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn branch(
+    recipe: &TreeRecipe,
+    level: &BranchLevel,
+    level_index: usize,
+    stems: &[Stem],
+    parent: usize,
+    i: u32,
+    rng: &mut Rng,
+) -> Option<Stem> {
+    let on = &stems[parent];
+    let count = level.count.max(1) as f32;
+    let (start, end) = (level.start.clamp(0.0, 1.0), level.end.clamp(0.0, 1.0));
+    let jitter = rng.range(-0.35, 0.35);
+    let t = (start + (end - start) * ((i as f32 + 0.5 + jitter) / count)).clamp(0.0, 1.0);
+    // The trunk's sunk foot isn't a place to grow from.
+    let t = if on.level == 0 {
+        let ground = recipe.trunk.sink.max(0.0) / on.length().max(1e-3);
+        t.max(ground)
+    } else {
+        t
+    };
+    let (base, parent_direction, parent_radius) = on.at(t);
+    let length = on.length() * level.length * level.length_along.at(t) * rng.range(0.85, 1.15);
+    let cap = parent_radius * 0.9;
+    let radius = (parent_radius * level.radius).min(cap);
+    if length < 0.2 || radius < recipe.mesh.min_radius {
+        return None;
+    }
+    // Turned round its parent by the roll, from a side that doesn't twist
+    // with the parent's own direction.
+    let side = parent_direction.any_orthonormal_vector();
+    let roll = (level.roll * i as f32 + rng.range(-12.0, 12.0)).to_radians();
+    let axis = Quat::from_axis_angle(parent_direction, roll) * side;
+    let angle = (level.angle + rng.range(-1.0, 1.0) * level.angle_spread).to_radians();
+    let mut direction = (Quat::from_axis_angle(axis, angle) * parent_direction).normalize();
+    let n = segments(length, recipe.mesh.segment_length);
+    let step = length / n as f32;
+    let mut points = Vec::with_capacity(n + 1);
+    let mut radii = Vec::with_capacity(n + 1);
+    let mut point = base;
+    let tip = level.tip_radius.clamp(0.0, 1.0);
+    for k in 0..=n {
+        points.push(point);
+        let along = k as f32 / n as f32;
+        radii.push(radius * (1.0 + (tip - 1.0) * along));
+        // Bends: down under its weight, which grows with how level it is,
+        // up toward the light, and a little wander.
+        let share = 1.0 / n as f32;
+        let level_ness = 1.0 - direction.y.abs();
+        let wander = Vec3::new(
+            rng.range(-1.0, 1.0),
+            rng.range(-1.0, 1.0),
+            rng.range(-1.0, 1.0),
+        );
+        direction = (direction
+            + Vec3::NEG_Y * level.gravity * share * (0.4 + level_ness)
+            + Vec3::Y * level.upward * share
+            + wander * level.randomness * share * 1.5)
+            .normalize_or(direction);
+        point += direction * step;
+    }
+    let along = lengths_along(&points);
+    let v_start = on.v_start + on.length() * t;
+    Some(Stem {
+        level: level_index,
+        parent: Some((parent, t)),
+        points,
+        radii,
+        along,
+        v_start,
+        cap,
+    })
+}
+
+fn lengths_along(points: &[Vec3]) -> Vec<f32> {
+    let mut total = 0.0;
+    let mut along = Vec::with_capacity(points.len());
+    along.push(0.0);
+    for pair in points.windows(2) {
+        total += pair[0].distance(pair[1]);
+        along.push(total);
+    }
+    along
+}
+
+/// Thickens each limb toward the pipe model: at each point, its cross-section
+/// at least that of its own tip and every limb growing beyond that point.
+/// Limbs come after the one they grow on, so going backwards finishes each
+/// limb before its parent counts it.
+fn pipe_radii(stems: &mut [Stem], strength: f32) {
+    let strength = strength.clamp(0.0, 1.0);
+    if strength <= 0.0 {
+        return;
+    }
+    for index in (0..stems.len()).rev() {
+        // (where along this limb, its child's starting area)
+        let children: Vec<(f32, f32)> = stems
+            .iter()
+            .filter_map(|child| match child.parent {
+                Some((parent, t)) if parent == index => Some((t, child.radii[0].powi(2))),
+                _ => None,
+            })
+            .collect();
+        let stem = &mut stems[index];
+        let length = stem.length().max(1e-6);
+        let tip_area = stem.radii.last().copied().unwrap_or(0.0).powi(2);
+        let cap = stem.cap;
+        for k in 0..stem.points.len() {
+            let t = stem.along[k] / length;
+            let beyond: f32 = children
+                .iter()
+                .filter(|(at, _)| *at >= t)
+                .map(|(_, area)| area)
+                .sum();
+            let pipe = (beyond + tip_area).sqrt();
+            let own = stem.radii[k];
+            if pipe > own {
+                stem.radii[k] = (own + (pipe - own) * strength).min(cap.max(own));
+            }
+        }
+    }
+}

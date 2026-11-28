@@ -126,6 +126,11 @@ pub struct Model {
     /// each the corners of one convex piece, fitted like the triangles.
     /// Empty when it has none.
     pub collision: Vec<Vec<[f32; 3]>>,
+    /// The file's `_PROXY` objects (see [`lod::level_of`]): a few cheap
+    /// triangles standing in for the model in far shadows and ray tracing
+    /// (a generated tree's bare limbs and coarse crown cards), fitted like
+    /// the triangles, never drawn as the model. Empty when it has none.
+    pub proxy: Vec<Primitive>,
     /// Problems that didn't stop it loading, such as an FBX texture that
     /// isn't there (the model is drawn without it). They finish the sentence
     /// "The model `…` ".
@@ -185,6 +190,7 @@ impl Model {
                     tangents,
                     regions: primitive.regions.clone(),
                     skin_uvs: primitive.skin_uvs.clone(),
+                    colors: primitive.colors.clone(),
                     indices: primitive.indices.clone(),
                     material,
                     joints: primitive.joints.clone(),
@@ -202,6 +208,7 @@ impl Model {
             primitives,
             hull_points: self.hull_points.clone(),
             collision: self.collision.clone(),
+            proxy: self.proxy.iter().map(Primitive::shared).collect(),
             warnings: Vec::new(),
             rig: self.rig.clone(),
             morph_targets: self.morph_targets.clone(),
@@ -265,6 +272,11 @@ pub struct Primitive {
     /// of a garment that lie under another are left out as the body's
     /// are (`hidden.rs`, `Model::without_covered`).
     pub skin_uvs: Vec<[f32; 2]>,
+    /// One per position, or empty: the file's vertex colours (`COLOR_0`,
+    /// linear RGBA). A generated tree packs its foliage data here (`R`
+    /// occlusion, `G` sway, `B` flutter, `A` weathering or tint; the
+    /// `procedural` crate's `tree/paint.rs`).
+    pub colors: Vec<[f32; 4]>,
     /// Three per triangle, counter-clockwise seen from outside.
     pub indices: Vec<u32>,
     pub material: ModelMaterial,
@@ -297,6 +309,7 @@ impl Primitive {
             + std::mem::size_of_val(self.tangents.as_slice())
             + self.regions.len()
             + std::mem::size_of_val(self.skin_uvs.as_slice())
+            + std::mem::size_of_val(self.colors.as_slice())
             + std::mem::size_of_val(self.indices.as_slice())
             + std::mem::size_of_val(self.joints.as_slice())
             + std::mem::size_of_val(self.weights.as_slice())
@@ -358,6 +371,7 @@ impl Primitive {
             tangents: Vec::new(),
             regions: Vec::new(),
             skin_uvs: Vec::new(),
+            colors: Vec::new(),
             indices,
             material,
             joints: Vec::new(),
@@ -371,6 +385,28 @@ impl Primitive {
     /// Different for every primitive loaded.
     pub fn key(&self) -> u64 {
         self.key
+    }
+
+    /// The same triangles under the same key (so whatever was made of them
+    /// is used again), for a new model that keeps them unchanged.
+    pub(crate) fn shared(&self) -> Primitive {
+        Primitive {
+            key: self.key,
+            positions: self.positions.clone(),
+            normals: self.normals.clone(),
+            uvs: self.uvs.clone(),
+            tangents: self.tangents.clone(),
+            regions: self.regions.clone(),
+            skin_uvs: self.skin_uvs.clone(),
+            colors: self.colors.clone(),
+            indices: self.indices.clone(),
+            material: self.material.clone(),
+            joints: self.joints.clone(),
+            weights: self.weights.clone(),
+            morphs: self.morphs.clone(),
+            lods: self.lods.iter().map(Primitive::shared).collect(),
+            level: self.level,
+        }
     }
 }
 
@@ -1985,6 +2021,11 @@ impl Reader<'_> {
                 .map(|uvs| uvs.collect())
                 .filter(|uvs: &Vec<[f32; 2]>| uvs.len() == count)
                 .unwrap_or_default();
+            let colors: Vec<[f32; 4]> = reader
+                .read_colors(0)
+                .map(|colors| colors.into_rgba_f32().collect())
+                .filter(|colors: &Vec<[f32; 4]>| colors.len() == count)
+                .unwrap_or_default();
 
             // Each corner's 4 joints (the skin's numbers after the ones
             // before it) and weights, adding up to 1.
@@ -2047,6 +2088,7 @@ impl Reader<'_> {
                 tangents: Vec::new(),
                 regions,
                 skin_uvs,
+                colors,
                 indices,
                 material,
                 joints,
@@ -2569,7 +2611,10 @@ fn fit_with(
     simplify: Option<Option<InProject<'_>>>,
 ) -> Result<Model, ModelError> {
     // A file with only `_LOD1` objects has them as its full model.
-    if primitives.iter().all(|primitive| primitive.level > 0) {
+    if primitives
+        .iter()
+        .all(|primitive| primitive.level > 0 && primitive.level != lod::PROXY)
+    {
         for primitive in &mut primitives {
             primitive.level = 0;
         }
@@ -2636,6 +2681,13 @@ fn fit_with(
             );
         }
     }
+    // The stand-in, placed as the rest, kept apart.
+    let (mut proxy, primitives): (Vec<Primitive>, Vec<Primitive>) = primitives
+        .into_iter()
+        .partition(|primitive| primitive.level == lod::PROXY);
+    for primitive in &mut proxy {
+        primitive.level = 0;
+    }
     let collision = pieces
         .into_iter()
         .map(|piece| {
@@ -2658,6 +2710,7 @@ fn fit_with(
         },
         hull_points,
         collision,
+        proxy,
         warnings: Vec::new(),
         rig: None,
         morph_targets: Vec::new(),

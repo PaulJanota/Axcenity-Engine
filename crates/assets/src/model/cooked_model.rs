@@ -126,6 +126,7 @@ fn encode(model: &Model) -> Option<Vec<u8>> {
         primitives,
         hull_points,
         collision,
+        proxy,
         warnings,
         rig,
         morph_targets,
@@ -148,6 +149,10 @@ fn encode(model: &Model) -> Option<Vec<u8>> {
     }
     body.u32(primitives.len() as u32);
     for primitive in primitives {
+        encode_primitive(&mut body, &mut images, primitive)?;
+    }
+    body.u32(proxy.len() as u32);
+    for primitive in proxy {
         encode_primitive(&mut body, &mut images, primitive)?;
     }
     match rig {
@@ -200,6 +205,7 @@ fn encode_primitive(out: &mut Output, images: &mut Images, primitive: &Primitive
         tangents,
         regions,
         skin_uvs,
+        colors,
         indices,
         material,
         joints,
@@ -215,6 +221,7 @@ fn encode_primitive(out: &mut Output, images: &mut Images, primitive: &Primitive
     out.u32(regions.len() as u32);
     out.0.extend_from_slice(regions);
     out.array(skin_uvs);
+    out.array(colors);
     out.u32s(indices);
     out.u32(joints.len() as u32);
     for joint in joints {
@@ -598,6 +605,11 @@ fn decode(input: &mut Input<'_>, project: &Path, relative: &str) -> Option<Model
     for _ in 0..count {
         primitives.push(decode_primitive(input, &images)?);
     }
+    let count = input.count(1)?;
+    let mut proxy = Vec::with_capacity(count);
+    for _ in 0..count {
+        proxy.push(decode_primitive(input, &images)?);
+    }
     let rig = match input.u8()? {
         0 => None,
         1 => Some(Arc::new(decode_rig(input)?)),
@@ -622,6 +634,7 @@ fn decode(input: &mut Input<'_>, project: &Path, relative: &str) -> Option<Model
     if input.at != input.bytes.len()
         || !primitives
             .iter()
+            .chain(&proxy)
             .flat_map(|primitive| std::iter::once(primitive).chain(&primitive.lods))
             .all(whole)
     {
@@ -634,6 +647,7 @@ fn decode(input: &mut Input<'_>, project: &Path, relative: &str) -> Option<Model
         primitives,
         hull_points,
         collision,
+        proxy,
         warnings: Vec::new(),
         rig,
         morph_targets,
@@ -651,6 +665,7 @@ fn whole(primitive: &Primitive) -> bool {
         && fits(primitive.tangents.len())
         && fits(primitive.regions.len())
         && fits(primitive.skin_uvs.len())
+        && fits(primitive.colors.len())
         && fits(primitive.joints.len())
         && primitive.weights.len() == primitive.joints.len()
 }
@@ -663,6 +678,7 @@ fn decode_primitive(input: &mut Input<'_>, images: &[Arc<Image>]) -> Option<Prim
     let region_count = input.count(1)?;
     let regions = input.take(region_count)?.to_vec();
     let skin_uvs = input.array()?;
+    let colors = input.array()?;
     let indices = input.u32s()?;
     let corners = positions.len();
     if indices.iter().any(|&index| index as usize >= corners) {
@@ -716,6 +732,7 @@ fn decode_primitive(input: &mut Input<'_>, images: &[Arc<Image>]) -> Option<Prim
         tangents,
         regions,
         skin_uvs,
+        colors,
         indices,
         material,
         joints,
@@ -971,7 +988,7 @@ mod tests {
                 primitive.uvs,
                 primitive.tangents,
                 primitive.regions,
-                primitive.skin_uvs,
+                (&primitive.skin_uvs, &primitive.colors),
                 primitive.indices,
                 primitive.joints,
                 primitive.weights,
@@ -1025,6 +1042,10 @@ mod tests {
         );
         out.push_str(&format!("{:?}\n", model.morph_targets));
         for each in &model.primitives {
+            describe_primitive(&mut out, each);
+        }
+        out.push_str("proxy\n");
+        for each in &model.proxy {
             describe_primitive(&mut out, each);
         }
         out
@@ -1171,6 +1192,26 @@ mod tests {
         let again = Assets::new(&project).model_blocking(model).unwrap();
         assert_eq!(describe(&again), describe(&first));
         assert_eq!(again.collision, first.collision);
+        let _ = fs::remove_dir_all(project);
+    }
+
+    #[test]
+    fn a_cooked_model_keeps_its_proxy() {
+        let project = std::env::temp_dir().join(format!(
+            "axcenity-cooked-model-proxy-{}",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&project);
+        let folder = project.join("assets/models");
+        let gltf = crate::model::tests::rock_with_proxy(&folder);
+        fs::write(folder.join("rock.gltf"), gltf).unwrap();
+        let model = "assets/models/rock.gltf";
+        let first = Assets::new(&project).model_blocking(model).unwrap();
+        assert_eq!(first.proxy.len(), 1);
+        assert!(read(&project, model, "").is_some());
+        let again = Assets::new(&project).model_blocking(model).unwrap();
+        assert_eq!(describe(&again), describe(&first));
+        assert_eq!(again.proxy[0].positions, first.proxy[0].positions);
         let _ = fs::remove_dir_all(project);
     }
 

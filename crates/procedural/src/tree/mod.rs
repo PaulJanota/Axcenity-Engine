@@ -14,6 +14,7 @@
 
 pub mod leaves;
 pub mod mesher;
+mod paint;
 pub mod recipe;
 pub mod skeleton;
 
@@ -32,7 +33,7 @@ pub use skeleton::{Skeleton, Stem};
 
 /// Bump when the same recipe and variant would give a different mesh, so
 /// anything kept from an older one (a cooked model) is made again.
-pub const TREE_GENERATOR_VERSION: u32 = 4;
+pub const TREE_GENERATOR_VERSION: u32 = 8;
 
 /// The sway a generated tree's bark is given ([`ModelMaterial::sway`]): a
 /// built-in tree's (`scene/src/foliage.rs`).
@@ -55,8 +56,9 @@ pub struct Tree {
     /// The tree most detailed first, then each simpler copy
     /// ([`MeshDetail::lods`]), each within its triangle budget.
     pub levels: Vec<TreeLevel>,
-    /// Where leaves grow: the outer two thirds of every limb of the last
-    /// level and the tips of the level before, one place per ring.
+    /// Where leaves grow: the outer parts of every living limb of the last
+    /// level and of the level before ([`Leaves::twig_start`],
+    /// [`Leaves::limb_start`]), one place per ring.
     pub leaf_anchors: Vec<LeafAnchor>,
     /// The crown's box, around every place leaves grow.
     pub crown: Crown,
@@ -65,6 +67,10 @@ pub struct Tree {
     /// first `n` clusters' triangles are a thinner crown (a season's
     /// leaf drop).
     pub leaf_clusters: usize,
+    /// The stand-in for far shadows and ray tracing
+    /// ([`MeshDetail::proxy`]): the thick limbs and a few big crossed cards
+    /// on the crown's shell. `None` when the recipe makes none.
+    pub proxy: Option<TreeLevel>,
 }
 
 /// A place on a limb for leaves: where, which way the limb runs, and how
@@ -74,25 +80,43 @@ pub struct LeafAnchor {
     pub position: Vec3,
     pub direction: Vec3,
     pub radius: f32,
+    /// How far its limb carries it in the wind (the `G` of its leaves'
+    /// colour, `paint.rs`).
+    pub sway: f32,
 }
 
 /// Tree number `variant` of `recipe`.
 pub fn generate(recipe: &TreeRecipe, variant: u32) -> Tree {
     let skeleton = skeleton::grow(recipe, variant);
     let mut levels = mesher::bark_levels(recipe, &skeleton);
-    let leaf_anchors = leaf_anchors(&skeleton);
+    let sway = paint::Sway::new(&skeleton);
+    let leaf_anchors = leaf_anchors(&skeleton, &recipe.leaves, &sway);
     let (clusters, crown) = leaves::clusters(recipe, &leaf_anchors);
+    // The stand-in: its bark, and a few big cards on the crown's shell.
+    let mut proxy = mesher::proxy_level(recipe, &skeleton);
+    if let (Some(level), Some(detail)) = (&mut proxy, &recipe.mesh.proxy) {
+        let room = (detail.triangles as usize).saturating_sub(level.triangles());
+        let copy = leaves::CopyLeaves::proxy(detail.leaves, detail.shell, room);
+        level.leaves = leaves::mesh(recipe, &clusters, &crown, copy);
+    }
+    // Wood inside a leafy crown is shaded by it.
+    let shading = (!clusters.is_empty()).then_some(&crown);
+    for level in levels.iter_mut().chain(&mut proxy) {
+        paint::bark(&skeleton, &sway, shading, &mut level.base);
+        paint::bark(&skeleton, &sway, shading, &mut level.bark);
+    }
     for (index, level) in levels.iter_mut().enumerate() {
-        let (budget, keep) = match index {
-            0 => (recipe.mesh.triangles, 1.0),
+        let (budget, keep, shell) = match index {
+            0 => (recipe.mesh.triangles, 1.0, 0.0),
             _ => recipe
                 .mesh
                 .lods
                 .get(index - 1)
-                .map_or((0, 0.0), |lod| (lod.triangles, lod.leaves)),
+                .map_or((0, 0.0, 0.0), |lod| (lod.triangles, lod.leaves, lod.shell)),
         };
         let room = (budget as usize).saturating_sub(level.triangles());
-        level.leaves = leaves::mesh(recipe, &clusters, &crown, keep, index == 0, room);
+        let copy = leaves::CopyLeaves::copy(keep, shell, index == 0, room);
+        level.leaves = leaves::mesh(recipe, &clusters, &crown, copy);
     }
     let leaf_clusters = levels[0].leaves.triangles()
         / (recipe.leaves.per_cluster.max(1) as usize * leaves::leaf_triangles(true));
@@ -102,27 +126,33 @@ pub fn generate(recipe: &TreeRecipe, variant: u32) -> Tree {
         leaf_anchors,
         crown,
         leaf_clusters,
+        proxy,
     }
 }
 
-fn leaf_anchors(skeleton: &Skeleton) -> Vec<LeafAnchor> {
+fn leaf_anchors(skeleton: &Skeleton, leaves: &Leaves, sway: &paint::Sway) -> Vec<LeafAnchor> {
     let deepest = skeleton.stems.iter().map(|s| s.level).max().unwrap_or(0);
     let mut anchors = Vec::new();
-    // The finest limbs from a third of the way out, and the tips of the
-    // limbs they grow on, so the crown fills in between the twigs.
+    // The finest limbs from `twig_start` out, and the outer parts of the
+    // limbs they grow on (from `limb_start`), so the crown fills in
+    // between the twigs.
     let from = |level: usize| {
         if level == deepest {
-            Some(0.35)
+            Some(leaves.twig_start)
         } else if level + 1 == deepest && level > 0 {
-            Some(0.7)
+            Some(leaves.limb_start)
         } else {
             None
         }
     };
-    for stem in &skeleton.stems {
+    for (index, stem) in skeleton.stems.iter().enumerate() {
         let Some(from) = from(stem.level) else {
             continue;
         };
+        // A dead limb has no leaves.
+        if stem.broken {
+            continue;
+        }
         let length = stem.length().max(1e-6);
         for k in 0..stem.points.len() {
             if stem.along[k] / length >= from {
@@ -130,6 +160,7 @@ fn leaf_anchors(skeleton: &Skeleton) -> Vec<LeafAnchor> {
                     position: stem.points[k],
                     direction: stem.direction(k),
                     radius: stem.radii[k],
+                    sway: sway.at(&skeleton.stems, index, stem.along[k] / length),
                 });
             }
         }
@@ -160,21 +191,25 @@ impl Tree {
         let flat = size.cmple(Vec3::splat(1e-6));
         let scale = Vec3::select(flat, Vec3::ONE, size.recip());
         let normal_scale = Vec3::select(flat, Vec3::ONE, size);
+        let fit = |mut copy: Primitive| {
+            for position in &mut copy.positions {
+                *position = ((Vec3::from(*position) - center) * scale).to_array();
+            }
+            for normal in &mut copy.normals {
+                *normal = (Vec3::from(*normal) * normal_scale)
+                    .normalize_or_zero()
+                    .to_array();
+            }
+            copy
+        };
         for copies in levels {
-            for (part, mut copy) in copies.into_iter().enumerate() {
-                for position in &mut copy.positions {
-                    *position = ((Vec3::from(*position) - center) * scale).to_array();
-                }
-                for normal in &mut copy.normals {
-                    *normal = (Vec3::from(*normal) * normal_scale)
-                        .normalize_or_zero()
-                        .to_array();
-                }
+            for (part, copy) in copies.into_iter().enumerate() {
                 if let Some(primitive) = model.primitives.get_mut(part) {
-                    primitive.lods.push(copy);
+                    primitive.lods.push(fit(copy));
                 }
             }
         }
+        model.proxy = self.proxy_primitives(recipe).into_iter().map(fit).collect();
         Ok(model)
     }
 
@@ -194,6 +229,12 @@ impl Tree {
                 };
                 (name, primitives)
             })
+            .chain(
+                // The stand-in, kept apart by the loader (`Model::proxy`).
+                Some(self.proxy_primitives(recipe))
+                    .filter(|primitives| !primitives.is_empty())
+                    .map(|primitives| ("Tree_PROXY".to_owned(), primitives)),
+            )
             .collect()
     }
 
@@ -202,43 +243,6 @@ impl Tree {
     /// leaves were all left out keeps the copy before's, as a primitive's
     /// copies only ever get simpler).
     fn level_primitives(&self, recipe: &TreeRecipe) -> Vec<Vec<Primitive>> {
-        let bark = &recipe.bark;
-        let material = |name: &str| ModelMaterial {
-            name: name.to_owned(),
-            base_color: [bark.color[0], bark.color[1], bark.color[2], 1.0],
-            roughness: bark.roughness.clamp(0.0, 1.0),
-            metalness: 0.0,
-            sway: TREE_SWAY,
-            ..ModelMaterial::default()
-        };
-        let leaf = &recipe.leaves;
-        let leaf_material = ModelMaterial {
-            name: "Leaves".to_owned(),
-            // A leaf texture's clear parts are cut out.
-            alpha_mode: if leaf.textured() {
-                AlphaMode::Mask { cutoff: 0.5 }
-            } else {
-                AlphaMode::Opaque
-            },
-            base_color: [leaf.color[0], leaf.color[1], leaf.color[2], 1.0],
-            roughness: leaf.roughness.clamp(0.0, 1.0),
-            metalness: 0.0,
-            double_sided: true,
-            translucency: leaf.translucency.max(0.0),
-            // Below 1, the most a material may flutter (assets' MAX_FLUTTER).
-            flutter: leaf.flutter.clamp(0.0, 0.95),
-            sway: TREE_SWAY,
-            ..ModelMaterial::default()
-        };
-        let primitive = |mesh: &TreeMesh, material: ModelMaterial| {
-            Primitive::new(
-                mesh.positions.clone(),
-                mesh.normals.clone(),
-                mesh.uvs.clone(),
-                mesh.indices.clone(),
-                material,
-            )
-        };
         let full = self.full();
         let has_base = !full.base.indices.is_empty();
         let has_leaves = !full.leaves.indices.is_empty();
@@ -246,22 +250,92 @@ impl Tree {
         self.levels
             .iter()
             .map(|level| {
-                let mut primitives = Vec::new();
-                if has_base {
-                    primitives.push(primitive(&level.base, material("TrunkBase")));
+                if !level.leaves.indices.is_empty() {
+                    leaves = &level.leaves;
                 }
-                primitives.push(primitive(&level.bark, material("Bark")));
-                if has_leaves {
-                    if !level.leaves.indices.is_empty() {
-                        leaves = &level.leaves;
-                    }
-                    primitives.push(primitive(leaves, leaf_material.clone()));
-                }
-                primitives
+                parts(recipe, level, has_base, has_leaves.then_some(leaves))
             })
             .collect()
     }
 
+    /// The stand-in's primitives ([`Tree::proxy`]): its bark (`Bark`, the
+    /// base's few rings joined to it) and its cards (`Leaves`, cut out as
+    /// the leaves are), in studs; empty when it has none.
+    pub fn proxy_primitives(&self, recipe: &TreeRecipe) -> Vec<Primitive> {
+        let Some(proxy) = &self.proxy else {
+            return Vec::new();
+        };
+        let mut bark = proxy.bark.clone();
+        bark.append(&proxy.base);
+        let joined = TreeLevel {
+            bark,
+            ..TreeLevel::default()
+        };
+        let leaves = (!proxy.leaves.indices.is_empty()).then_some(&proxy.leaves);
+        parts(recipe, &joined, false, leaves)
+    }
+}
+
+/// One copy's primitives: its trunk's base (`has_base`), its bark and
+/// `leaves` (when it has any).
+fn parts(
+    recipe: &TreeRecipe,
+    level: &TreeLevel,
+    has_base: bool,
+    leaves: Option<&TreeMesh>,
+) -> Vec<Primitive> {
+    let bark = &recipe.bark;
+    let material = |name: &str| ModelMaterial {
+        name: name.to_owned(),
+        base_color: [bark.color[0], bark.color[1], bark.color[2], 1.0],
+        roughness: bark.roughness.clamp(0.0, 1.0),
+        metalness: 0.0,
+        sway: TREE_SWAY,
+        ..ModelMaterial::default()
+    };
+    let leaf = &recipe.leaves;
+    let leaf_material = ModelMaterial {
+        name: "Leaves".to_owned(),
+        // A leaf texture's clear parts are cut out.
+        alpha_mode: if leaf.textured() {
+            AlphaMode::Mask { cutoff: 0.5 }
+        } else {
+            AlphaMode::Opaque
+        },
+        base_color: [leaf.color[0], leaf.color[1], leaf.color[2], 1.0],
+        roughness: leaf.roughness.clamp(0.0, 1.0),
+        metalness: 0.0,
+        double_sided: true,
+        translucency: leaf.translucency.max(0.0),
+        // Below 1, the most a material may flutter (assets' MAX_FLUTTER).
+        flutter: leaf.flutter.clamp(0.0, 0.95),
+        sway: TREE_SWAY,
+        ..ModelMaterial::default()
+    };
+    let primitive = |mesh: &TreeMesh, material: ModelMaterial| {
+        let mut primitive = Primitive::new(
+            mesh.positions.clone(),
+            mesh.normals.clone(),
+            mesh.uvs.clone(),
+            mesh.indices.clone(),
+            material,
+        );
+        // Each corner's packed foliage colour (`paint.rs`).
+        primitive.colors = mesh.colors.clone();
+        primitive
+    };
+    let mut primitives = Vec::new();
+    if has_base {
+        primitives.push(primitive(&level.base, material("TrunkBase")));
+    }
+    primitives.push(primitive(&level.bark, material("Bark")));
+    if let Some(leaves) = leaves {
+        primitives.push(primitive(leaves, leaf_material));
+    }
+    primitives
+}
+
+impl Tree {
     /// The texture files each of the model's materials uses, relative to
     /// the recipe's folder (where the model is written beside it), for the
     /// materials that have any.

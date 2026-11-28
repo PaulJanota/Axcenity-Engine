@@ -434,12 +434,22 @@ fn written_objects_load_back_with_their_copies_and_wind() {
             }
         }
         let normals = vec![[0.0, 0.0, 1.0]; positions.len()];
-        axcenity_assets::Primitive::new(positions, normals, Vec::new(), indices, leaf.clone())
+        // A tree's packed foliage colour on each corner.
+        let colors = positions
+            .iter()
+            .map(|p| [0.5 + p[0] / size, 0.25, 0.75, 1.0])
+            .collect();
+        let mut sheet =
+            axcenity_assets::Primitive::new(positions, normals, Vec::new(), indices, leaf.clone());
+        sheet.colors = colors;
+        sheet
     };
     let objects = vec![
         ("Tree".to_owned(), vec![sheet(8, 4.0)]),
         ("Tree_LOD1".to_owned(), vec![sheet(4, 4.0)]),
         ("Tree_LOD2".to_owned(), vec![sheet(2, 4.0)]),
+        // The stand-in for far shadows and ray tracing, kept apart.
+        ("Tree_PROXY".to_owned(), vec![sheet(1, 4.0)]),
     ];
     let bytes = write_objects_glb(&objects, &[]);
     let models = load_models(
@@ -456,12 +466,28 @@ fn written_objects_load_back_with_their_copies_and_wind() {
     assert_eq!(primitive.indices.len() / 3, 128);
     let copies: Vec<usize> = primitive.lods.iter().map(|c| c.indices.len() / 3).collect();
     assert_eq!(copies, [32, 8]);
+    assert_eq!(model.proxy.len(), 1);
+    assert_eq!(model.proxy[0].indices.len() / 3, 2);
+    assert_eq!(model.proxy[0].colors.len(), 4);
     let material = &primitive.material;
     assert_eq!(material.name, "Leaves");
     assert!(material.double_sided);
     assert!((material.sway - 0.2).abs() < 1e-6);
     assert!((material.flutter - 0.06).abs() < 1e-6);
     assert!((material.translucency - 0.42).abs() < 1e-6);
+    // The colours come back as written (`COLOR_0`), in every copy, still
+    // matching their corners' places.
+    for sheet in std::iter::once(primitive).chain(&primitive.lods) {
+        assert_eq!(sheet.colors.len(), sheet.positions.len());
+        let mean: f32 = sheet.colors.iter().map(|c| c[0]).sum::<f32>() / sheet.colors.len() as f32;
+        assert!((mean - 0.5).abs() < 1e-3, "{mean}");
+        assert!(
+            sheet
+                .colors
+                .iter()
+                .all(|c| c[1] == 0.25 && c[2] == 0.75 && c[3] == 1.0)
+        );
+    }
 }
 
 /// An empty folder of its own for a test project.

@@ -76,6 +76,13 @@ pub struct Trunk {
     /// has it; the bark's normal map carries the rest.
     pub relief: f32,
     pub relief_ridges: u32,
+    /// How much wider the trunk spreads under the ground, as a share of its
+    /// radius at the ground, reached at the sunk foot: a skirt of root
+    /// tendrils (the buttresses run on into it, narrower), so a tree on a
+    /// slope shows no edge on its downhill side.
+    pub root_spread: f32,
+    /// Its top snapped off: splinters instead of a point (dead trees).
+    pub broken: bool,
 }
 
 impl Default for Trunk {
@@ -95,6 +102,8 @@ impl Default for Trunk {
             buttress_height: 3.0,
             relief: 0.035,
             relief_ridges: 14,
+            root_spread: 0.4,
+            broken: false,
         }
     }
 }
@@ -134,6 +143,20 @@ pub struct BranchLevel {
     pub upward: f32,
     /// 0 to 1: how much it wanders as it grows.
     pub randomness: f32,
+    /// Whether one of its limbs also grows from each parent's tip, carrying
+    /// it on, so no limb ends bare in the air.
+    pub terminal: bool,
+    /// 0 to 1: the share of its limbs snapped off short, ending in
+    /// splinters (snags on a dead tree).
+    pub broken: f32,
+    /// Grows its limbs in this many tiers (whorls) round the parent, each
+    /// tier's limbs evenly round it, with bare trunk between; 0 spreads
+    /// them one by one.
+    pub whorls: u32,
+    /// Limbs growing below this place on their parent (0 to 1) are dead
+    /// stubs, snapped off short with nothing growing on them (a conifer's
+    /// shaded-out lower limbs).
+    pub bare_below: f32,
 }
 
 impl Default for BranchLevel {
@@ -153,6 +176,10 @@ impl Default for BranchLevel {
             gravity: 0.3,
             upward: 0.2,
             randomness: 0.25,
+            terminal: false,
+            broken: 0.0,
+            whorls: 0,
+            bare_below: 0.0,
         }
     }
 }
@@ -188,6 +215,10 @@ pub struct MeshDetail {
     /// The simpler copies drawn farther away, each coarser than the one
     /// before (the renderer draws at most three).
     pub lods: Vec<LodDetail>,
+    /// The stand-in for far shadows and ray tracing (the model's
+    /// `Tree_PROXY`): only the thick limbs and a few big crossed cards on
+    /// the crown's shell, cut out as the leaves are. `None` makes none.
+    pub proxy: Option<LodDetail>,
 }
 
 impl Default for MeshDetail {
@@ -211,6 +242,7 @@ impl Default for MeshDetail {
                     base_radial: 2,
                     triangles: 25_000,
                     leaves: 0.5,
+                    shell: 0.45,
                 },
                 LodDetail {
                     segment_scale: 2.5,
@@ -219,6 +251,7 @@ impl Default for MeshDetail {
                     base_radial: 1,
                     triangles: 8_000,
                     leaves: 0.25,
+                    shell: 0.65,
                 },
                 LodDetail {
                     segment_scale: 4.0,
@@ -227,8 +260,18 @@ impl Default for MeshDetail {
                     base_radial: 1,
                     triangles: 2_000,
                     leaves: 0.1,
+                    shell: 0.75,
                 },
             ],
+            proxy: Some(LodDetail {
+                segment_scale: 4.0,
+                radial_scale: 0.25,
+                min_radius: 0.25,
+                base_radial: 1,
+                triangles: 1_200,
+                leaves: 0.25,
+                shell: 0.7,
+            }),
         }
     }
 }
@@ -255,6 +298,10 @@ pub struct LodDetail {
     /// crown, the kept ones grown to cover about as much), each leaf of two
     /// triangles instead of four.
     pub leaves: f32,
+    /// 0 to 1: clusters deeper in the crown than this (0 its middle, 1 its
+    /// outline) are left out, as the shell hides them; fewer layers of
+    /// cut-out cards to draw, shadow and trace.
+    pub shell: f32,
 }
 
 impl Default for LodDetail {
@@ -266,6 +313,7 @@ impl Default for LodDetail {
             base_radial: 1,
             triangles: 25_000,
             leaves: 0.5,
+            shell: 0.0,
         }
     }
 }
@@ -294,6 +342,23 @@ pub struct Leaves {
     pub fold: f32,
     /// 0 to 1: how far each cluster turns to face out of the crown.
     pub face_out: f32,
+    /// Where leaves start along the finest limbs, and along the limbs
+    /// those grow on, from 0 (their base) to 1 (their tip).
+    pub twig_start: f32,
+    pub limb_start: f32,
+    /// 0 to 1: the share of each cluster's leaves set crosswise to the one
+    /// before (the pair an X seen down the leaf), so a cluster has depth
+    /// from every side.
+    pub crossed: f32,
+    /// 0 to 1: how much of the crown's inside is left as air pockets, and
+    /// about how big each is in studs.
+    pub pockets: f32,
+    pub pocket_size: f32,
+    /// Toward the top of the crown: how big the clusters are there (a
+    /// share of their size) and how far they turn up (0 to 1), as at a
+    /// conifer's leader.
+    pub top_scale: f32,
+    pub top_lift: f32,
     /// 0 to 1: how many clusters deep in the crown's own shade are left
     /// out (where little light reaches, a real tree grows few leaves).
     pub shade_thinning: f32,
@@ -329,6 +394,13 @@ impl Default for Leaves {
             droop: 0.15,
             fold: 0.2,
             face_out: 0.5,
+            twig_start: 0.35,
+            limb_start: 0.7,
+            crossed: 0.5,
+            pockets: 0.0,
+            pocket_size: 3.0,
+            top_scale: 1.0,
+            top_lift: 0.0,
             shade_thinning: 0.6,
             color: [0.09, 0.2, 0.045],
             roughness: 0.6,
@@ -403,6 +475,14 @@ pub struct Bark {
     /// to the recipe's folder; empty for none.
     pub texture: String,
     pub normal_map: String,
+    /// Degrees the bark's grain turns round a limb per stud along it (a
+    /// spiral), continuous along each limb.
+    pub twist: f32,
+    /// 0 to 1: how weathered (grey, stripped) the bark is on the highest,
+    /// thinnest limbs, fading to none below `weathering_from` (a share of
+    /// the tree's height). Carried per corner for the renderer.
+    pub weathering: f32,
+    pub weathering_from: f32,
 }
 
 impl Default for Bark {
@@ -413,6 +493,9 @@ impl Default for Bark {
             uv_tile: [4.0, 6.0],
             texture: String::new(),
             normal_map: String::new(),
+            twist: 0.0,
+            weathering: 0.0,
+            weathering_from: 0.5,
         }
     }
 }
@@ -553,6 +636,7 @@ impl TreeRecipe {
                     BranchLevel {
                         count: 4,
                         length: 0.4,
+                        terminal: true,
                         ..twigs.clone()
                     },
                 ],
@@ -561,13 +645,19 @@ impl TreeRecipe {
                     uv_tile: [4.0, 8.0],
                     texture: textures::OAK_BARK.to_owned(),
                     normal_map: textures::OAK_BARK_NORMAL.to_owned(),
+                    twist: 1.5,
+                    weathering: 0.2,
                     ..Bark::default()
                 },
                 leaves: Leaves {
-                    per_cluster: 11,
+                    per_cluster: 8,
                     size: 0.6,
                     spread: 70.0,
                     fold: 0.1,
+                    twig_start: 0.2,
+                    limb_start: 0.45,
+                    pockets: 0.35,
+                    pocket_size: 3.5,
                     color: [0.85, 0.95, 0.8],
                     texture: textures::BROAD_LEAVES.to_owned(),
                     normal_map: textures::BROAD_LEAVES_NORMAL.to_owned(),
@@ -590,8 +680,11 @@ impl TreeRecipe {
                     ..Trunk::default()
                 },
                 levels: vec![
+                    // Boughs in whorls, the lowest dead stubs.
                     BranchLevel {
-                        count: 26,
+                        count: 35,
+                        whorls: 7,
+                        bare_below: 0.36,
                         start: 0.25,
                         end: 0.98,
                         angle: 82.0,
@@ -610,6 +703,7 @@ impl TreeRecipe {
                         length: 0.3,
                         gravity: 0.1,
                         upward: 0.0,
+                        terminal: true,
                         ..twigs.clone()
                     },
                 ],
@@ -619,17 +713,20 @@ impl TreeRecipe {
                     uv_tile: [3.0, 6.0],
                     texture: textures::PINE_BARK.to_owned(),
                     normal_map: textures::PINE_BARK_NORMAL.to_owned(),
+                    twist: 2.0,
                     ..Bark::default()
                 },
                 leaves: Leaves {
-                    clusters: 3.0,
+                    clusters: 2.5,
                     per_cluster: 3,
-                    size: 2.2,
+                    size: 1.6,
                     size_jitter: 0.2,
                     spread: 35.0,
                     droop: 0.1,
                     fold: 0.05,
                     face_out: 0.3,
+                    top_scale: 0.55,
+                    top_lift: 0.6,
                     color: [0.9, 1.0, 0.9],
                     texture: textures::CONIFER.to_owned(),
                     normal_map: textures::CONIFER_NORMAL.to_owned(),
@@ -668,6 +765,17 @@ impl TreeRecipe {
                         upward: 0.0,
                         ..twigs.clone()
                     },
+                    BranchLevel {
+                        name: "Fine twigs".to_owned(),
+                        count: 3,
+                        start: 0.3,
+                        angle: 35.0,
+                        length: 0.35,
+                        gravity: 1.2,
+                        upward: 0.0,
+                        terminal: true,
+                        ..twigs.clone()
+                    },
                 ],
                 bark: Bark {
                     color: [1.0, 1.0, 0.95],
@@ -675,6 +783,7 @@ impl TreeRecipe {
                     uv_tile: [3.0, 4.0],
                     texture: textures::BIRCH_BARK.to_owned(),
                     normal_map: textures::BIRCH_BARK_NORMAL.to_owned(),
+                    ..Bark::default()
                 },
                 leaves: Leaves {
                     clusters: 5.0,
@@ -683,12 +792,20 @@ impl TreeRecipe {
                     spread: 70.0,
                     droop: 0.25,
                     fold: 0.1,
+                    twig_start: 0.25,
+                    limb_start: 0.5,
+                    pockets: 0.3,
+                    pocket_size: 2.5,
                     color: [0.95, 1.0, 0.85],
                     flutter: 0.09,
                     texture: textures::BROAD_LEAVES.to_owned(),
                     normal_map: textures::BROAD_LEAVES_NORMAL.to_owned(),
                     cells: Leaves::grid(3, 3),
                     ..Leaves::default()
+                },
+                mesh: MeshDetail {
+                    min_radius: 0.012,
+                    ..MeshDetail::default()
                 },
                 ..base
             },
@@ -703,24 +820,27 @@ impl TreeRecipe {
                     buttress_count: 4,
                     relief: 0.06,
                     relief_ridges: 10,
+                    broken: true,
                     ..Trunk::default()
                 },
                 levels: vec![
                     BranchLevel {
-                        count: 6,
-                        start: 0.4,
+                        count: 14,
+                        start: 0.25,
                         angle: 50.0,
                         angle_spread: 20.0,
                         length: 0.35,
                         tip_radius: 0.4,
                         gravity: 0.1,
                         randomness: 0.5,
+                        broken: 0.5,
                         ..level.clone()
                     },
                     BranchLevel {
-                        count: 3,
+                        count: 7,
                         tip_radius: 0.5,
                         randomness: 0.6,
+                        broken: 0.5,
                         ..twigs
                     },
                 ],
@@ -729,11 +849,20 @@ impl TreeRecipe {
                     uv_tile: [4.0, 8.0],
                     texture: textures::OAK_BARK.to_owned(),
                     normal_map: textures::OAK_BARK_NORMAL.to_owned(),
+                    twist: 3.0,
+                    weathering: 0.9,
+                    weathering_from: 0.25,
                     ..Bark::default()
                 },
                 leaves: Leaves {
                     enabled: false,
                     ..Leaves::default()
+                },
+                // Bare limbs are seen whole: rounder twigs, its triangles
+                // spent on wood.
+                mesh: MeshDetail {
+                    radial_min: 4,
+                    ..MeshDetail::default()
                 },
                 ..base
             },

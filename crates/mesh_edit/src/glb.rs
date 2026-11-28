@@ -267,6 +267,7 @@ pub fn write_objects_glb(
                     normals: primitive.normals.iter().map(|&n| Vec3::from(n)).collect(),
                     uvs: primitive.uvs.iter().map(|&uv| Vec2::from(uv)).collect(),
                     indices: primitive.indices.clone(),
+                    colors: primitive.colors.clone(),
                     ..Vertices::default()
                 };
                 file.add_primitive(&vertices, material)
@@ -286,7 +287,8 @@ pub fn write_objects_glb(
 /// A primitive's vertices and triangles, ready to write. Without `uvs`,
 /// it's written without texture coordinates; `uvs2` (the second set,
 /// `TEXCOORD_1`) may be empty, and so may `joints` and `weights` (a
-/// skinned mesh's `JOINTS_0` and `WEIGHTS_0`).
+/// skinned mesh's `JOINTS_0` and `WEIGHTS_0`), and `colors` (`COLOR_0`,
+/// linear RGBA).
 #[derive(Default)]
 pub(crate) struct Vertices {
     pub positions: Vec<Vec3>,
@@ -298,6 +300,7 @@ pub(crate) struct Vertices {
     pub vertex: Vec<u32>,
     pub joints: Vec<[u16; 4]>,
     pub weights: Vec<[f32; 4]>,
+    pub colors: Vec<[f32; 4]>,
 }
 
 /// The triangles of `piece` on `surface`, with only the vertices they use.
@@ -603,6 +606,10 @@ impl File {
             let flat: Vec<f32> = vertices.weights.iter().flatten().copied().collect();
             self.add_accessor(&flat, count, "VEC4", ARRAY_BUFFER)
         });
+        let colors = (vertices.colors.len() == count).then(|| {
+            let flat: Vec<f32> = vertices.colors.iter().flatten().copied().collect();
+            self.add_accessor(&flat, count, "VEC4", ARRAY_BUFFER)
+        });
         let indices = self.add_view(
             vertices.indices.iter().flat_map(|i| i.to_le_bytes()),
             ELEMENT_ARRAY_BUFFER,
@@ -623,6 +630,9 @@ impl File {
         if let (Some(joints), Some(weights)) = (joints, weights) {
             attributes["JOINTS_0"] = json!(joints);
             attributes["WEIGHTS_0"] = json!(weights);
+        }
+        if let Some(colors) = colors {
+            attributes["COLOR_0"] = json!(colors);
         }
         json!({
             "attributes": attributes,

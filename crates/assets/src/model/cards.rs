@@ -292,6 +292,7 @@ mod tests {
             uvs: Vec::new(),
             regions: Vec::new(),
             skin_uvs: Vec::new(),
+            colors: Vec::new(),
             tangents: Vec::new(),
             indices: Vec::new(),
             material: Default::default(),

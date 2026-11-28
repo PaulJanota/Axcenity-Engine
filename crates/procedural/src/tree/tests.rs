@@ -130,11 +130,14 @@ fn thin_limbs_are_left_out_with_what_would_grow_on_them() {
 #[test]
 fn the_bark_is_a_clean_mesh_facing_out() {
     for recipe in every_preset() {
-        let tree = generate(&recipe, 1);
-        for level in &tree.levels {
-            assert!(!level.base.indices.is_empty(), "{}", recipe.name);
-            clean_and_facing_out(&level.base, &recipe.name);
-            clean_and_facing_out(&level.bark, &recipe.name);
+        for variant in 0..6 {
+            let tree = generate(&recipe, variant);
+            for level in &tree.levels {
+                assert!(!level.base.indices.is_empty(), "{}", recipe.name);
+                let name = format!("{} {variant}", recipe.name);
+                clean_and_facing_out(&level.base, &format!("{name} base"));
+                clean_and_facing_out(&level.bark, &format!("{name} bark"));
+            }
         }
     }
 }
@@ -154,7 +157,7 @@ fn clean_and_facing_out(mesh: &mesher::TreeMesh, name: &str) {
         }
         // Every triangle's winding agrees with its corners' normals (it
         // faces out), but for the ones too small to have a direction.
-        let mut against = 0;
+        let mut against = Vec::new();
         for triangle in mesh.indices.chunks(3) {
             let [a, b, c] = [0, 1, 2].map(|i| Vec3::from(mesh.positions[triangle[i] as usize]));
             let face = (b - a).cross(c - a);
@@ -166,10 +169,13 @@ fn clean_and_facing_out(mesh: &mesher::TreeMesh, name: &str) {
                 .map(|&i| Vec3::from(mesh.normals[i as usize]))
                 .sum();
             if face.dot(normal) < 0.0 {
-                against += 1;
+                against.push((triangle.to_vec(), [a, b, c]));
             }
         }
-        assert_eq!(against, 0, "{name}");
+        assert!(
+            against.is_empty(),
+            "{name}: faces against their normals {against:?}"
+        );
     }
 }
 
@@ -186,8 +192,10 @@ fn the_bark_texture_runs_on_along_each_limb_and_from_its_parent() {
     }
     // Around a limb, U makes whole repeats, so its seam meets itself.
     let corners = mesher::ring_corners(&recipe, stems[0].radii[0]) as usize;
-    let around = tree.full().bark.uvs[corners][0];
-    assert!(around >= 1.0 && (around - around.round()).abs() < 1e-5);
+    // (The grain's spiral shifts a whole ring alike.)
+    let uvs = &tree.full().bark.uvs;
+    let around = uvs[corners][0] - uvs[0][0];
+    assert!(around >= 1.0 && (around - around.round()).abs() < 1e-4);
 }
 
 #[test]
@@ -416,9 +424,14 @@ fn leafy_trees_have_leaves_in_every_copy_with_their_crown_data() {
         // where the full tree's first leaf starts, give or take its fold.
         let lod1 = &tree.levels[1].leaves;
         assert!(lod1.triangles() < full.triangles());
-        let corner = |i: usize| Vec3::from(lod1.positions[i]);
-        let base = (corner(0) + corner(3)) / 2.0;
-        let gap = base.distance(Vec3::from(full.positions[0]));
+        let corner = |mesh: &mesher::TreeMesh, i: usize| Vec3::from(mesh.positions[i]);
+        let base = (corner(lod1, 0) + corner(lod1, 3)) / 2.0;
+        let full_base = if recipe.leaves.textured() {
+            (corner(full, 0) + corner(full, 5)) / 2.0
+        } else {
+            corner(full, 0)
+        };
+        let gap = base.distance(full_base);
         assert!(gap < recipe.leaves.size * 0.2, "{}: {gap}", recipe.name);
     }
     let dead = generate(&TreeRecipe::preset(Preset::Dead), 0);
@@ -428,6 +441,8 @@ fn leafy_trees_have_leaves_in_every_copy_with_their_crown_data() {
 #[test]
 fn the_crown_shades_itself_and_thins_where_dark() {
     let mut recipe = TreeRecipe::preset(Preset::Oak);
+    // Few leaves a cluster, so neither crown is cut to the triangle budget.
+    recipe.leaves.per_cluster = 3;
     recipe.leaves.shade_thinning = 0.0;
     let dense = generate(&recipe, 0);
     recipe.leaves.shade_thinning = 1.0;
@@ -494,7 +509,13 @@ fn write_preset_trees() {
     };
     for recipe in every_preset() {
         let tree = generate(&recipe, 0);
-        for (index, level) in tree.levels.iter().enumerate() {
+        let named = tree
+            .levels
+            .iter()
+            .enumerate()
+            .map(|(index, level)| (format!("LOD{index}"), level))
+            .chain(tree.proxy.iter().map(|level| ("PROXY".to_owned(), level)));
+        for (index, level) in named {
             let mut obj = String::new();
             let mut offset = 1;
             for (name, mesh) in [
@@ -518,11 +539,10 @@ fn write_preset_trees() {
                 }
                 offset += mesh.positions.len() as u32;
             }
-            let path =
-                std::path::Path::new(&folder).join(format!("{}_LOD{index}.obj", recipe.name));
+            let path = std::path::Path::new(&folder).join(format!("{}_{index}.obj", recipe.name));
             std::fs::write(&path, obj).unwrap();
             println!(
-                "{} LOD{index}: {} triangles (base {})",
+                "{} {index}: {} triangles (base {})",
                 recipe.name,
                 level.triangles(),
                 level.base.triangles()
@@ -573,4 +593,491 @@ fn textured_leaves_are_cards_showing_one_leaf_of_their_picture_each() {
             .iter()
             .all(|m| m.material != "Leaves")
     );
+}
+
+/// Prints each preset's limbs per level and triangles per copy, to check
+/// budgets: `cargo test -p axcenity-procedural print_tree_stats -- --ignored
+/// --nocapture`.
+#[test]
+#[ignore]
+fn print_tree_stats() {
+    for recipe in every_preset() {
+        let tree = generate(&recipe, 0);
+        let mut per_level = [0usize; 6];
+        for stem in &tree.skeleton.stems {
+            per_level[stem.level] += 1;
+        }
+        println!(
+            "{}: limbs per level {:?}",
+            recipe.name,
+            &per_level[..=recipe.levels.len()]
+        );
+        let frame = leaf_frame(&tree.full().leaves);
+        let proxy = tree.proxy.iter().map(|p| ("proxy".to_owned(), p));
+        for (index, level) in tree
+            .levels
+            .iter()
+            .enumerate()
+            .map(|(i, l)| (format!("LOD{i}"), l))
+            .chain(proxy)
+        {
+            let (cells, fragments) = leaf_layers(&level.leaves, frame);
+            println!(
+                "  {index}: base {} bark {} leaves {} = {}; leaf cards from the side: {:.0}% of the crown's box covered, {:.2} layers deep",
+                level.base.triangles(),
+                level.bark.triangles(),
+                level.leaves.triangles(),
+                level.triangles(),
+                cells * 100.0,
+                fragments / cells.max(1e-6),
+            );
+        }
+    }
+}
+
+/// The side view the leaf cards are counted in: the full tree's leaves'
+/// box seen along +Z, `(low, high)` in X and Y.
+fn leaf_frame(leaves: &mesher::TreeMesh) -> (glam::Vec2, glam::Vec2) {
+    leaves.positions.iter().fold(
+        (
+            glam::Vec2::splat(f32::INFINITY),
+            glam::Vec2::splat(f32::NEG_INFINITY),
+        ),
+        |(low, high), p| {
+            let q = glam::Vec2::new(p[0], p[1]);
+            (low.min(q), high.max(q))
+        },
+    )
+}
+
+/// The leaf cards of `leaves` seen from the side (along +Z) on a grid over
+/// `frame`: the share of its cells any card covers, and the cards over all
+/// cells counted together as a share of the cells (each a fragment the
+/// cut-out test runs on, so their sum over the covered share is how many
+/// layers deep the crown is drawn).
+fn leaf_layers(leaves: &mesher::TreeMesh, frame: (glam::Vec2, glam::Vec2)) -> (f32, f32) {
+    const GRID: usize = 160;
+    let (low, high) = frame;
+    let size = (high - low).max(glam::Vec2::splat(1e-3));
+    let mut count = vec![0u32; GRID * GRID];
+    let cell = |p: [f32; 3]| (glam::Vec2::new(p[0], p[1]) - low) / size * GRID as f32;
+    for t in leaves.indices.chunks_exact(3) {
+        let [a, b, c] = [0, 1, 2].map(|i| cell(leaves.positions[t[i] as usize]));
+        let lo = a.min(b).min(c).floor().max(glam::Vec2::ZERO);
+        let hi = a
+            .max(b)
+            .max(c)
+            .ceil()
+            .min(glam::Vec2::splat(GRID as f32 - 1.0));
+        let area = (b - a).perp_dot(c - a);
+        if area.abs() < 1e-9 {
+            continue;
+        }
+        for y in lo.y as usize..=hi.y as usize {
+            for x in lo.x as usize..=hi.x as usize {
+                let p = glam::Vec2::new(x as f32 + 0.5, y as f32 + 0.5);
+                let w0 = (b - p).perp_dot(c - p) / area;
+                let w1 = (c - p).perp_dot(a - p) / area;
+                if w0 >= 0.0 && w1 >= 0.0 && w0 + w1 <= 1.0 {
+                    count[x + GRID * y] += 1;
+                }
+            }
+        }
+    }
+    let total = (GRID * GRID) as f32;
+    let covered = count.iter().filter(|&&n| n > 0).count() as f32 / total;
+    let fragments = count.iter().map(|&n| n as f32).sum::<f32>() / total;
+    (covered, fragments)
+}
+
+#[test]
+fn simpler_copies_keep_the_crowns_shell_and_draw_fewer_layers() {
+    for recipe in every_preset().filter(|r| r.leaves.enabled) {
+        let tree = generate(&recipe, 0);
+        let (clusters, crown) = super::leaves::clusters(&recipe, &tree.leaf_anchors);
+        let frame = leaf_frame(&tree.full().leaves);
+        let (full_cover, full_fragments) = leaf_layers(&tree.full().leaves, frame);
+        for (index, lod) in recipe.mesh.lods.iter().enumerate().take(2) {
+            let leaves = &tree.levels[index + 1].leaves;
+            // No card stands inside the copy's shell: each card's foot
+            // (between its first and last corners) is near its cluster's
+            // place, up its short stalk.
+            let shell = super::leaves::Shell::of(&clusters, &crown);
+            let deepest = leaves
+                .positions
+                .chunks_exact(4)
+                .map(|card| shell.depth((Vec3::from(card[0]) + Vec3::from(card[3])) / 2.0))
+                .fold(f32::INFINITY, f32::min);
+            assert!(
+                deepest > lod.shell * 0.5,
+                "{} LOD{}: {deepest}",
+                recipe.name,
+                index + 1
+            );
+            assert!(
+                clusters.iter().any(|c| shell.inside(c, lod.shell)),
+                "{}: nothing to leave out",
+                recipe.name
+            );
+            // The outline stays about as full, drawn in fewer layers.
+            let (cover, fragments) = leaf_layers(leaves, frame);
+            assert!(
+                cover > full_cover * 0.75,
+                "{} LOD{}: {cover} {full_cover}",
+                recipe.name,
+                index + 1
+            );
+            let (layers, full_layers) = (fragments / cover, full_fragments / full_cover);
+            assert!(
+                layers < full_layers * 0.9,
+                "{} LOD{}: {layers} {full_layers}",
+                recipe.name,
+                index + 1
+            );
+        }
+    }
+}
+
+#[test]
+fn the_stand_in_is_thick_limbs_and_a_few_big_cards_on_the_crowns_shell() {
+    for recipe in every_preset() {
+        let tree = generate(&recipe, 0);
+        let detail = recipe.mesh.proxy.as_ref().unwrap();
+        let proxy = tree.proxy.as_ref().expect("a stand-in");
+        assert!(
+            proxy.triangles() <= detail.triangles as usize,
+            "{}",
+            recipe.name
+        );
+        assert!(proxy.bark.triangles() > 0);
+        assert_eq!(proxy.bark.colors.len(), proxy.bark.positions.len());
+        // Fewer triangles than the farthest drawn copy but one.
+        let lod2 = &tree.levels[2];
+        assert!(proxy.triangles() < lod2.triangles(), "{}", recipe.name);
+        if !recipe.leaves.enabled {
+            assert!(proxy.leaves.indices.is_empty());
+            continue;
+        }
+        // Crossed pairs of cards (two triangles each).
+        assert_eq!(proxy.leaves.triangles() % 4, 0);
+        let frame = leaf_frame(&tree.full().leaves);
+        let (full_cover, full_fragments) = leaf_layers(&tree.full().leaves, frame);
+        let (cover, fragments) = leaf_layers(&proxy.leaves, frame);
+        // About the crown's outline, a quarter fewer layers deep at least
+        // (a broadleaf's, a third as many).
+        assert!(
+            cover > full_cover * 0.6,
+            "{}: {cover} {full_cover}",
+            recipe.name
+        );
+        let (layers, full_layers) = (fragments / cover, full_fragments / full_cover);
+        assert!(
+            layers < full_layers * 0.75,
+            "{}: {layers} {full_layers}",
+            recipe.name
+        );
+    }
+}
+
+#[test]
+fn the_model_keeps_the_stand_in_apart_and_the_file_names_it() {
+    let recipe = TreeRecipe::preset(Preset::Oak);
+    let tree = generate(&recipe, 0);
+    let model = tree.to_model(&recipe).unwrap();
+    assert_eq!(model.proxy.len(), 2);
+    assert_eq!(model.primitives.len(), 3);
+    assert_eq!(model.proxy[1].material.name, "Leaves");
+    // Placed as the model is: inside its unit box, give or take.
+    assert!(
+        model
+            .proxy
+            .iter()
+            .flat_map(|p| &p.positions)
+            .all(|p| p.iter().all(|v| v.abs() <= 0.6))
+    );
+    let objects = tree.objects(&recipe);
+    let names: Vec<&str> = objects.iter().map(|(name, _)| name.as_str()).collect();
+    assert_eq!(names, ["Tree", "Tree_LOD1", "Tree_LOD2", "Tree_PROXY"]);
+}
+
+#[test]
+fn side_limbs_are_welded_onto_their_parents() {
+    for recipe in every_preset() {
+        let tree = generate(&recipe, 0);
+        // (A slender birch's limbs are all fine twigs.)
+        if let Some(share) = mesher::welded_share(&recipe, &tree.skeleton) {
+            assert!(share > 0.6, "{}: {share}", recipe.name);
+        }
+    }
+}
+
+#[test]
+fn limbs_carry_on_into_terminal_twigs() {
+    let recipe = TreeRecipe::preset(Preset::Oak);
+    assert!(recipe.levels[2].terminal);
+    let tree = generate(&recipe, 0);
+    let stems = &tree.skeleton.stems;
+    // Every limb of the level before whose tip is thick enough to mesh a
+    // twig has one growing on from it, about straight on.
+    let parents: Vec<usize> = (0..stems.len())
+        .filter(|&i| {
+            // (Its tip after the pipe model; a little thicker than when the
+            // twig grew.)
+            stems[i].level == 2 && *stems[i].radii.last().unwrap() >= recipe.mesh.min_radius * 1.5
+        })
+        .collect();
+    assert!(parents.len() >= 10, "{}", parents.len());
+    let carried = parents
+        .iter()
+        .filter(|&&parent| {
+            let tip = stems[parent].direction(stems[parent].points.len() - 1);
+            stems.iter().any(|child| {
+                child.parent == Some((parent, 1.0)) && child.direction(0).dot(tip) > 0.7
+            })
+        })
+        .count();
+    assert_eq!(carried, parents.len());
+}
+
+#[test]
+fn the_roots_spread_under_the_ground() {
+    for recipe in every_preset() {
+        let tree = generate(&recipe, 0);
+        let trunk = &tree.skeleton.stems[0];
+        assert!((trunk.points[0].y + recipe.trunk.sink).abs() < 0.01);
+        let at_ground = trunk.at(recipe.trunk.sink / trunk.length()).2;
+        assert!(trunk.radii[0] > at_ground * 1.3, "{}", recipe.name);
+        let base = &tree.full().base;
+        let lowest = base
+            .positions
+            .iter()
+            .map(|p| p[1])
+            .fold(f32::INFINITY, f32::min);
+        assert!(
+            // Deeper where the leaning foot and its tendrils tip down.
+            (-1.2..=-0.3).contains(&lowest),
+            "{}: {lowest}",
+            recipe.name
+        );
+    }
+}
+
+#[test]
+fn a_dead_tree_ends_in_weathered_splinters_and_snags() {
+    let recipe = TreeRecipe::preset(Preset::Dead);
+    let tree = generate(&recipe, 0);
+    let stems = &tree.skeleton.stems;
+    assert!(stems[0].broken);
+    let snags = stems.iter().filter(|stem| stem.broken).count();
+    assert!(snags >= 4, "{snags}");
+    let bark = &tree.full().bark;
+    assert_eq!(bark.weathering.len(), bark.positions.len());
+    // Splinters are bare wood; the bark weathers going up, none at the foot.
+    let splinters = bark.weathering.iter().filter(|&&w| w == 1.0).count();
+    assert!(splinters > 0);
+    let top = stems[0].points.last().unwrap().y;
+    for (w, p) in bark.weathering.iter().zip(&bark.positions) {
+        assert!((0.0..=1.0).contains(w));
+        if p[1] < top * 0.2 {
+            assert_eq!(*w, 0.0);
+        }
+    }
+    let base = &tree.full().base;
+    for (w, p) in base.weathering.iter().zip(&base.positions) {
+        if p[1] < top * 0.2 {
+            assert_eq!(*w, 0.0);
+        }
+    }
+    // A living oak has no splinters.
+    let oak = generate(&TreeRecipe::preset(Preset::Oak), 0);
+    assert!(oak.skeleton.stems.iter().all(|stem| !stem.broken));
+}
+
+#[test]
+fn a_pine_grows_its_boughs_in_whorls_with_dead_stubs_at_the_bottom() {
+    let recipe = TreeRecipe::preset(Preset::Pine);
+    let level = &recipe.levels[0];
+    let tree = generate(&recipe, 0);
+    let stems = &tree.skeleton.stems;
+    let mut heights: Vec<f32> = stems
+        .iter()
+        .filter(|s| s.level == 1)
+        .map(|s| s.parent.unwrap().1)
+        .collect();
+    heights.sort_by(f32::total_cmp);
+    // Tiers: limbs of one whorl start within a few hundredths of each
+    // other, and the tiers are far apart.
+    let gap = (level.end - level.start) / level.whorls as f32;
+    let tiers = 1 + heights
+        .windows(2)
+        .filter(|pair| pair[1] - pair[0] > gap * 0.5)
+        .count();
+    assert_eq!(tiers, level.whorls as usize, "{heights:?}");
+    // The lowest boughs are dead stubs: snapped, bare and leafless.
+    let stubs: Vec<usize> = (0..stems.len())
+        .filter(|&i| stems[i].level == 1 && stems[i].parent.unwrap().1 < level.bare_below)
+        .collect();
+    assert!(!stubs.is_empty());
+    for &i in &stubs {
+        assert!(stems[i].broken);
+        assert!(stems.iter().all(|s| s.parent.map(|p| p.0) != Some(i)));
+    }
+    let lowest_leaf = tree
+        .leaf_anchors
+        .iter()
+        .map(|a| a.position.y)
+        .fold(f32::INFINITY, f32::min);
+    let highest_stub = stubs
+        .iter()
+        .map(|&i| stems[i].points[0].y)
+        .fold(f32::NEG_INFINITY, f32::max);
+    assert!(lowest_leaf > highest_stub, "{lowest_leaf} {highest_stub}");
+}
+
+#[test]
+fn clusters_toward_a_pines_top_are_smaller_and_turned_up() {
+    let recipe = TreeRecipe::preset(Preset::Pine);
+    let tree = generate(&recipe, 0);
+    let (clusters, crown) = super::leaves::clusters(&recipe, &tree.leaf_anchors);
+    let top = crown.center.y + crown.half_size.y * 0.8;
+    let middle = crown.center.y;
+    let (high, low): (Vec<_>, Vec<_>) = clusters
+        .iter()
+        .filter(|c| c.position.y > top || c.position.y < middle)
+        .partition(|c| c.position.y > top);
+    assert!(!high.is_empty() && !low.is_empty());
+    let mean = |set: &[&super::leaves::Cluster], f: &dyn Fn(&super::leaves::Cluster) -> f32| {
+        set.iter().map(|c| f(c)).sum::<f32>() / set.len() as f32
+    };
+    assert!(mean(&high, &|c| c.scale) < 0.85);
+    assert!(mean(&low, &|c| c.scale) > 0.99);
+    assert!(mean(&high, &|c| c.axis.y) > mean(&low, &|c| c.axis.y) + 0.2);
+}
+
+#[test]
+fn a_broadleaf_crown_keeps_air_pockets_inside_but_a_full_outline() {
+    let mut recipe = TreeRecipe::preset(Preset::Oak);
+    recipe.leaves.pockets = 0.0;
+    let anchors = generate(&recipe, 0).leaf_anchors;
+    let (solid, crown) = super::leaves::clusters(&recipe, &anchors);
+    recipe.leaves.pockets = 0.5;
+    let (holed, _) = super::leaves::clusters(&recipe, &anchors);
+    let depth = |p: Vec3| ((p - crown.center) / crown.half_size).length();
+    let inner =
+        |set: &[super::leaves::Cluster]| set.iter().filter(|c| depth(c.position) < 0.8).count();
+    let outer = |set: &[super::leaves::Cluster]| set.len() - inner(set);
+    assert!((inner(&holed) as f32) < inner(&solid) as f32 * 0.85);
+    // The shell is thinned by shade a little differently, never by pockets.
+    assert!(outer(&holed) as f32 > outer(&solid) as f32 * 0.9);
+}
+
+#[test]
+fn leaf_cards_face_out_of_the_crown_in_crossed_pairs_with_bent_light() {
+    for recipe in every_preset().filter(|r| r.leaves.enabled) {
+        let tree = generate(&recipe, 0);
+        let leaves = &tree.full().leaves;
+        let crown = tree.crown;
+        let corners = 6;
+        let cards = leaves.positions.len() / corners;
+        let (mut outward, mut crossed, mut bent) = (0, 0, 0.0);
+        let face = |card: usize| {
+            let p = |k: usize| Vec3::from(leaves.positions[card * corners + k]);
+            (p(1) - p(0)).cross(p(5) - p(0)).normalize_or_zero()
+        };
+        for card in 0..cards {
+            let p = |k: usize| Vec3::from(leaves.positions[card * corners + k]);
+            let middle = (p(0) + p(2) + p(3) + p(5)) / 4.0;
+            let f = face(card);
+            if f.dot(crown.normal(middle)) > 0.0 {
+                outward += 1;
+            }
+            // Crosswise to the card before, from the same foot.
+            if card > 0 {
+                let q = |k: usize| Vec3::from(leaves.positions[(card - 1) * corners + k]);
+                // (Give or take the fold, which lifts a card off its foot.)
+                let foot = |a: Vec3, b: Vec3| (a + b) / 2.0;
+                let same_foot = foot(p(0), p(5)).distance(foot(q(0), q(5)))
+                    < recipe.leaves.fold * recipe.leaves.size * 2.0 + 1e-4;
+                if same_foot && f.dot(face(card - 1)).abs() < 0.3 {
+                    crossed += 1;
+                }
+            }
+            for k in 0..corners {
+                let n = Vec3::from(leaves.normals[card * corners + k]);
+                bent += 1.0 - n.dot(f).clamp(-1.0, 1.0);
+            }
+        }
+        let share = outward as f32 / cards as f32;
+        assert!(share > 0.7, "{}: {share}", recipe.name);
+        assert!(
+            crossed as f32 > cards as f32 * 0.1,
+            "{}: {crossed} of {cards}",
+            recipe.name
+        );
+        // On average the light leans well off the flat card.
+        let bent = bent / (cards * corners) as f32;
+        assert!(bent > 0.05, "{}: {bent}", recipe.name);
+    }
+}
+
+#[test]
+fn every_corner_carries_its_packed_colour() {
+    for recipe in every_preset() {
+        let tree = generate(&recipe, 0);
+        for level in &tree.levels {
+            for mesh in [&level.base, &level.bark, &level.leaves] {
+                assert_eq!(mesh.colors.len(), mesh.positions.len(), "{}", recipe.name);
+                assert!(
+                    mesh.colors
+                        .iter()
+                        .all(|c| c.iter().all(|v| (0.0..=1.0).contains(v))),
+                    "{}",
+                    recipe.name
+                );
+            }
+        }
+        // The weathering rides in A.
+        let bark = &tree.full().bark;
+        for (color, weathering) in bark.colors.iter().zip(&bark.weathering) {
+            assert!((color[3] - weathering).abs() < 1e-6);
+        }
+    }
+}
+
+#[test]
+fn the_packed_colour_sways_out_along_the_limbs_and_flutters_at_the_tips() {
+    let recipe = TreeRecipe::preset(Preset::Oak);
+    let tree = generate(&recipe, 0);
+    let full = tree.full();
+    let mean = |values: &mut dyn Iterator<Item = f32>| {
+        let (sum, count) = values.fold((0.0, 0), |(s, n), v| (s + v, n + 1));
+        sum / count.max(1) as f32
+    };
+    // G: the trunk's foot stands still, the twigs ride the wind.
+    let base_sway = mean(&mut full.base.colors.iter().map(|c| c[1]));
+    let leaf_sway = mean(&mut full.leaves.colors.iter().map(|c| c[1]));
+    assert!(base_sway < 0.05, "{base_sway}");
+    assert!(leaf_sway > base_sway + 0.2, "{leaf_sway}");
+    // B: thick wood doesn't flutter; leaves do, their tips most.
+    let base_flutter = mean(&mut full.base.colors.iter().map(|c| c[2]));
+    assert!(base_flutter < 1e-3);
+    let leaves = &full.leaves;
+    let corner = |card: usize, k: usize| leaves.colors[card * 6 + k][2];
+    let cards = leaves.positions.len() / 6;
+    let foot = mean(&mut (0..cards).map(|c| (corner(c, 0) + corner(c, 5)) / 2.0));
+    let tip = mean(&mut (0..cards).map(|c| (corner(c, 2) + corner(c, 3)) / 2.0));
+    assert!(tip > foot + 0.4, "{foot} {tip}");
+    // R: leaves deep in the crown's shade are darker than those in the sky.
+    let crown = tree.crown;
+    let (mut deep, mut open) = (Vec::new(), Vec::new());
+    for (p, c) in leaves.positions.iter().zip(&leaves.colors) {
+        let depth = ((Vec3::from(*p) - crown.center) / crown.half_size).length();
+        if depth < 0.5 {
+            deep.push(c[0]);
+        } else if depth > 0.9 {
+            open.push(c[0]);
+        }
+    }
+    let (deep, open) = (mean(&mut deep.into_iter()), mean(&mut open.into_iter()));
+    assert!(deep + 0.05 < open, "{deep} {open}");
 }

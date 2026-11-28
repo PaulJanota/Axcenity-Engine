@@ -48,7 +48,7 @@ use super::ray_sway::{
     Swaying, bending, bundle_cell,
 };
 use super::scene::gpu_mesh_in;
-use super::{Draw, GpuMesh, MeshKey, ScenePipeline};
+use super::{Draw, GpuMesh, MeshKey, ScenePipeline, StandInKey};
 use crate::draw_list::{DrawItem, Material};
 
 /// Solid items that cast shadows.
@@ -474,9 +474,22 @@ impl RayScene {
             let kept = clusters
                 .get(draw.cluster as usize)
                 .filter(|cluster| !cluster.skinned[at]);
-            let key = match (draw.lod, kept) {
+            let drawn = match (draw.lod, kept) {
                 (None, Some(cluster)) => cluster.mesh_keys[at],
                 _ => draw.mesh(),
+            };
+            // From `STAND_IN_LEVEL`, its stand-in is traced in its place
+            // once that's on the GPU (`MeshSource::stand_in`), and a mesh
+            // another's stand-in covers is left out.
+            let key = match draw.level {
+                Some(level) if level >= crate::STAND_IN_LEVEL => {
+                    let stand_in = match clusters.get(draw.cluster as usize) {
+                        Some(cluster) => cluster.stand_ins[at],
+                        None => StandInKey::of(&item.shape),
+                    };
+                    stand_in.mesh(level, drawn, |key| mesh(key).is_some())?
+                }
+                _ => drawn,
             };
             let gpu = mesh(key)?;
             let (transform, (center, radius)) = match kept {

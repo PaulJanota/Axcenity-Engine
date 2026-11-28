@@ -2236,6 +2236,36 @@ pub trait MeshSource: Send + Sync {
         let _ = level;
         None
     }
+    /// What stands in for this mesh where it's far and the picture can't
+    /// tell (a model's `_PROXY` objects): the farthest shadow cascade and
+    /// the ray traced scene use it in place of an item drawn at
+    /// [`STAND_IN_LEVEL`] or a simpler copy. A mesh with none keeps the
+    /// default. Asked for once per draw, so keep the stand-in rather than
+    /// making one each time.
+    fn stand_in(&self) -> StandIn<'_> {
+        StandIn::Own
+    }
+}
+
+/// The level of detail ([`MeshSource::lod`]) from which a mesh's
+/// [`MeshSource::stand_in`] takes its place in the farthest shadow cascade
+/// (by its size in that map) and in the ray traced scene (by the level the
+/// camera draws it at).
+pub const STAND_IN_LEVEL: usize = 2;
+
+/// What stands in for a mesh far away ([`MeshSource::stand_in`]).
+#[derive(Clone, Copy, Default)]
+pub enum StandIn<'a> {
+    /// Nothing: its own mesh, or the simpler copy it's drawn with.
+    #[default]
+    Own,
+    /// This mesh, drawn with the item's material (a cut-out's holes too):
+    /// it fits the same box and has no copies or stand-in of its own.
+    Mesh(&'a Arc<dyn MeshSource>),
+    /// This stand-in of another of the same model's meshes covers this one
+    /// too (a tree's bark stand-in covers its trunk's base): left out where
+    /// stand-ins are used, once that one is on the GPU.
+    Covered(&'a Arc<dyn MeshSource>),
 }
 
 /// One blend shape of a mesh, as the caller holds it: the corners it moves,

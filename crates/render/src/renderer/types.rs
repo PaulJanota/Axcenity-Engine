@@ -718,6 +718,57 @@ impl MeshKey {
     }
 }
 
+/// What stands in for an item's mesh far away ([`crate::StandIn`]), by key.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub(super) enum StandInKey {
+    #[default]
+    Own,
+    Mesh(MeshKey),
+    /// Left out once this stand-in, which covers it, is on the GPU.
+    Covered(MeshKey),
+}
+
+impl StandInKey {
+    pub(super) fn of(shape: &Shape) -> Self {
+        match shape {
+            Shape::Mesh(mesh) => match mesh.stand_in() {
+                crate::StandIn::Own => StandInKey::Own,
+                crate::StandIn::Mesh(stand_in) => StandInKey::Mesh(MeshKey::Custom(stand_in.key())),
+                crate::StandIn::Covered(by) => StandInKey::Covered(MeshKey::Custom(by.key())),
+            },
+            _ => StandInKey::Own,
+        }
+    }
+
+    /// The mesh an item drawn at `level` (by the camera, or by its size in
+    /// a shadow map) is traced or cast with, from `drawn`, the one it's
+    /// drawn with: its stand-in from [`crate::STAND_IN_LEVEL`] when
+    /// `uploaded` says the GPU has it, else `drawn`. `None` leaves it out
+    /// (another mesh's stand-in covers it, and that's on the GPU).
+    pub(super) fn mesh(
+        self,
+        level: usize,
+        drawn: MeshKey,
+        uploaded: impl Fn(MeshKey) -> bool,
+    ) -> Option<MeshKey> {
+        if level < crate::STAND_IN_LEVEL || stand_ins_off() {
+            return Some(drawn);
+        }
+        match self {
+            StandInKey::Own => Some(drawn),
+            StandInKey::Mesh(mesh) => Some(if uploaded(mesh) { mesh } else { drawn }),
+            StandInKey::Covered(by) => (!uploaded(by)).then_some(drawn),
+        }
+    }
+}
+
+/// `AXCENITY_NO_STAND_INS` set: far shadows and ray tracing use the meshes
+/// drawn, never their stand-ins (to compare the two).
+pub(super) fn stand_ins_off() -> bool {
+    static OFF: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *OFF.get_or_init(|| std::env::var_os("AXCENITY_NO_STAND_INS").is_some())
+}
+
 /// One uploaded mesh per [`Shape`].
 pub(super) struct Meshes {
     pub(super) block: GpuMesh,

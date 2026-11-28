@@ -34,7 +34,8 @@ use super::{
     MAX_LIGHTS, MAX_POINT_SHADOWS, MAX_SPOT_SHADOW_DEGREES, MAX_SPOT_SHADOWS, MAX_SUN_SIZE,
     MAX_TILES, MIN_TILE_SIZE, MapsUniform, MaterialKey, MeshKey, NEAR_PLANE, POINT_SHADOW_SPREAD,
     PointShadow, PostUniform, SHADING_CLOTH, SHADING_HAIR, SHADING_SKIN, SHADING_STANDARD,
-    SHADING_TOON, SHADING_UNLIT, SHADOW_CASCADES, SHADOW_CASTER_RANGE, SpotShadow, WeatherBoxRaw,
+    SHADING_TOON, SHADING_UNLIT, SHADOW_CASCADES, SHADOW_CASTER_RANGE, SpotShadow, StandInKey,
+    WeatherBoxRaw,
 };
 use crate::{HairShading, SKIN_MAKEUP_LAYERS, SURFACE_PARAMETERS, SkinLayers};
 
@@ -624,16 +625,23 @@ pub(super) fn casters_in_views(
         // The farthest cascade draws each caster at the level of detail its
         // size in that map calls for, where that's simpler than the
         // camera's and its mesh is on the GPU.
+        // There, a caster drawn at `STAND_IN_LEVEL` or simpler is cast by
+        // its stand-in, if it has one (`MeshSource::stand_in`).
         let lods = by_map_size.as_ref().filter(|lods| lods.view == index);
-        let mesh_of = |caster: &Caster| match lods {
-            Some(lods) => lods.mesh(caster),
-            None => caster.mesh,
-        };
-        // The material it's drawn through in this view, or `None` whole.
-        let drawn = |cut_out: Option<CutOutCaster>| {
-            cut_out
-                .filter(|cut_out| near || cut_out.every_cascade)
-                .map(|cut_out| cut_out.material)
+        // The mesh it's drawn with in this view and the material it's drawn
+        // through (`None` whole), or `None` to leave it out. A stand-in's
+        // cut-out cards are always drawn through their holes: drawn whole,
+        // a few big cards would cast big squares.
+        let how = |caster: &Caster| -> Option<(MeshKey, Option<u32>)> {
+            let (mesh, stand_in) = match lods {
+                Some(lods) => lods.mesh(caster)?,
+                None => (caster.mesh, false),
+            };
+            let material = caster
+                .cut_out
+                .filter(|cut_out| stand_in || near || cut_out.every_cascade)
+                .map(|cut_out| cut_out.material);
+            Some((mesh, material))
         };
         // Each share's casters that reach the view, with what they're
         // sorted by: how they're drawn, then where they are among the
@@ -651,10 +659,10 @@ pub(super) fn casters_in_views(
             let mut kept: Vec<(u128, &Caster)> = Vec::new();
             let mut left_out = 0;
             for (at, caster) in casters.iter().enumerate() {
-                if view.touches(caster.sphere) {
+                let drawn = view.touches(caster.sphere).then(|| how(caster)).flatten();
+                if let Some((mesh, material)) = drawn {
                     let moving = lamp && super::lamp_shadows::moves(&caster.raw, windy);
-                    let material = drawn(caster.cut_out);
-                    let key = caster_order(moving, material, mesh_of(caster), first + at as u32);
+                    let key = caster_order(moving, material, mesh, first + at as u32);
                     kept.push((key, caster));
                 } else {
                     left_out += 1;
@@ -682,7 +690,9 @@ pub(super) fn casters_in_views(
             match groups.last_mut() {
                 Some((_, range)) if last_kind == Some(kind) => range.end = copy + 1,
                 _ => {
-                    groups.push(((mesh_of(caster), drawn(caster.cut_out)), copy..copy + 1));
+                    // Kept above, so it's drawn.
+                    let drawn = how(caster).expect("a kept caster is drawn");
+                    groups.push((drawn, copy..copy + 1));
                     if key >> 127 == 0 {
                         still_groups = groups.len();
                     }
@@ -1163,6 +1173,48 @@ impl<'a> FrameUses<'a> {
     }
 }
 
+impl<'a> FrameUses<'a> {
+    /// Adds the stand-ins (`MeshSource::stand_in`) of meshes `draws` draw
+    /// to [`FrameUses::meshes`], so they're on the GPU for the farthest
+    /// cascade and the ray traced scene, which use the mesh drawn until
+    /// its stand-in is there. A frame takes one [`LOD_TURNS`]th of the
+    /// list's own items and of the clusters (`turn`), as
+    /// [`FrameUses::add_lods`] does.
+    pub(super) fn add_stand_ins(
+        &mut self,
+        draws: &'a [Draw<'_>],
+        clusters: &[&'a Cluster],
+        turn: u64,
+    ) {
+        if super::types::stand_ins_off() {
+            return;
+        }
+        let mine = |index: usize| index as u64 % LOD_TURNS == turn % LOD_TURNS;
+        let own = draws.partition_point(|draw| draw.cluster == NO_CLUSTER);
+        let own_sources = draws[..own]
+            .iter()
+            .enumerate()
+            .filter(|&(index, _)| mine(index))
+            .filter_map(|(_, draw)| match &draw.item.shape {
+                crate::Shape::Mesh(source) => Some(source),
+                _ => None,
+            });
+        let cluster_sources = clusters
+            .iter()
+            .enumerate()
+            .filter(|&(index, _)| mine(index))
+            .flat_map(|(_, cluster)| cluster.meshes.iter());
+        for source in own_sources.chain(cluster_sources) {
+            match source.stand_in() {
+                crate::StandIn::Mesh(stand_in) | crate::StandIn::Covered(stand_in) => {
+                    self.meshes.push(stand_in)
+                }
+                crate::StandIn::Own => {}
+            }
+        }
+    }
+}
+
 /// How many frames [`FrameUses::add_lods`] takes to list every mesh's
 /// simpler copies once.
 const LOD_TURNS: u64 = 8;
@@ -1242,10 +1294,23 @@ pub(super) struct FarCascadeLods<'a> {
 }
 
 impl FarCascadeLods<'_> {
-    /// The mesh `caster` is drawn with in this cascade: the camera's, or a
-    /// simpler copy where its size in the map calls for one.
-    fn mesh(&self, caster: &Caster) -> MeshKey {
+    /// The mesh `caster` is drawn with in this cascade, and whether it's
+    /// its stand-in: the camera's, a simpler copy where its size in the map
+    /// calls for one, or from `STAND_IN_LEVEL` its stand-in once that's on
+    /// the GPU. `None` leaves it out (another mesh's stand-in covers it).
+    fn mesh(&self, caster: &Caster) -> Option<(MeshKey, bool)> {
         let level = shadow_level(2.0 * caster.sphere.1 / self.extent);
+        let drawn = self.copy(caster, level);
+        let level = level.max(usize::from(caster.level));
+        let mesh = caster
+            .stand_in
+            .mesh(level, drawn, |mesh| (self.uploaded)(mesh))?;
+        Some((mesh, mesh != drawn))
+    }
+
+    /// The simplest of `caster`'s copies at or under `level` that the GPU
+    /// has, or the camera's mesh when that's as simple.
+    fn copy(&self, caster: &Caster, level: usize) -> MeshKey {
         if level <= usize::from(caster.level) {
             return caster.mesh;
         }
@@ -1278,6 +1343,9 @@ pub(super) struct Caster {
     /// shadow map calls for ([`shadow_level`]).
     pub(super) level: u8,
     pub(super) lods: [Option<MeshKey>; 2],
+    /// What casts in its place in the farthest cascade from
+    /// `STAND_IN_LEVEL` ([`FarCascadeLods::mesh`]).
+    pub(super) stand_in: StandInKey,
     /// A cut-out's material: its shadow is drawn through its texture's
     /// holes (`fs_shadow_cut_out`). `None` casts the whole mesh.
     pub(super) cut_out: Option<CutOutCaster>,
@@ -1711,6 +1779,7 @@ fn plan_part<'a>(
                 mesh,
                 level: draw.level.unwrap_or(0) as u8,
                 lods,
+                stand_in: StandInKey::of(&item.shape),
                 cut_out,
                 sphere,
                 raw,

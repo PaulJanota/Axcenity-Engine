@@ -578,7 +578,7 @@ fn the_in_use_line_lists_each_ray_traced_effect() {
     effective.ray_traced_ambient_occlusion = RayTracedAmbientOcclusion::High;
     let line = ray_tracing_in_use(&effective);
     assert!(line.contains("shadows Low"), "{line}");
-    assert!(line.contains("ambient occlusion High (8 rays"), "{line}");
+    assert!(line.contains("ambient occlusion High (4 rays"), "{line}");
     effective.ray_traced_reflections = axcenity_render::RayTracedReflections::Low;
     let line = ray_tracing_in_use(&effective);
     assert!(

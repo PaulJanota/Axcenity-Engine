@@ -1114,7 +1114,7 @@ fn ray_tracing_section(
                     )
                     .on_hover_text(
                         "Corners and creases darkened by short rays, including off-screen \
-                         occluders. Low, Medium and High trace 2, 4 and 8 rays a pixel.",
+                         occluders. Low traces 2 rays a pixel, Medium and High 4.",
                     );
                 });
             },

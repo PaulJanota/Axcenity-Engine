@@ -496,13 +496,18 @@ impl RayTracedAmbientOcclusion {
         }
     }
 
-    /// Rays per pixel: 0 when off.
+    /// Rays per pixel: 0 when off. High traces 4, as Medium does, since
+    /// 2026-11-28: under TAA (which turns a pixel's rays each frame and
+    /// gathers them) 8 drew the same picture as 4 in Overgrown Street,
+    /// Desert Homestead and the Showcase gallery, moving and still (at most
+    /// 0.001% of pixels more than 8 levels of 255 apart), for twice the
+    /// pass (docs/rendering/ray-tracing.md).
     pub fn rays(self) -> u32 {
         match self {
             RayTracedAmbientOcclusion::Off => 0,
             RayTracedAmbientOcclusion::Low => 2,
             RayTracedAmbientOcclusion::Medium => 4,
-            RayTracedAmbientOcclusion::High => 8,
+            RayTracedAmbientOcclusion::High => 4,
         }
     }
 }
@@ -2409,7 +2414,8 @@ mod tests {
         );
         assert_eq!(
             RayTracedAmbientOcclusion::ALL.map(RayTracedAmbientOcclusion::rays),
-            [0, 2, 4, 8]
+            // High as Medium since 2026-11-28 (`RayTracedAmbientOcclusion::rays`).
+            [0, 2, 4, 4]
         );
     }
 

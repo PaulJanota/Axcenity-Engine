@@ -45,7 +45,7 @@ Where a Lighting value is also a cost, the world's value is a request and the se
 | Ray tracing distance (50 to 5,000 studs; used only on a GPU that can ray trace, by a ray traced effect) | 150 studs | 250 | 400 | 800 |
 | Ray traced shadows (rays a pixel for soft shadows; only on a GPU that can ray trace, [ray-tracing.md](ray-tracing.md)) | Off | Off | Off | Off |
 | Ray traced shadow resolution (while ray traced shadows are on: Full traces every pixel, Half one of each 2 × 2 and fills the rest, [ray-tracing.md](ray-tracing.md)) | Half | Half | Half | Half |
-| Ray traced ambient occlusion (2, 4 or 8 rays a pixel at half size; only on a GPU that can ray trace) | Off | Off | Off | Off |
+| Ray traced ambient occlusion (2 rays a pixel at half size at Low, 4 at Medium and High; only on a GPU that can ray trace) | Off | Off | Off | Off |
 | Ray traced GI (128, 256 or 512 light probes a frame with 64, 128 or 256 rays, the camera's own and any volumes'; traced in software on a GPU that can't ray trace but runs compute shaders, in Real-time GI's place) | Off | Off | Off | Off |
 | Ray traced reflections (glossy solid surfaces trace a mirror ray: Low smoother than 0.15 roughness at half size, Medium 0.3, High 0.5; reflection probes past the cutoff and without ray queries) | Off | Off | Off | Off |
 | Projected decals (follow the preset; no override) | none | 128 within 150 studs | 512 within 300 | 1024 within 600 |

@@ -36,6 +36,7 @@ mod hair;
 mod lens;
 mod level_of_detail;
 mod light_probe_volumes;
+mod occlusion_culling;
 mod outlines;
 mod point_and_contact_shadows;
 mod ray_reflections;

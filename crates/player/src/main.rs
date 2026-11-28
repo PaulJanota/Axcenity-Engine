@@ -1598,6 +1598,10 @@ impl App {
                 ("depth fill draws", u64::from(stats.depth_fill_draws)),
                 ("scattered batches", u64::from(stats.scattered_batches)),
                 ("scattered items", u64::from(stats.scattered_items)),
+                (
+                    "occlusion tested items",
+                    u64::from(stats.occlusion_tested_items),
+                ),
                 ("depth from prepass", u64::from(stats.depth_from_prepass)),
                 ("shadow casters", u64::from(stats.shadow_casters_drawn)),
                 ("cascade 1 casters", u64::from(stats.cascade_casters[0])),

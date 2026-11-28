@@ -904,6 +904,27 @@ The owner's decisions after the measurement above: shadow cuts only as choices (
 
 None of this reaches the owner's targets (120 fps for standard Ultra, 90 with traced shadows and ambient occlusion); the frame stays GPU-bound by the prepass's scattered plants (4.8 ms), traced shadows and ambient occlusion with ray tracing (12.8 and 6.0), and cascade 4 (5.1 on alternate frames) without.
 
+## GPU occlusion culling of scattered items, built and measured (2026-11-28)
+
+The owner asked for it after the measurement above (2026-11-28: GPU occlusion culling for the prepass and the scene pass, compared with stills). `renderer/occlusion_cull.rs` and `occlusion_cull.wgsl` build it for the scattered items only (painted plants, stones and litter, `DrawnPart::Scattered`). It is **off by default**, because it doesn't pay here. `AXCENITY_OCCLUSION_CULLING=1` or `set_occlusion_culling(true)` turns it on (one sample per pixel, with the prepass drawn). `RenderStats::occlusion_tested_items` counts what it tested, and `--bench`'s counts include it.
+
+**How it works.** The prepass draws every other solid batch first (models, parts, terrain), in their order, then turns that depth into a farthest-depth pyramid (half size first, a level down to one texel). A compute pass then tests every scattered instance's bounding sphere (sway reach included) against it: the box around the sphere must be wholly behind the farthest depth over the pixels it covers, one more each way. The kept instances are compacted in their order into a buffer of their own: a scan over each 64, one over the 64s, then a copy at a word a lane. The scattered batches are drawn from that buffer with `draw_indexed_indirect`, last in the prepass and in their usual place in the scene pass. The depth is the nearest of what's drawn whatever the order, so a left-out instance would have failed every depth test. Only the prepass's normals change, where a plant and something else tie on exactly one depth value. That moves 17 to 2,728 pixels of a 2560 × 1440 still (Overgrown Street's four views, both sides shot twice from a warm cache, each side identical to itself), by up to 21 levels, through ambient occlusion and screen-space reflections. The render test `occlusion_culling_leaves_out_hidden_items_and_keeps_the_picture` (no ties) is identical with it on and leaves out half of its 153 tested items.
+
+**What it saves, and costs** (release player, owner Ultra, 2560 × 1405, pinned to CPUs 0-7,16-23, the GPU the limit; prepass + scene pass, ms):
+
+| View | Plants tested / left out | Off | On | Frame's thread |
+|---|---|---|---|---|
+| spawn | 56,843 / 6,400 | 14.78 | 14.97 | +0.44 |
+| houseA | 53,199 / 16,300 | 13.63 | 13.57 | +0.53 |
+| canopy | 49,989 / 2,100 | 11.27 | 11.49 | +0.31 |
+
+- **The hidden plants cost little.** At houseA, leaving out 30% of the plants takes 0.17 ms off the prepass's plants and 0.16 ms off the scene's: those behind the houses and the terrain are far and small (a far level of detail, a few pixels each). The plants that cost are the ones in view.
+- **Drawing the rest first costs about as much.** Without the near plants in front of them, the houses and the terrain draw 0.1 ms more in the prepass (`AXCENITY_OCC_PROBE=split` measured that while it was built: the prepass split and reordered, nothing tested). The pyramid and the test take 0.08 ms (0.03 pyramid, 0.016 test and scan, 0.03 copy), after two slower first versions: one workgroup a batch took 0.88 ms (the largest batches ran their 64s one after another), and a thread an instance copying 43 words took 0.31 ms.
+- **Testing only past 30 or 60 studs**, which keeps the near draws in their order, came out the same within the runs' noise (±0.7 ms of whole-frame time between runs of one build at canopy).
+- **The frame's thread** pays 0.3 to 0.5 ms more: the test's inputs (a sphere and a batch index for each tested instance) and the bind groups, a frame. It isn't the limit here.
+
+**When to turn it on:** a scene where big solid things hide many costly scattered items (a town over fields, a forest behind hills at a near level of detail), measured the same way. Testing models and parts as well needs occluders drawn before them (last frame's visible set, the usual two-phase method), which changes which surface shows at depth ties and is the owner's decision.
+
 ## Levels of detail, inspected
 
 **How levels are picked today** (`renderer/lod.rs`, unchanged by this section): by **projected size**, the share of the view's height an item's bounding sphere covers, not by world distance or screen-space error. Below 30% an item draws its first simpler copy, below 12% its second (`LOD_SCREEN_SIZES`); it switches back once 15% past the threshold (hysteresis; the level is kept between frames by the item's ID and mesh, and for a group's items, `DrawList::chunks`, with the group by the item's place in it, `GroupStates`, since 2026-11-28: one lookup and lock a group, not a map lookup and lock an item, which were 0.55 ms of Overgrown Street's frame thread for 59,000 items), and a switch cross-fades over 30 frames by dither (12 before 2026-11-14, which read as a pop). All primitives of a model share one decision (the sphere of the part's box). Shadow views draw the level the camera picked; only the level fading in casts. Levels come from the file (`_LOD1`, `_LOD2`) or are simplified at load to half and a quarter of the triangles with meshoptimizer, a copy that saves less than a fifth on the level before being dropped ([models.md](models.md)).

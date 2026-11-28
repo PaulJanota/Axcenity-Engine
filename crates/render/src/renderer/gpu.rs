@@ -828,7 +828,10 @@ pub(super) fn create_instance_buffer(device: &wgpu::Device, capacity: usize) -> 
     device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("instances"),
         size: (capacity * size_of::<InstanceRaw>()) as u64,
-        usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+        // Read by occlusion culling too (`occlusion_cull.wgsl`).
+        usage: wgpu::BufferUsages::VERTEX
+            | wgpu::BufferUsages::COPY_DST
+            | wgpu::BufferUsages::STORAGE,
         mapped_at_creation: false,
     })
 }

@@ -231,6 +231,7 @@ impl ScenePipeline {
             samples,
         );
         let depth_start = depth_start::DepthStart::new(&device);
+        let occlusion_cull = occlusion_cull::OcclusionCull::new(&device);
         let mut terrain =
             terrain::TerrainPass::new(&device, &frame_layout, texture_bytes.clone(), samples);
         terrain.set_skipped_levels(graphics.texture_quality.skipped_levels());
@@ -304,6 +305,7 @@ impl ScenePipeline {
             prefill_pipelines,
             plant_probe,
             depth_start,
+            occlusion_cull,
             // `AXCENITY_NO_WHOLE_SOLIDS` lights them with `fs_main` as
             // before, for comparing the two.
             whole_solids: std::env::var_os("AXCENITY_NO_WHOLE_SOLIDS").is_none(),
@@ -1297,6 +1299,7 @@ impl ScenePipeline {
         seen.clear();
         let DrawPlan {
             mut instances,
+            spheres,
             batches,
             casters,
             culled,
@@ -1994,6 +1997,29 @@ impl ScenePipeline {
             timer.mark_cascade(&mut encoder, SHADOW_CASCADES);
         }
         let frame_bind_group = &self.frame_bind_group;
+        // The solid batches come first; occlusion culling plans which of
+        // them are tested (renderer/occlusion_cull.rs).
+        let solid_count = batches
+            .iter()
+            .position(|batch| batch.transparent)
+            .unwrap_or(batches.len());
+        let cull_plan = if self.occlusion_cull.enabled
+            && self.frame_targets.occlusion.is_some()
+            && self.frame_targets.samples == 1
+        {
+            occlusion_cull::plan(&batches[..solid_count])
+        } else {
+            occlusion_cull::CullPlan::default()
+        };
+        // The tested batches' index counts.
+        let cull_counts: Vec<u32> = cull_plan
+            .batches
+            .iter()
+            .map(|culled| {
+                self.gpu_mesh(batches[culled.batch].mesh)
+                    .map_or(0, |mesh| mesh.drawn_indices(snow_caps))
+            })
+            .collect();
         encoder.part("prepass");
         mark(&mut encoder, FramePass::Prepass);
         let mut motion_draws = 0;
@@ -2003,7 +2029,55 @@ impl ScenePipeline {
         // depth and normals, then (for ambient occlusion) how hidden each
         // pixel is by what's around it.
         if let Some(occlusion) = &self.frame_targets.occlusion {
-            {
+            // The prepass in two parts where occlusion culling tests the
+            // scattered batches (renderer/occlusion_cull.rs): the other
+            // solid batches, then their depth turned into a pyramid and the
+            // scattered batches tested against it, then those, drawing only
+            // what's kept. Else in one, in the batches' order.
+            let (untested, tested): (Vec<usize>, Vec<usize>) = if cull_plan.batches.is_empty() {
+                ((0..solid_count).collect(), Vec::new())
+            } else {
+                (
+                    (0..solid_count)
+                        .filter(|&index| cull_plan.of(index).is_none())
+                        .collect(),
+                    cull_plan
+                        .batches
+                        .iter()
+                        .map(|culled| culled.batch)
+                        .collect(),
+                )
+            };
+            for (first, range) in [(true, untested), (false, tested)] {
+                if !first {
+                    if range.is_empty() {
+                        break;
+                    }
+                    if !cull_plan.batches.is_empty() {
+                        self.occlusion_cull.record(
+                            (&self.device, &self.queue),
+                            &mut encoder,
+                            (
+                                &occlusion.depth_view,
+                                self.frame_targets.size,
+                                glam::Mat4::from_cols_array_2d(&frame_uniform.view_proj),
+                            ),
+                            (&cull_plan, &batches[..solid_count], &cull_counts),
+                            &self.instance_buffer,
+                            &spheres,
+                        );
+                    }
+                }
+                let load_color = if first {
+                    wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT)
+                } else {
+                    wgpu::LoadOp::Load
+                };
+                let load_depth = if first {
+                    wgpu::LoadOp::Clear(1.0)
+                } else {
+                    wgpu::LoadOp::Load
+                };
                 let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("depth and normal prepass"),
                     color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -2011,14 +2085,14 @@ impl ScenePipeline {
                         view: &occlusion.normal_view,
                         resolve_target: None,
                         ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                            load: load_color,
                             store: wgpu::StoreOp::Store,
                         },
                     })],
                     depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                         view: &occlusion.depth_view,
                         depth_ops: Some(wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(1.0),
+                            load: load_depth,
                             store: wgpu::StoreOp::Store,
                         }),
                         stencil_ops: None,
@@ -2028,7 +2102,8 @@ impl ScenePipeline {
                 pass.set_bind_group(0, &self.prepass_frame_bind_group, &[]);
                 pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
                 let mut drawing = None;
-                for batch in batches.iter().filter(|batch| !batch.transparent) {
+                for index in range {
+                    let batch = &batches[index];
                     if drawing != Some(batch.part) {
                         drawing = Some(batch.part);
                         stamp_part(&mut pass, PartPass::Prepass, drawing);
@@ -2038,7 +2113,16 @@ impl ScenePipeline {
                     };
                     count(mesh, &batch.instances);
                     prepass_draws += 1;
-                    pass.draw_indexed(0..mesh.drawn_indices(snow_caps), 0, batch.instances.clone());
+                    match cull_plan.of(index) {
+                        Some(culled) => {
+                            self.draw_culled(&mut pass, culled);
+                        }
+                        None => pass.draw_indexed(
+                            0..mesh.drawn_indices(snow_caps),
+                            0,
+                            batch.instances.clone(),
+                        ),
+                    }
                 }
                 stamp_part(&mut pass, PartPass::Prepass, None);
             }
@@ -2237,7 +2321,7 @@ impl ScenePipeline {
         let mut draw_batches = |pass: &mut wgpu::RenderPass<'_>, batches: &[Batch], solid: bool| {
             let mut water_bound = false;
             let mut drawing = None;
-            for batch in batches {
+            for (index, batch) in batches.iter().enumerate() {
                 if solid && drawing != Some(batch.part) {
                     drawing = Some(batch.part);
                     stamp_part(pass, PartPass::Scene, drawing);
@@ -2257,7 +2341,15 @@ impl ScenePipeline {
                 count(mesh, &batch.instances);
                 drawn.0 += batch.instances.end - batch.instances.start;
                 drawn.1 += 1;
-                pass.draw_indexed(0..mesh.drawn_indices(snow_caps), 0, batch.instances.clone());
+                // A batch occlusion culling tested draws what it kept.
+                match cull_plan.of(index).filter(|_| solid) {
+                    Some(culled) => self.draw_culled(pass, culled),
+                    None => pass.draw_indexed(
+                        0..mesh.drawn_indices(snow_caps),
+                        0,
+                        batch.instances.clone(),
+                    ),
+                }
             }
             if water_bound {
                 pass.set_bind_group(0, frame_bind_group, &[]);
@@ -2375,6 +2467,11 @@ impl ScenePipeline {
         {
             counts.scattered_batches += 1;
             counts.scattered_items += batch.instances.end - batch.instances.start;
+        }
+        for culled in &cull_plan.batches {
+            let range = &batches[culled.batch].instances;
+            counts.occlusion_tested_batches += 1;
+            counts.occlusion_tested_items += range.end - range.start;
         }
         // The light the volumetric fog scattered in front of what was drawn.
         if let (Some(fog), Some(occlusion)) = (&self.volumetric_fog, &self.frame_targets.occlusion)
@@ -2759,6 +2856,25 @@ impl ScenePipeline {
         pass.set_vertex_buffer(0, mesh.vertices.slice(..));
         pass.set_index_buffer(mesh.indices.slice(..), mesh.index_format);
         Some(mesh)
+    }
+
+    /// Draws a batch occlusion culling tested (`culled`), bound already:
+    /// its kept instances, as many as the test kept, then the frame's
+    /// instances bound again for the batches after it.
+    fn draw_culled(&self, pass: &mut wgpu::RenderPass<'_>, culled: occlusion_cull::Culled) {
+        let stride = size_of::<InstanceRaw>() as u64;
+        pass.set_vertex_buffer(
+            1,
+            self.occlusion_cull
+                .kept
+                .buffer
+                .slice(u64::from(culled.out_first) * stride..),
+        );
+        pass.draw_indexed_indirect(
+            &self.occlusion_cull.args.buffer,
+            u64::from(culled.slot) * 20,
+        );
+        pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
     }
 
     /// The group 2 binding `mesh` is drawn with: empty since CO8, as
@@ -3173,6 +3289,8 @@ impl ScenePipeline {
             depth_fill_draws: counts.depth_fill_draws,
             scattered_batches: counts.scattered_batches,
             scattered_items: counts.scattered_items,
+            occlusion_tested_batches: counts.occlusion_tested_batches,
+            occlusion_tested_items: counts.occlusion_tested_items,
             depth_from_prepass: counts.depth_from_prepass,
             items_culled: counts.items_culled,
             shadow_casters_drawn: counts.shadow_casters_drawn,

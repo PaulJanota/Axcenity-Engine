@@ -1317,6 +1317,10 @@ pub(super) struct DrawPlan {
     /// The scene pass's instances, in pieces (each thread's share, in
     /// order). Shadow views copy theirs after these.
     pub(super) instances: Vec<Vec<InstanceRaw>>,
+    /// Each of `instances`' bounding sphere (centre and radius, a swaying
+    /// plant's reach too), in the same pieces: what occlusion culling tests
+    /// (`occlusion_cull.rs`).
+    pub(super) spheres: Vec<Vec<[f32; 4]>>,
     /// The scene pass's batches: the items in the camera's view.
     pub(super) batches: Vec<Batch>,
     /// Every solid item that casts a shadow, in view or not, grouped by
@@ -1593,6 +1597,7 @@ struct SkinUse<'a> {
 #[derive(Default)]
 struct PlanPart<'a> {
     instances: Vec<InstanceRaw>,
+    spheres: Vec<[f32; 4]>,
     batches: Vec<(BatchKind, Batch)>,
     casters: Vec<Caster>,
     culled: u32,
@@ -1729,6 +1734,8 @@ fn plan_part<'a>(
             let index = part.instances.len() as u32;
             instance_at = Some(index);
             part.instances.push(raw);
+            part.spheres
+                .push([sphere.0.x, sphere.0.y, sphere.0.z, sphere.1]);
             part.in_view.push(at);
             let water = item.material.water.is_some();
             let outline = !transparent && outline_uniform(&item.material)[3] > 0.0;
@@ -1861,6 +1868,7 @@ fn join_plan(
         }
         first_instance += part.instances.len() as u32;
         plan.instances.push(part.instances);
+        plan.spheres.push(part.spheres);
         plan.casters.push(part.casters);
     }
     plan.skins = skins;

@@ -78,6 +78,7 @@ mod light_probes;
 mod lighting;
 mod lod;
 mod occlusion;
+mod occlusion_cull;
 mod occlusion_probe;
 mod parallel;
 #[cfg(feature = "debug-views")]
@@ -265,6 +266,11 @@ pub struct RenderStats {
     /// them: a draw each in the prepass and in the scene pass.
     pub scattered_batches: u32,
     pub scattered_items: u32,
+    /// Of those, the batches and items occlusion culling tested against the
+    /// nearer depth (renderer/occlusion_cull.rs); how many it kept is known
+    /// only on the GPU.
+    pub occlusion_tested_batches: u32,
+    pub occlusion_tested_items: u32,
     /// Items outside the camera's view, so not drawn by the scene pass.
     pub items_culled: u32,
     /// Casters drawn into the shadow views (each cascade and shadowing spot
@@ -582,6 +588,17 @@ impl Renderer {
         self.scene.depth_start.enabled = on;
     }
 
+    /// Whether scattered items (painted plants, stones and litter) hidden
+    /// behind the other solid items' depth are left out of the prepass and
+    /// the scene pass (renderer/occlusion_cull.rs): one sample per pixel
+    /// only, and only while the prepass is drawn. The picture is the same
+    /// but at depth ties in the prepass's normals. Off unless `AXCENITY_OCCLUSION_CULLING=1` was set: in
+    /// Overgrown Street it saves no more than it costs
+    /// (`docs/rendering/performance.md`).
+    pub fn set_occlusion_culling(&mut self, on: bool) {
+        self.scene.occlusion_cull.enabled = on;
+    }
+
     /// How many background uploads are still on their way.
     pub fn pending_uploads(&self) -> usize {
         self.scene.pending_uploads()
@@ -812,6 +829,20 @@ impl TextureRenderer {
     /// See [`Renderer::set_depth_from_prepass`].
     pub fn set_depth_from_prepass(&mut self, on: bool) {
         self.scene.depth_start.enabled = on;
+    }
+
+    /// See [`Renderer::set_occlusion_culling`].
+    pub fn set_occlusion_culling(&mut self, on: bool) {
+        self.scene.occlusion_cull.enabled = on;
+    }
+
+    /// How many instances occlusion culling kept of each batch it tested
+    /// in the last frame.
+    #[cfg(test)]
+    pub(crate) fn occlusion_kept(&self) -> Vec<u32> {
+        self.scene
+            .occlusion_cull
+            .kept_counts(&self.scene.device, &self.scene.queue)
     }
 
     /// See [`Renderer::pending_uploads`].

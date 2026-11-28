@@ -1027,6 +1027,9 @@ pub(super) struct ScenePipeline {
     /// Starts the scene pass's depth from the prepass's
     /// (renderer/depth_start.rs).
     pub(super) depth_start: depth_start::DepthStart,
+    /// Leaves hidden scattered items out of the prepass and the scene pass
+    /// (renderer/occlusion_cull.rs).
+    pub(super) occlusion_cull: occlusion_cull::OcclusionCull,
     /// Whether solid items with nothing left out are lit by a shader with
     /// no `discard` ([`PrefillPipelines::whole`]).
     pub(super) whole_solids: bool,
@@ -1347,6 +1350,8 @@ pub(super) struct FrameCounts {
     pub(super) depth_fill_draws: u32,
     pub(super) scattered_batches: u32,
     pub(super) scattered_items: u32,
+    pub(super) occlusion_tested_batches: u32,
+    pub(super) occlusion_tested_items: u32,
     pub(super) depth_from_prepass: bool,
     /// Items outside the camera's view.
     pub(super) items_culled: u32,

@@ -12,6 +12,7 @@ Every change to this wiki, newest first: one line each. Keep the five newest als
 
 | Date | Pages | Change | By |
 |---|---|---|---|
+| 2026-11-28 | ADR-0053, ADR index, Current roadmap | The foliage, grass and seasons plan (trees with a Foliage Studio, GPU terrain grass, seasons) and its ADR: per-corner foliage data in a storage table, grass generated on the GPU | Claude |
 | 2026-11-27 | Rendering, Optimization log, Benchmark history, Known bottlenecks, Profiling, Configuration reference, File formats, Importers | Occlusion culling measured on Overgrown Street and not built (`AXCENITY_OCCLUSION_PROBE`); ScatterRule `CastShadow`; half-resolution ray traced shadows as a setting; micro-shadowing from occlusion maps; glossy leaves (`axcenity_glossy_leaf`); `AXCENITY_BAKE_PROBES` | Claude |
 | 2026-11-27 | Optimization log, Known bottlenecks, Benchmark history, Known limitations | The ray traced scene by groups of small still items, swaying plants bent within 32 studs, cascades left out under traced shadows, small plants' and holes' distances (Overgrown Street 19.8 → 22.8 fps in the player, 18.4 → 24.7 in the editor) | Claude |
 | 2026-11-27 | Known bottlenecks | Overgrown Street's editor Play against the player: the same work at the same view, the GPU timer reading every other frame (fixed), the far cascade and TAA's history as open costs | Claude |

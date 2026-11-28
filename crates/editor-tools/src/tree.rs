@@ -159,6 +159,10 @@ pub enum Insertable {
     /// third-person controller, Health, Inventory and Animator (see
     /// [`character`]).
     Character,
+    /// A grown tree (foliage plan T5): a MeshPart showing a tree model
+    /// generated from a recipe, both written into the project's
+    /// `assets/trees/` the first time.
+    Tree,
     /// A ready-to-drive car: a Model with a chassis, a VehicleSeat welded
     /// on it, four VehicleWheels and a cylinder for each (see [`vehicle`]).
     Vehicle,
@@ -321,6 +325,8 @@ impl Insertable {
     pub const SPAWNING: [Insertable; 2] = [Insertable::SpawnLocation, Insertable::Team];
     /// Tools, and the Inventory a character carries them in.
     pub const TOOLS: [Insertable; 2] = [Insertable::Tool, Insertable::Inventory];
+    /// Grown plants.
+    pub const NATURE: [Insertable; 1] = [Insertable::Tree];
     /// A ready car, and the pieces to build one's own.
     pub const VEHICLES: [Insertable; 3] = [
         Insertable::Vehicle,
@@ -460,6 +466,7 @@ impl Insertable {
             Insertable::SpawnLocation => "Spawn",
             Insertable::Team => "Team",
             Insertable::Character => "Character",
+            Insertable::Tree => "Tree",
             Insertable::Vehicle => "Vehicle",
             Insertable::VehicleSeat => "Vehicle Seat",
             Insertable::VehicleWheel => "Wheel",
@@ -548,6 +555,7 @@ impl Insertable {
             Insertable::SpawnLocation => ClassName::SpawnLocation,
             Insertable::Team => ClassName::Team,
             Insertable::Character => ClassName::Model,
+            Insertable::Tree => ClassName::MeshPart,
             Insertable::Vehicle => ClassName::Model,
             Insertable::VehicleSeat => ClassName::VehicleSeat,
             Insertable::VehicleWheel => ClassName::VehicleWheel,
@@ -672,7 +680,7 @@ pub fn create(world: &mut World, what: Insertable, position: Vector3) -> Instanc
             ("Size", Value::Vector3(new_part_size(shape))),
             ("Position", Value::Vector3(position)),
         ],
-        Insertable::MeshPart => vec![("Position", Value::Vector3(position))],
+        Insertable::MeshPart | Insertable::Tree => vec![("Position", Value::Vector3(position))],
         Insertable::Seat | Insertable::VehicleSeat => vec![
             ("Size", Value::Vector3(Vector3::new(2.0, 1.0, 2.0))),
             ("Position", Value::Vector3(position)),

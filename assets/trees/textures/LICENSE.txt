@@ -1,0 +1,13 @@
+Bark001, Bark013, Bark014, LeafSet019 and LeafSet024
+
+Created by Lennart Demes
+Distributed by ambientCG (https://ambientcg.com)
+
+License: Creative Commons Zero, CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+
+The authors have dedicated this work to the public domain by waiving all of
+their rights to it worldwide under copyright law, including all related and
+neighboring rights, to the extent allowed by law. You may copy, modify,
+distribute and use it, even for commercial purposes, without asking
+permission. ambientCG's license page: https://docs.ambientcg.com/license/

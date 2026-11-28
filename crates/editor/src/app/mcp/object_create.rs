@@ -42,7 +42,7 @@ pub const SPEC: ToolSpec = ToolSpec {
 
 /// Every kind Insert offers.
 pub(super) fn kinds() -> Vec<Insertable> {
-    let lists: [&[Insertable]; 27] = [
+    let lists: [&[Insertable]; 28] = [
         &Insertable::PARTS,
         &Insertable::GROUPS,
         &Insertable::UI,
@@ -66,6 +66,7 @@ pub(super) fn kinds() -> Vec<Insertable> {
         &Insertable::SPAWNING,
         &Insertable::TOOLS,
         &Insertable::VEHICLES,
+        &Insertable::NATURE,
         &Insertable::SPLINES,
         &Insertable::CAMERAS,
         &Insertable::CONSTRAINTS,
@@ -85,6 +86,7 @@ fn compound(kind: Insertable) -> bool {
     matches!(
         kind,
         Insertable::Character
+            | Insertable::Tree
             | Insertable::HealthBar
             | Insertable::Health
             | Insertable::Inventory

@@ -221,14 +221,15 @@ fn a_tree_is_a_model_as_tall_as_it_was_grown() {
             assert_eq!(primitive.material.sway, model.primitives[1].material.sway);
             assert!(primitive.material.sway > 0.0);
             assert_eq!(primitive.lods.len(), tree.levels.len() - 1);
-            // Fitted with the full model: inside its 1×1×1 box.
+            // Fitted as the full model is: about its 1×1×1 box (a simpler
+            // copy's grown leaves may reach a little past it).
             for copy in &primitive.lods {
-                assert!(
-                    copy.positions
-                        .iter()
-                        .flatten()
-                        .all(|v| v.abs() <= 0.5 + 1e-4)
-                );
+                let far = copy
+                    .positions
+                    .iter()
+                    .flatten()
+                    .fold(0.0f32, |m, v| m.max(v.abs()));
+                assert!(far <= 0.65, "{}: {far}", recipe.name);
             }
         }
         // The trunk's length and sunk foot, give or take its lean and the
@@ -410,10 +411,15 @@ fn leafy_trees_have_leaves_in_every_copy_with_their_crown_data() {
                 clean_and_facing_out(leaves, &recipe.name);
             }
         }
-        // A simpler copy's leaves are the first clusters' (same places).
+        // A simpler copy's leaves are the first clusters' (same places):
+        // its first card's base (between its first and last corners) is
+        // where the full tree's first leaf starts, give or take its fold.
         let lod1 = &tree.levels[1].leaves;
         assert!(lod1.triangles() < full.triangles());
-        assert_eq!(lod1.positions[0], full.positions[0]);
+        let corner = |i: usize| Vec3::from(lod1.positions[i]);
+        let base = (corner(0) + corner(3)) / 2.0;
+        let gap = base.distance(Vec3::from(full.positions[0]));
+        assert!(gap < recipe.leaves.size * 0.2, "{}: {gap}", recipe.name);
     }
     let dead = generate(&TreeRecipe::preset(Preset::Dead), 0);
     assert!(dead.levels.iter().all(|l| l.leaves.indices.is_empty()));
@@ -503,9 +509,12 @@ fn write_preset_trees() {
                 for n in &mesh.normals {
                     obj.push_str(&format!("vn {} {} {}\n", n[0], n[1], n[2]));
                 }
+                for uv in &mesh.uvs {
+                    obj.push_str(&format!("vt {} {}\n", uv[0], 1.0 - uv[1]));
+                }
                 for t in mesh.indices.chunks(3) {
                     let [a, b, c] = [t[0] + offset, t[1] + offset, t[2] + offset];
-                    obj.push_str(&format!("f {a}//{a} {b}//{b} {c}//{c}\n"));
+                    obj.push_str(&format!("f {a}/{a}/{a} {b}/{b}/{b} {c}/{c}/{c}\n"));
                 }
                 offset += mesh.positions.len() as u32;
             }
@@ -521,4 +530,47 @@ fn write_preset_trees() {
         }
         println!("{}: {} limbs", recipe.name, tree.skeleton.stems.len());
     }
+}
+
+#[test]
+fn textured_leaves_are_cards_showing_one_leaf_of_their_picture_each() {
+    for recipe in every_preset().filter(|r| r.leaves.enabled) {
+        assert!(recipe.leaves.textured(), "{}", recipe.name);
+        let tree = generate(&recipe, 0);
+        let materials = super::Tree::textures(&recipe);
+        let leaves = materials.iter().find(|m| m.material == "Leaves").unwrap();
+        assert_eq!(
+            leaves.color.as_deref(),
+            Some(recipe.leaves.texture.as_str())
+        );
+        for level in &tree.levels {
+            let mesh = &level.leaves;
+            // Six corners a card when detailed (folded along its midrib),
+            // four in the simpler copies.
+            let corners = match mesh.positions.len() * 2 / mesh.triangles().max(1) {
+                3 => 6,
+                4 => 4,
+                ratio => panic!("{}: {ratio}", recipe.name),
+            };
+            for card in mesh.uvs.chunks(corners) {
+                let inside = |cell: &[f32; 4]| {
+                    card.iter().all(|uv| {
+                        (cell[0] - 1e-4..=cell[2] + 1e-4).contains(&uv[0])
+                            && (cell[1] - 1e-4..=cell[3] + 1e-4).contains(&uv[1])
+                    })
+                };
+                assert!(
+                    recipe.leaves.cells.iter().any(inside),
+                    "{}: {card:?}",
+                    recipe.name
+                );
+            }
+        }
+    }
+    let plain = TreeRecipe::preset(Preset::Dead);
+    assert!(
+        super::Tree::textures(&plain)
+            .iter()
+            .all(|m| m.material != "Leaves")
+    );
 }

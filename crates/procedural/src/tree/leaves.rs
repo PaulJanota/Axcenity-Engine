@@ -53,6 +53,10 @@ const DIMMING: f32 = 0.3;
 /// The most a kept cluster grows when a simpler copy keeps a share of them.
 const MAX_GROWTH: f32 = 1.8;
 
+/// How much bigger a card is than the leaf it shows: a leaf fills about
+/// 70% of its cell in a picture of leaves.
+const CELL_FILL: f32 = 1.3;
+
 /// Grows the clusters on `anchors`, shade-thinned, in their spread order.
 pub fn clusters(recipe: &TreeRecipe, anchors: &[LeafAnchor]) -> (Vec<Cluster>, Crown) {
     let leaves = &recipe.leaves;
@@ -235,7 +239,21 @@ pub fn mesh(
             let tilt = glam::Quat::from_axis_angle(cluster.axis, around) * side;
             let along = (glam::Quat::from_axis_angle(tilt, lean) * cluster.axis).normalize();
             let jitter = leaves.size_jitter.clamp(0.0, 0.9);
-            let length = leaves.size.max(0.01) * rng.range(1.0 - jitter, 1.0 + jitter) * growth;
+            let mut length = leaves.size.max(0.01) * rng.range(1.0 - jitter, 1.0 + jitter) * growth;
+            let mut width = length * leaves.width.max(0.0);
+            // A leaf cut out of a picture fills about 70% of its cell, so
+            // the card is a little bigger, and as wide as its cell.
+            let cell = leaves.textured().then(|| {
+                let cell = leaves.cells[rng.below(leaves.cells.len())];
+                let (across, long) = if leaves.stem_right {
+                    (cell[3] - cell[1], cell[2] - cell[0])
+                } else {
+                    (cell[2] - cell[0], cell[3] - cell[1])
+                };
+                length *= CELL_FILL;
+                width = length * (across / long.max(1e-4));
+                (cell, leaves.stem_right)
+            });
             leaf(
                 &mut mesh,
                 Leaf {
@@ -243,9 +261,10 @@ pub fn mesh(
                     along,
                     facing: (Vec3::Y * 0.6 + out * 0.4).normalize_or(Vec3::Y),
                     length,
-                    width: length * leaves.width.max(0.0),
+                    width,
                     droop: leaves.droop,
                     fold: leaves.fold,
+                    cell,
                 },
                 detailed,
                 [out.x, out.y, out.z, cluster.light],
@@ -264,6 +283,9 @@ struct Leaf {
     width: f32,
     droop: f32,
     fold: f32,
+    /// The part of the leaf picture it shows (`[u0, v0, u1, v1]`), and
+    /// whether the stem is at its right; `None` for a plain blade.
+    cell: Option<([f32; 4], bool)>,
 }
 
 /// One leaf: a blade from its base to its tip, its halves folded up along
@@ -274,8 +296,22 @@ fn leaf(mesh: &mut TreeMesh, leaf: Leaf, detailed: bool, crown: [f32; 4]) {
         .cross(leaf.facing)
         .normalize_or(leaf.along.any_orthonormal_vector());
     let face = across.cross(leaf.along);
-    // (along, across) in shares of the length and width.
-    let shape: &[[f32; 2]] = if detailed {
+    // (along, across) in shares of the length and width: a card for a
+    // leaf cut out of a picture, else a leaf's outline.
+    let shape: &[[f32; 2]] = if leaf.cell.is_some() {
+        if detailed {
+            &[
+                [0.0, 0.0],
+                [0.0, 0.5],
+                [1.0, 0.5],
+                [1.0, 0.0],
+                [1.0, -0.5],
+                [0.0, -0.5],
+            ]
+        } else {
+            &[[0.0, 0.5], [1.0, 0.5], [1.0, -0.5], [0.0, -0.5]]
+        }
+    } else if detailed {
         &[
             [0.0, 0.0],
             [0.3, 0.45],
@@ -287,7 +323,7 @@ fn leaf(mesh: &mut TreeMesh, leaf: Leaf, detailed: bool, crown: [f32; 4]) {
     } else {
         &[[0.0, 0.0], [0.5, 0.45], [1.0, 0.0], [0.5, -0.45]]
     };
-    let triangles: &[[u32; 3]] = if detailed {
+    let triangles: &[[u32; 3]] = if shape.len() == 6 {
         &[[0, 1, 2], [0, 2, 3], [0, 3, 4], [0, 4, 5]]
     } else {
         &[[0, 1, 2], [0, 2, 3]]
@@ -315,10 +351,21 @@ fn leaf(mesh: &mut TreeMesh, leaf: Leaf, detailed: bool, crown: [f32; 4]) {
     for (k, (&corner, normal)) in corners.iter().zip(&normals).enumerate() {
         let [t, s] = shape[k];
         let normal = normal.normalize_or(face);
-        let tangent = across.reject_from(normal).normalize_or(across);
+        // The picture upright on the card, its stem at the leaf's base.
+        let (uv, u_grows) = match leaf.cell {
+            Some(([u0, v0, u1, v1], false)) => {
+                ([u0 + (s + 0.5) * (u1 - u0), v1 - t * (v1 - v0)], across)
+            }
+            Some(([u0, v0, u1, v1], true)) => (
+                [u1 - t * (u1 - u0), v1 - (s + 0.5) * (v1 - v0)],
+                -leaf.along,
+            ),
+            None => ([0.5 + s, 1.0 - t], across),
+        };
+        let tangent = u_grows.reject_from(normal).normalize_or(across);
         mesh.positions.push(corner.to_array());
         mesh.normals.push(normal.to_array());
-        mesh.uvs.push([0.5 + s, 1.0 - t]);
+        mesh.uvs.push(uv);
         mesh.tangents.push([tangent.x, tangent.y, tangent.z, 1.0]);
         mesh.crown.push(crown);
     }

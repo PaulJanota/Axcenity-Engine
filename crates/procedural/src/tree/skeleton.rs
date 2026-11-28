@@ -223,6 +223,14 @@ fn branch(
     let mut radii = Vec::with_capacity(n + 1);
     let mut point = base;
     let tip = level.tip_radius.clamp(0.0, 1.0);
+    // A smooth wander, a wave or so along the limb on each axis, so it
+    // curves as wood does rather than kinking at each ring.
+    let waves: [(f32, f32); 3] = std::array::from_fn(|_| {
+        (
+            rng.range(0.6, 1.6) * std::f32::consts::TAU,
+            rng.range(0.0, std::f32::consts::TAU),
+        )
+    });
     for k in 0..=n {
         points.push(point);
         let along = k as f32 / n as f32;
@@ -231,15 +239,12 @@ fn branch(
         // up toward the light, and a little wander.
         let share = 1.0 / n as f32;
         let level_ness = 1.0 - direction.y.abs();
-        let wander = Vec3::new(
-            rng.range(-1.0, 1.0),
-            rng.range(-1.0, 1.0),
-            rng.range(-1.0, 1.0),
-        );
+        let wave = |(frequency, phase): (f32, f32)| (frequency * along + phase).sin();
+        let wander = Vec3::new(wave(waves[0]), wave(waves[1]), wave(waves[2]));
         direction = (direction
             + Vec3::NEG_Y * level.gravity * share * (0.4 + level_ness)
             + Vec3::Y * level.upward * share
-            + wander * level.randomness * share * 1.5)
+            + wander * level.randomness * share * 3.0)
             .normalize_or(direction);
         point += direction * step;
     }

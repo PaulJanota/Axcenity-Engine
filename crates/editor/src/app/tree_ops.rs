@@ -291,6 +291,11 @@ impl EditorApp {
             }
             return;
         }
+        // A grown tree: its recipe and model are files in the project.
+        if what == Insertable::Tree {
+            self.insert_tree(near);
+            return;
+        }
         // The Tool and its Handle are one undo step.
         if what == Insertable::Tool {
             let parent = tree::insert_parent(&self.world, near, what);

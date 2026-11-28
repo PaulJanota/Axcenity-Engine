@@ -697,6 +697,15 @@ impl EditorApp {
                         playing,
                         &mut clicks.insert,
                     );
+                    insert_menu(
+                        ui,
+                        (icons::TREE, "Nature"),
+                        "Insert a tree grown from a recipe, with its recipe and model written \
+                     into the project.",
+                        &[&Insertable::NATURE],
+                        playing,
+                        &mut clicks.insert,
+                    );
                     let studios_open = [Pane::Animation, Pane::Sequencer, Pane::CharacterStudio]
                         .into_iter()
                         .any(|pane| self.layout.is_open(pane));

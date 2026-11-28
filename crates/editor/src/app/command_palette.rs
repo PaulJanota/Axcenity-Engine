@@ -310,6 +310,7 @@ fn ribbon_insertables() -> Vec<(&'static str, Vec<Insertable>)> {
                 &Insertable::CHECKPOINTS,
                 &Insertable::CAMERAS,
                 &Insertable::VEHICLES,
+                &Insertable::NATURE,
             ]),
         ),
         ("Constraints", Insertable::CONSTRAINTS.to_vec()),

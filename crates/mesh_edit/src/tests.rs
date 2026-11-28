@@ -407,6 +407,63 @@ fn written_pieces_load_back_where_they_were() {
     assert_near(models[1].center, Vec3::ZERO);
 }
 
+#[test]
+fn written_objects_load_back_with_their_copies_and_wind() {
+    let leaf = axcenity_assets::ModelMaterial {
+        name: "Leaves".to_owned(),
+        double_sided: true,
+        sway: 0.2,
+        flutter: 0.06,
+        translucency: 0.42,
+        ..Default::default()
+    };
+    // A square of `n` × `n` quads, `size` across.
+    let sheet = |n: u32, size: f32| {
+        let mut positions = Vec::new();
+        let mut indices = Vec::new();
+        for y in 0..=n {
+            for x in 0..=n {
+                let at = |v: u32| v as f32 / n as f32 * size - size / 2.0;
+                positions.push([at(x), at(y), 0.0]);
+            }
+        }
+        for y in 0..n {
+            for x in 0..n {
+                let a = y * (n + 1) + x;
+                indices.extend([a, a + 1, a + n + 1, a + 1, a + n + 2, a + n + 1]);
+            }
+        }
+        let normals = vec![[0.0, 0.0, 1.0]; positions.len()];
+        axcenity_assets::Primitive::new(positions, normals, Vec::new(), indices, leaf.clone())
+    };
+    let objects = vec![
+        ("Tree".to_owned(), vec![sheet(8, 4.0)]),
+        ("Tree_LOD1".to_owned(), vec![sheet(4, 4.0)]),
+        ("Tree_LOD2".to_owned(), vec![sheet(2, 4.0)]),
+    ];
+    let bytes = write_objects_glb(&objects, &[]);
+    let models = load_models(
+        &bytes,
+        &std::env::temp_dir(),
+        ModelFormat::Gltf,
+        &[Pick::Whole],
+    )
+    .expect("the objects load");
+    let model = &models[0];
+    assert_near(model.size, Vec3::new(4.0, 4.0, 0.0));
+    assert_eq!(model.primitives.len(), 1);
+    let primitive = &model.primitives[0];
+    assert_eq!(primitive.indices.len() / 3, 128);
+    let copies: Vec<usize> = primitive.lods.iter().map(|c| c.indices.len() / 3).collect();
+    assert_eq!(copies, [32, 8]);
+    let material = &primitive.material;
+    assert_eq!(material.name, "Leaves");
+    assert!(material.double_sided);
+    assert!((material.sway - 0.2).abs() < 1e-6);
+    assert!((material.flutter - 0.06).abs() < 1e-6);
+    assert!((material.translucency - 0.42).abs() < 1e-6);
+}
+
 /// An empty folder of its own for a test project.
 fn temp_project(name: &str) -> PathBuf {
     let folder =

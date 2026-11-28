@@ -30,6 +30,7 @@ pub fn insert_icon(what: Insertable) -> &'static str {
         Insertable::Part(shape) => part_icon(shape),
         Insertable::Vehicle => icons::CAR,
         Insertable::Character => icons::PERSON_ARMS_SPREAD,
+        Insertable::Tree => icons::TREE,
         Insertable::HealthBar => icons::HEARTBEAT,
         _ => class_icon(what.class()),
     }

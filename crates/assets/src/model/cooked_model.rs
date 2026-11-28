@@ -279,6 +279,7 @@ fn encode_material(out: &mut Output, images: &mut Images, material: &ModelMateri
         flutter,
         hangs,
         glossy_leaf,
+        foliage_data,
         translucency,
         shading,
         defined_normal_texture,
@@ -318,9 +319,10 @@ fn encode_material(out: &mut Output, images: &mut Images, material: &ModelMateri
     out.floats(uv_offset);
     out.u8(u8::from(*double_sided));
     out.floats(&[*sway, *flutter, *translucency]);
-    // Hanging in the low bit, a glossy leaf in the next: a file from before
-    // glossy leaves (0 or 1) reads the same.
-    out.u8(u8::from(*hangs) | (u8::from(*glossy_leaf) << 1));
+    // Hanging in the low bit, a glossy leaf in the next, then packed
+    // foliage data: a file from before glossy leaves (0 or 1) reads the
+    // same.
+    out.u8(u8::from(*hangs) | (u8::from(*glossy_leaf) << 1) | (u8::from(*foliage_data) << 2));
     out.u8(match shading {
         ModelShading::Standard => 0,
         ModelShading::Skin => 1,
@@ -796,10 +798,11 @@ fn decode_material(input: &mut Input<'_>, images: &[Arc<Image>]) -> Option<Model
     let double_sided = input.bool()?;
     let [sway, flutter, translucency] = input.floats()?;
     let leaf_flags = input.u8()?;
-    if leaf_flags > 3 {
+    if leaf_flags > 7 {
         return None;
     }
     let (hangs, glossy_leaf) = (leaf_flags & 1 != 0, leaf_flags & 2 != 0);
+    let foliage_data = leaf_flags & 4 != 0;
     let shading = match input.u8()? {
         0 => ModelShading::Standard,
         1 => ModelShading::Skin,
@@ -856,6 +859,7 @@ fn decode_material(input: &mut Input<'_>, images: &[Arc<Image>]) -> Option<Model
         flutter,
         hangs,
         glossy_leaf,
+        foliage_data,
         translucency,
         shading,
         defined_normal_texture,
@@ -1012,6 +1016,7 @@ mod tests {
                     material.sway,
                     material.hangs,
                     material.glossy_leaf,
+                    material.foliage_data,
                 ),
                 material.flutter,
                 (material.translucency, material.shading),
@@ -1148,7 +1153,7 @@ mod tests {
             ),
             (
                 "laurel",
-                r#"{"axcenity_flutter": 0.05, "axcenity_glossy_leaf": true}"#,
+                r#"{"axcenity_flutter": 0.05, "axcenity_glossy_leaf": true, "axcenity_foliage": true}"#,
             ),
         ] {
             let mut file: serde_json::Value =
@@ -1167,8 +1172,8 @@ mod tests {
             assert_eq!(describe(&again), describe(&first), "{model}");
             let material = &again.primitives[0].material;
             assert_eq!(
-                (material.hangs, material.glossy_leaf),
-                (name != "laurel", name != "drape"),
+                (material.hangs, material.glossy_leaf, material.foliage_data),
+                (name != "laurel", name != "drape", name == "laurel"),
                 "{model}"
             );
         }

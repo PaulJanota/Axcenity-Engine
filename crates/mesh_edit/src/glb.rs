@@ -544,7 +544,11 @@ impl File {
         }
         // A leaf (one that flutters) is see-through to light unless told
         // otherwise, so its translucency is written whenever it flutters.
-        if material.sway > 0.0 || material.flutter > 0.0 || material.translucency > 0.0 {
+        if material.sway > 0.0
+            || material.flutter > 0.0
+            || material.translucency > 0.0
+            || material.foliage_data
+        {
             let mut extras = serde_json::Map::new();
             if material.sway > 0.0 {
                 extras.insert("axcenity_sway".into(), json!(finite(material.sway)));
@@ -557,6 +561,10 @@ impl File {
                     "axcenity_translucency".into(),
                     json!(finite(material.translucency)),
                 );
+            }
+            // Its COLOR_0 is a plant's packed data, not colours.
+            if material.foliage_data {
+                extras.insert("axcenity_foliage".into(), json!(true));
             }
             json["extras"] = Value::Object(extras);
         }

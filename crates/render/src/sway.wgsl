@@ -21,6 +21,16 @@ const SWAY_WIND: f32 = 20.0;
 // as `Frame::clock` (the time, then the wind), so the motion pass can bend
 // a plant as it was last frame too.
 fn swayed_at(world: vec3<f32>, sway: vec4<f32>, clock: vec4<f32>) -> vec3<f32> {
+    return swayed_by(world, sway, clock, vec2<f32>(-1.0, 1.0));
+}
+
+// `swayed_at` for a corner with weights of its own (a plant's foliage
+// data, foliage W3b): `weights.x` (0 to 1) is its share of the lean in
+// place of its height's (below 0: by its height, stiff at the foot), and
+// `weights.y` (0 to 1) its share of the flutter. Neither goes past what
+// its height would give at the top, so `Sway::reach` still bounds it.
+fn swayed_by(world: vec3<f32>, sway: vec4<f32>, clock: vec4<f32>, weights: vec2<f32>)
+    -> vec3<f32> {
     let wind = clock.yw;
     let speed = length(wind);
     // Still: no lean and no flutter (fract(sway.w); its whole part is the
@@ -29,8 +39,9 @@ fn swayed_at(world: vec3<f32>, sway: vec4<f32>, clock: vec4<f32>) -> vec3<f32> {
         return world;
     }
     let up = clamp((world.y - sway.x) * sway.y, 0.0, 1.0);
-    // Stiff at the foot, giving more toward the top.
-    let bend = up * up;
+    // Stiff at the foot, giving more toward the top, or as the corner's
+    // own weight says (out along a tree's limbs).
+    let bend = select(up * up, min(weights.x, 1.0), weights.x >= 0.0);
     let time = clock.x;
     let lean = SWAY_LEAN * sway.z / abs(sway.y) * (1.0 - exp(-speed / SWAY_WIND));
     let gust = cloud_noise2((world.xz - wind * time) * 0.03);
@@ -40,7 +51,7 @@ fn swayed_at(world: vec3<f32>, sway: vec4<f32>, clock: vec4<f32>) -> vec3<f32> {
     // Bending lowers the top a little, so the plant keeps its length.
     let drop = 0.5 * along * along * sway.y;
     var moved = vec3<f32>(offset.x, -drop, offset.y);
-    let shiver = fract(sway.w);
+    let shiver = fract(sway.w) * clamp(weights.y, 0.0, 1.0);
     if shiver > 0.0 {
         // Quick waves, out of step between leaves: position decides the
         // phase, so a card keeps its shape and its neighbour doesn't match.

@@ -38,7 +38,8 @@ pub(super) fn redrawn_every_frame() -> bool {
 /// are worked out each frame; `skin`'s second number is 1, or pending), or
 /// it sways while the wind blows (`windy`: it moves with the clock).
 pub(super) fn moves(raw: &InstanceRaw, windy: bool) -> bool {
-    raw.skin[1] != 0 || (windy && raw.sway[2] > 0.0)
+    let posed = raw.skin[1] != 0 && raw.skin[1] != super::foliage::FOLIAGE;
+    posed || (windy && raw.sway[2] > 0.0)
 }
 
 /// A lamp map's still casters, drawn alone, layer by layer (made with the

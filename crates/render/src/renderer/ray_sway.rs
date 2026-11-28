@@ -101,7 +101,8 @@ struct RunRaw {
     /// takes, the first copy's item, and its first corner among the bent
     /// positions.
     counts: [u32; 4],
-    /// How many copies; the rest is unused.
+    /// How many copies, 1 if the mesh has foliage data (bound with its
+    /// corners); the rest is unused.
     copies: [u32; 4],
 }
 
@@ -307,6 +308,8 @@ pub(super) struct BentMeshes {
     dispatches: Vec<(MeshKey, u32, u64)>,
     /// How many items were bent this frame.
     bent: u32,
+    /// Bound in a mesh's foliage data's place when it has none.
+    no_foliage: wgpu::Buffer,
 }
 
 /// Whether a BLAS made with `room` can be built from `copies`.
@@ -400,6 +403,7 @@ impl BentMeshes {
                 buffer_entry(1, storage(true)),
                 buffer_entry(2, storage(false)),
                 buffer_entry(3, storage(true)),
+                buffer_entry(4, storage(true)),
             ],
         });
         let pipeline = compute_pipeline(
@@ -431,6 +435,12 @@ impl BentMeshes {
             groups: FxHashMap::default(),
             dispatches: Vec::new(),
             bent: 0,
+            no_foliage: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("no foliage corners"),
+                size: 16,
+                usage: wgpu::BufferUsages::STORAGE,
+                mapped_at_creation: false,
+            }),
         }
     }
 
@@ -482,7 +492,12 @@ impl BentMeshes {
                     items.len() as u32,
                     run.first_corner,
                 ],
-                copies: [run.items.len() as u32, 0, 0, 0],
+                copies: [
+                    run.items.len() as u32,
+                    u32::from(gpu.foliage.is_some()),
+                    0,
+                    0,
+                ],
             };
             let at = index * self.run_stride as usize;
             raw_runs[at..at + size_of::<RunRaw>()].copy_from_slice(bytemuck::bytes_of(&raw));
@@ -545,6 +560,15 @@ impl BentMeshes {
                         wgpu::BindGroupEntry {
                             binding: 3,
                             resource: self.items.buffer.as_entire_binding(),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 4,
+                            // A mesh without foliage data reads none.
+                            resource: gpu
+                                .foliage
+                                .as_ref()
+                                .unwrap_or(&self.no_foliage)
+                                .as_entire_binding(),
                         },
                     ],
                 });

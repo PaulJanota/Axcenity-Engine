@@ -415,6 +415,7 @@ fn written_objects_load_back_with_their_copies_and_wind() {
         sway: 0.2,
         flutter: 0.06,
         translucency: 0.42,
+        foliage_data: true,
         ..Default::default()
     };
     // A square of `n` × `n` quads, `size` across.
@@ -475,6 +476,10 @@ fn written_objects_load_back_with_their_copies_and_wind() {
     assert!((material.sway - 0.2).abs() < 1e-6);
     assert!((material.flutter - 0.06).abs() < 1e-6);
     assert!((material.translucency - 0.42).abs() < 1e-6);
+    assert!(
+        material.foliage_data,
+        "its colours are still a plant's data"
+    );
     // The colours come back as written (`COLOR_0`), in every copy, still
     // matching their corners' places.
     for sheet in std::iter::once(primitive).chain(&primitive.lods) {

@@ -204,9 +204,18 @@ fn a_tree_is_a_model_as_tall_as_it_was_grown() {
     for recipe in every_preset() {
         let tree = generate(&recipe, 0);
         let model = tree.to_model(&recipe).unwrap();
-        assert_eq!(model.primitives.len(), 2);
-        assert_eq!(model.primitives[0].material.name, "TrunkBase");
-        assert_eq!(model.primitives[1].material.name, "Bark");
+        let names: Vec<&str> = model
+            .primitives
+            .iter()
+            .map(|p| p.material.name.as_str())
+            .collect();
+        if recipe.leaves.enabled {
+            assert_eq!(names, ["TrunkBase", "Bark", "Leaves"]);
+            let leaves = &model.primitives[2].material;
+            assert!(leaves.double_sided && leaves.translucency > 0.0 && leaves.flutter > 0.0);
+        } else {
+            assert_eq!(names, ["TrunkBase", "Bark"]);
+        }
         for primitive in &model.primitives {
             // The base sways with the rest, so they never part.
             assert_eq!(primitive.material.sway, model.primitives[1].material.sway);
@@ -262,7 +271,7 @@ fn every_copy_is_simpler_than_the_last_and_within_its_budget() {
 #[test]
 fn simpler_copies_keep_the_limbs_where_they_are() {
     let tree = generate(&TreeRecipe::preset(Preset::Oak), 0);
-    let bounds = |level: &super::BarkLevel| {
+    let bounds = |level: &super::TreeLevel| {
         level
             .base
             .positions
@@ -277,13 +286,13 @@ fn simpler_copies_keep_the_limbs_where_they_are() {
         let (lo, hi) = bounds(level);
         assert!(lo.cmpge(low - 0.05).all() && hi.cmple(high + 0.05).all());
         // The trunk's top is the same point in every copy.
-        let tip = |l: &super::BarkLevel| l.bark.positions[trunk_tip(&tree, l)];
+        let tip = |l: &super::TreeLevel| l.bark.positions[trunk_tip(&tree, l)];
         assert_eq!(tip(level), tip(tree.full()));
     }
 }
 
 /// Where the trunk's tip point is in a copy's bark: right after its rings.
-fn trunk_tip(tree: &super::Tree, level: &super::BarkLevel) -> usize {
+fn trunk_tip(tree: &super::Tree, level: &super::TreeLevel) -> usize {
     // The trunk's tube comes first; its tip is the first corner with the
     // tip's own normal, straight along the trunk.
     let along = tree.skeleton.stems[0].direction(tree.skeleton.stems[0].points.len() - 1);
@@ -343,7 +352,7 @@ fn buttresses_swell_the_base_only_where_it_is_detailed() {
     let tree = generate(&recipe, 0);
     let trunk = &tree.skeleton.stems[0];
     // How far round the ground's ring the radius swings, as a share.
-    let swing = |level: &super::BarkLevel| {
+    let swing = |level: &super::TreeLevel| {
         let ring = level
             .base
             .uvs
@@ -374,6 +383,87 @@ fn buttresses_swell_the_base_only_where_it_is_detailed() {
 }
 
 #[test]
+fn leafy_trees_have_leaves_in_every_copy_with_their_crown_data() {
+    for recipe in every_preset().filter(|r| r.leaves.enabled) {
+        let tree = generate(&recipe, 0);
+        let full = &tree.full().leaves;
+        assert!(
+            full.triangles() > 1000,
+            "{}: {}",
+            recipe.name,
+            full.triangles()
+        );
+        assert_eq!(
+            tree.leaf_clusters * recipe.leaves.per_cluster as usize * 4,
+            full.triangles()
+        );
+        for level in &tree.levels {
+            let leaves = &level.leaves;
+            assert_eq!(leaves.crown.len(), leaves.positions.len());
+            for crown in &leaves.crown {
+                let out = Vec3::new(crown[0], crown[1], crown[2]);
+                assert!((out.length() - 1.0).abs() < 1e-3);
+                assert!((0.0..=1.0).contains(&crown[3]));
+            }
+            assert!(level.bark.crown.is_empty() && level.base.crown.is_empty());
+            if !leaves.indices.is_empty() {
+                clean_and_facing_out(leaves, &recipe.name);
+            }
+        }
+        // A simpler copy's leaves are the first clusters' (same places).
+        let lod1 = &tree.levels[1].leaves;
+        assert!(lod1.triangles() < full.triangles());
+        assert_eq!(lod1.positions[0], full.positions[0]);
+    }
+    let dead = generate(&TreeRecipe::preset(Preset::Dead), 0);
+    assert!(dead.levels.iter().all(|l| l.leaves.indices.is_empty()));
+}
+
+#[test]
+fn the_crown_shades_itself_and_thins_where_dark() {
+    let mut recipe = TreeRecipe::preset(Preset::Oak);
+    recipe.leaves.shade_thinning = 0.0;
+    let dense = generate(&recipe, 0);
+    recipe.leaves.shade_thinning = 1.0;
+    let thinned = generate(&recipe, 0);
+    assert!(thinned.leaf_clusters < dense.leaf_clusters);
+    // Low in the crown is darker than its top.
+    let leaves = &dense.full().leaves;
+    let crown = dense.crown;
+    let (mut low, mut high) = ((0.0, 0), (0.0, 0));
+    for (p, c) in leaves.positions.iter().zip(&leaves.crown) {
+        let y = p[1] - crown.center.y;
+        if y < -crown.half_size.y * 0.3 {
+            low = (low.0 + c[3], low.1 + 1);
+        } else if y > crown.half_size.y * 0.3 {
+            high = (high.0 + c[3], high.1 + 1);
+        }
+    }
+    assert!(low.1 > 0 && high.1 > 0);
+    assert!(low.0 / low.1 as f32 + 0.1 < high.0 / high.1 as f32);
+}
+
+#[test]
+fn any_first_few_leaf_clusters_spread_over_the_whole_crown() {
+    let recipe = TreeRecipe::preset(Preset::Oak);
+    let tree = generate(&recipe, 0);
+    let leaves = &tree.full().leaves;
+    let per_cluster = recipe.leaves.per_cluster as usize * 6;
+    let bounds = |corners: &[[f32; 3]]| {
+        corners
+            .iter()
+            .fold((Vec3::INFINITY, Vec3::NEG_INFINITY), |(lo, hi), p| {
+                (lo.min(Vec3::from(*p)), hi.max(Vec3::from(*p)))
+            })
+    };
+    let (lo, hi) = bounds(&leaves.positions);
+    let first = tree.leaf_clusters / 10 * per_cluster;
+    let (flo, fhi) = bounds(&leaves.positions[..first]);
+    let share = (fhi - flo) / (hi - lo);
+    assert!(share.min_element() > 0.6, "{share}");
+}
+
+#[test]
 fn leaves_have_places_on_the_outer_half_of_the_finest_limbs() {
     let recipe = TreeRecipe::preset(Preset::Oak);
     let tree = generate(&recipe, 0);
@@ -401,7 +491,11 @@ fn write_preset_trees() {
         for (index, level) in tree.levels.iter().enumerate() {
             let mut obj = String::new();
             let mut offset = 1;
-            for (name, mesh) in [("TrunkBase", &level.base), ("Bark", &level.bark)] {
+            for (name, mesh) in [
+                ("TrunkBase", &level.base),
+                ("Bark", &level.bark),
+                ("Leaves", &level.leaves),
+            ] {
                 obj.push_str(&format!("o {name}\n"));
                 for p in &mesh.positions {
                     obj.push_str(&format!("v {} {} {}\n", p[0], p[1], p[2]));

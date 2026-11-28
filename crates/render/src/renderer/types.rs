@@ -586,6 +586,10 @@ pub(super) struct GpuMesh {
     pub(super) bounds: Bounds,
     /// Its corners' joints and weights, for an animated mesh.
     pub(super) skin: Option<skinning::GpuSkin>,
+    /// A plant's packed data, a word a corner (`foliage.rs`), and its size
+    /// counted, for a mesh with [`crate::MeshSource::foliage`].
+    pub(super) foliage: Option<wgpu::Buffer>,
+    pub(super) _foliage_bytes: Option<Counted>,
     /// Its buffers' size, in [`ScenePipeline::mesh_bytes`].
     pub(super) _bytes: Counted,
 }
@@ -1267,6 +1271,11 @@ pub(super) struct ScenePipeline {
     pub(super) posing: super::posing::Posing,
     /// `posing.generation` when the bindings holding its buffers were made.
     pub(super) posing_generation: u64,
+    /// Plants' packed data per corner, as the frame's vertex shaders read
+    /// it (foliage W3b, `foliage.rs`), and its `generation` when the
+    /// bindings holding it were made.
+    pub(super) foliage: super::foliage::FoliageTable,
+    pub(super) foliage_generation: u64,
     /// Ray traced sun shadows' pass and mask, while drawn
     /// (renderer/ray_shadows.rs), and the 4-byte mask bound without them.
     pub(super) ray_shadows: Option<Box<super::ray_shadows::RayShadows>>,

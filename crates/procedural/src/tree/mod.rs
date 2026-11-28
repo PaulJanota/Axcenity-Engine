@@ -33,7 +33,7 @@ pub use skeleton::{Skeleton, Stem};
 
 /// Bump when the same recipe and variant would give a different mesh, so
 /// anything kept from an older one (a cooked model) is made again.
-pub const TREE_GENERATOR_VERSION: u32 = 8;
+pub const TREE_GENERATOR_VERSION: u32 = 9;
 
 /// The sway a generated tree's bark is given ([`ModelMaterial::sway`]): a
 /// built-in tree's (`scene/src/foliage.rs`).
@@ -291,6 +291,7 @@ fn parts(
         roughness: bark.roughness.clamp(0.0, 1.0),
         metalness: 0.0,
         sway: TREE_SWAY,
+        foliage_data: true,
         ..ModelMaterial::default()
     };
     let leaf = &recipe.leaves;
@@ -310,6 +311,7 @@ fn parts(
         // Below 1, the most a material may flutter (assets' MAX_FLUTTER).
         flutter: leaf.flutter.clamp(0.0, 0.95),
         sway: TREE_SWAY,
+        foliage_data: true,
         ..ModelMaterial::default()
     };
     let primitive = |mesh: &TreeMesh, material: ModelMaterial| {

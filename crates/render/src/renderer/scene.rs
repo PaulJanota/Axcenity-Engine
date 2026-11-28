@@ -69,9 +69,12 @@ impl ScenePipeline {
         });
         // Every animated item, morphed and skinned once a frame (CO8).
         let posing = posing::Posing::new(&device);
+        // Plants' packed data per corner (foliage W3b).
+        let foliage = foliage::FoliageTable::new(&device);
         let frame_bind_group = create_frame_bind_group(
             &device,
             &frame_layout,
+            Some(foliage.buffer()),
             [
                 &frame_buffer,
                 &light_buffer,
@@ -105,8 +108,9 @@ impl ScenePipeline {
         });
         // Binding 5 matches `shadow_cascade` in shader.wgsl. Each pass picks
         // its cascade with an offset into the buffer (a "dynamic offset").
-        // Bindings 0 and 9 are the frame's uniform (its wind and clock, for
-        // swaying plants) and posed corners, as in the frame's group.
+        // Bindings 0, 9 and 20 are the frame's uniform (its wind and clock,
+        // for swaying plants), posed corners and plants' foliage table, as
+        // in the frame's group.
         let shadow_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("shadow pass"),
             entries: &[
@@ -131,6 +135,7 @@ impl ScenePipeline {
                     count: None,
                 },
                 skinning::posed_entry(),
+                foliage_entry(),
             ],
         });
         let shadow_bind_group = create_shadow_bind_group(
@@ -138,7 +143,7 @@ impl ScenePipeline {
             &shadow_layout,
             &frame_buffer,
             &cascade_buffer,
-            posing.posed(),
+            (posing.posed(), foliage.buffer()),
         );
         let shadow_pipeline = create_shadow_pipeline(&device, &shadow_layout, &skinning, None);
 
@@ -420,6 +425,8 @@ impl ScenePipeline {
             parked_ray_scene: None,
             posing_generation: posing.generation,
             posing,
+            foliage_generation: foliage.generation,
+            foliage,
             ray_shadows: None,
             no_ray_shadows,
             ray_reflections: None,
@@ -1390,20 +1397,38 @@ impl ScenePipeline {
             (&mut joints, &skins, &posed),
             rays,
         );
-        let posed_remade = self.posing.generation != self.posing_generation;
+        let mut posed_remade = self.posing.generation != self.posing_generation;
         if posed_remade {
             self.posing_generation = self.posing.generation;
             self.temporal
                 .bind_previous(&self.device, self.posing.previous());
         }
+        // Plants with packed data per corner (foliage W3b): each instance
+        // and caster drawn with one gets its corners' place in the table.
+        {
+            let (meshes, custom_meshes) = (&self.meshes, &self.custom_meshes);
+            self.foliage.mark(
+                &self.device,
+                (&batches, &mut instances),
+                &mut view_casters,
+                |key| gpu_mesh_in(meshes, custom_meshes, key),
+            );
+        }
+        if self.foliage.generation != self.foliage_generation {
+            self.foliage_generation = self.foliage.generation;
+            posed_remade = true;
+        }
         cpu.lap(CpuSection::Posing);
         // What moved since last frame, for the motion vectors.
         let moved = self.frame_targets.temporal.as_ref().map(|_| {
-            let posing = &self.posing;
+            let (posing, foliage) = (&self.posing, &self.foliage);
             let moved = self.history.moved(
                 &draws,
                 Some(&in_view),
-                |skin, mesh| posing.offset(skin, mesh),
+                (
+                    |skin, mesh| posing.offset(skin, mesh),
+                    |mesh| foliage.first(mesh),
+                ),
                 clock,
             );
             let blur = list
@@ -1660,10 +1685,13 @@ impl ScenePipeline {
                 timer.part(pass, within, started);
             }
         };
-        // First, every animated item morphed and skinned once (CO8).
+        // First, every animated item morphed and skinned once (CO8), and
+        // plants newly drawn copied into the foliage table.
         mark(&mut encoder, FramePass::CharacterPosing);
         let posed_any = {
             let (meshes, custom_meshes) = (&self.meshes, &self.custom_meshes);
+            self.foliage
+                .record(&mut encoder, |key| gpu_mesh_in(meshes, custom_meshes, key));
             self.posing
                 .record(&mut encoder, |key| gpu_mesh_in(meshes, custom_meshes, key))
         };
@@ -2870,10 +2898,12 @@ impl ScenePipeline {
             (None, Some(screen)) => &screen.buffer,
             (None, None) => &self.no_ray_reflections,
         };
-        let bind = |layout, prepass_depth, occlusion| {
+        // Compute layouts (volumetric fog's) leave the foliage table out.
+        let bind = |layout, prepass_depth, occlusion, foliage| {
             create_frame_bind_group(
                 &self.device,
                 layout,
+                foliage,
                 [
                     &self.frame_buffer,
                     &self.light_buffer,
@@ -2901,19 +2931,24 @@ impl ScenePipeline {
                 ],
             )
         };
-        self.frame_bind_group = bind(&self.frame_layout, prepass_depth, occlusion);
-        self.prepass_frame_bind_group =
-            bind(&self.frame_layout, &self.no_prepass_depth_view, occlusion);
+        let foliage = Some(self.foliage.buffer());
+        self.frame_bind_group = bind(&self.frame_layout, prepass_depth, occlusion, foliage);
+        self.prepass_frame_bind_group = bind(
+            &self.frame_layout,
+            &self.no_prepass_depth_view,
+            occlusion,
+            foliage,
+        );
         // Water reads its copy of the scene in ambient occlusion's place.
         self.water_frame_bind_group = self
             .water
             .copy
             .as_ref()
-            .map(|copy| bind(&self.frame_layout, prepass_depth, &copy.view));
+            .map(|copy| bind(&self.frame_layout, prepass_depth, &copy.view, foliage));
         let fog_group = self
             .volumetric_fog
             .as_ref()
-            .map(|fog| bind(&fog.frame_layout, prepass_depth, occlusion));
+            .map(|fog| bind(&fog.frame_layout, prepass_depth, occlusion, None));
         let ray_gi_group = self
             .ray_gi
             .as_ref()
@@ -2938,7 +2973,7 @@ impl ScenePipeline {
             &self.shadow_layout,
             &self.frame_buffer,
             &self.cascade_buffer,
-            self.posing.posed(),
+            (self.posing.posed(), self.foliage.buffer()),
         );
     }
 
@@ -3203,6 +3238,7 @@ impl ScenePipeline {
             freed_for_budget: self.freed_for_budget,
             target_bytes: self.frame_targets.bytes
                 + self.cloud_trace.bytes()
+                + self.foliage.bytes()
                 + shadow_bytes
                 + sheet_bytes
                 + self.environment.bytes()
@@ -4136,6 +4172,7 @@ fn frame_layout_entries() -> Vec<wgpu::BindGroupLayoutEntry> {
             count: None,
         },
         skinning::posed_entry(),
+        foliage_entry(),
         wgpu::BindGroupLayoutEntry {
             binding: 6,
             visibility: wgpu::ShaderStages::FRAGMENT,
@@ -4323,7 +4360,7 @@ fn create_shadow_bind_group(
     layout: &wgpu::BindGroupLayout,
     frame: &wgpu::Buffer,
     cascades: &wgpu::Buffer,
-    posed: &wgpu::Buffer,
+    (posed, foliage): (&wgpu::Buffer, &wgpu::Buffer),
 ) -> wgpu::BindGroup {
     device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("shadow pass"),
@@ -4345,8 +4382,27 @@ fn create_shadow_bind_group(
                 binding: skinning::POSED_BINDING,
                 resource: posed.as_entire_binding(),
             },
+            wgpu::BindGroupEntry {
+                binding: foliage::FOLIAGE_BINDING,
+                resource: foliage.as_entire_binding(),
+            },
         ],
     })
+}
+
+/// The plants' foliage table (`foliage.rs`), which the vertex shaders read
+/// each corner's wind weights from.
+fn foliage_entry() -> wgpu::BindGroupLayoutEntry {
+    wgpu::BindGroupLayoutEntry {
+        binding: foliage::FOLIAGE_BINDING,
+        visibility: wgpu::ShaderStages::VERTEX,
+        ty: wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Storage { read_only: true },
+            has_dynamic_offset: false,
+            min_binding_size: None,
+        },
+        count: None,
+    }
 }
 
 /// One step of drawing a shadow view: casters drawn into a layer (cleared

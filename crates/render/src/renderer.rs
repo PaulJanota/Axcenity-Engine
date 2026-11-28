@@ -66,6 +66,7 @@ mod depth_start;
 mod encoders;
 mod environment;
 mod fog;
+mod foliage;
 mod gpu;
 mod gpu_particles;
 mod gpu_timer;

@@ -603,6 +603,18 @@ fn a_gltf_materials_extras_say_how_it_moves_in_the_wind() {
     );
     assert_eq!(hangs(r#"{"axcenity_sway": 0.5}"#), (false, 0.5));
 
+    // Its vertex colours are a plant's packed data only when it says so.
+    let foliage = |extras: &str| {
+        let raw = serde_json::value::RawValue::from_string(extras.to_owned()).unwrap();
+        super::wind_of(&Some(raw)).foliage_data
+    };
+    assert!(foliage(
+        r#"{"axcenity_sway": 0.2, "axcenity_foliage": true}"#
+    ));
+    assert!(!foliage(r#"{"axcenity_sway": 0.2}"#));
+    assert!(!foliage(r#"{"axcenity_foliage": "yes"}"#));
+    assert!(!none.foliage_data);
+
     // A glossy leaf says so the same way.
     let glossy = |extras: &str| {
         let raw = serde_json::value::RawValue::from_string(extras.to_owned()).unwrap();

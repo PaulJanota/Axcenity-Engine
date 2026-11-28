@@ -23,6 +23,7 @@ mod decals;
 mod depth_from_prepass;
 mod environment_maps;
 mod fog;
+mod foliage_data;
 mod foliage_light;
 mod foliage_shadow_bench;
 mod frame_parts;
@@ -1385,6 +1386,115 @@ impl MeshSource for Square {
     }
     fn indices(&self) -> &[u32] {
         &[0, 1, 2, 0, 2, 3]
+    }
+}
+
+/// `inner`'s corners and triangles, each corner with `foliage` (a plant's
+/// packed data, foliage W3b: `MeshSource::foliage`), keyed by `key`.
+struct PaintedFoliage {
+    key: u64,
+    inner: Arc<dyn MeshSource>,
+    foliage: Vec<[f32; 4]>,
+}
+
+impl PaintedFoliage {
+    /// `inner` with every corner carrying `foliage`, keyed by those values.
+    fn every_corner(inner: Arc<dyn MeshSource>, foliage: [f32; 4]) -> Self {
+        let bits = foliage.map(f32::to_bits);
+        let key = 0x0F01_1A6E_0000_0000
+            ^ inner.key().rotate_left(17)
+            ^ u64::from(bits[0])
+            ^ (u64::from(bits[1]) << 8)
+            ^ (u64::from(bits[2]) << 16)
+            ^ (u64::from(bits[3]) << 24);
+        let corners = inner.positions().len();
+        Self {
+            key,
+            inner,
+            foliage: vec![foliage; corners],
+        }
+    }
+}
+
+impl MeshSource for PaintedFoliage {
+    fn key(&self) -> u64 {
+        self.key
+    }
+    fn positions(&self) -> &[[f32; 3]] {
+        self.inner.positions()
+    }
+    fn normals(&self) -> &[[f32; 3]] {
+        self.inner.normals()
+    }
+    fn uvs(&self) -> &[[f32; 2]] {
+        self.inner.uvs()
+    }
+    fn tangents(&self) -> &[[f32; 4]] {
+        self.inner.tangents()
+    }
+    fn indices(&self) -> &[u32] {
+        self.inner.indices()
+    }
+    fn foliage(&self) -> &[[f32; 4]] {
+        &self.foliage
+    }
+}
+
+/// A box filling the unit cube (as `Shape::Block` does), four corners a
+/// face, as a caller's mesh.
+struct UnitBox {
+    positions: Vec<[f32; 3]>,
+    normals: Vec<[f32; 3]>,
+    indices: Vec<u32>,
+}
+
+impl UnitBox {
+    fn new() -> Self {
+        let (mut positions, mut normals, mut indices) = (Vec::new(), Vec::new(), Vec::new());
+        for axis in 0..3 {
+            for side in [-1.0_f32, 1.0] {
+                let mut normal = [0.0; 3];
+                normal[axis] = side;
+                let n = Vec3::from(normal);
+                // Two directions across the face, turning counter-clockwise
+                // seen from outside.
+                let u = Vec3::from({
+                    let mut u = [0.0; 3];
+                    u[(axis + 1) % 3] = 1.0;
+                    u
+                });
+                let v = n.cross(u);
+                let first = positions.len() as u32;
+                for (a, b) in [(-0.5, -0.5), (0.5, -0.5), (0.5, 0.5), (-0.5, 0.5)] {
+                    positions.push((n * 0.5 + u * a + v * b).to_array());
+                    normals.push(normal);
+                }
+                indices.extend([first, first + 1, first + 2, first, first + 2, first + 3]);
+            }
+        }
+        Self {
+            positions,
+            normals,
+            indices,
+        }
+    }
+}
+
+impl MeshSource for UnitBox {
+    fn key(&self) -> u64 {
+        0x0B0C_5000
+    }
+    fn positions(&self) -> &[[f32; 3]] {
+        &self.positions
+    }
+    fn normals(&self) -> &[[f32; 3]] {
+        &self.normals
+    }
+    fn uvs(&self) -> &[[f32; 2]] {
+        &[]
+    }
+    fn indices(&self) -> &[u32] {
+        &self.indices
     }
 }
 

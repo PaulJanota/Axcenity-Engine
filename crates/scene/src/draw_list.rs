@@ -864,6 +864,15 @@ impl MeshSource for ModelMesh {
     fn indices(&self) -> &[u32] {
         &self.primitive().indices
     }
+    fn foliage(&self) -> &[[f32; 4]] {
+        // Only a material that says so packs a plant's data in its colours
+        // (the primitive's own: a simpler copy's is the same).
+        if self.model.primitives[self.index].material.foliage_data {
+            &self.primitive().colors
+        } else {
+            &[]
+        }
+    }
     fn skin_joints(&self) -> &[[u16; 4]] {
         &self.primitive().joints
     }

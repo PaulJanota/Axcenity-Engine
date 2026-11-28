@@ -425,7 +425,8 @@ pub const LEAF_TRANSLUCENCY: f32 = 0.42;
 /// `axcenity_hang` is `true` or a number above 0 for what hangs (drapes,
 /// washing on a line): it sways from its top down. `axcenity_glossy_leaf`,
 /// likewise, marks a leaf with a sheen of its own (ivy, laurel): lit as a
-/// leaf even when it hangs, at its own roughness.
+/// leaf even when it hangs, at its own roughness. `axcenity_foliage` says
+/// its `COLOR_0` is a plant's packed data ([`ModelMaterial::foliage_data`]).
 fn wind_of(extras: &gltf::json::Extras) -> ModelMaterial {
     // Each on its own, so one of the wrong kind doesn't lose the others.
     #[derive(serde::Deserialize)]
@@ -435,6 +436,7 @@ fn wind_of(extras: &gltf::json::Extras) -> ModelMaterial {
         axcenity_translucency: Option<serde_json::Value>,
         axcenity_hang: Option<serde_json::Value>,
         axcenity_glossy_leaf: Option<serde_json::Value>,
+        axcenity_foliage: Option<serde_json::Value>,
     }
     let wind = extras
         .as_ref()
@@ -449,14 +451,17 @@ fn wind_of(extras: &gltf::json::Extras) -> ModelMaterial {
         Some(serde_json::Value::Bool(yes)) => *yes,
         other => number(other).is_some_and(|v| v > 0.0),
     };
-    let (sway, flutter, translucency, hangs, glossy_leaf) =
-        wind.map_or((None, None, None, false, false), |wind| {
+    let (sway, flutter, translucency, (hangs, glossy_leaf, foliage_data)) =
+        wind.map_or((None, None, None, (false, false, false)), |wind| {
             (
                 number(&wind.axcenity_sway),
                 number(&wind.axcenity_flutter),
                 number(&wind.axcenity_translucency),
-                yes(&wind.axcenity_hang),
-                yes(&wind.axcenity_glossy_leaf),
+                (
+                    yes(&wind.axcenity_hang),
+                    yes(&wind.axcenity_glossy_leaf),
+                    yes(&wind.axcenity_foliage),
+                ),
             )
         });
     let usable = |value: Option<f32>| value.filter(|v| v.is_finite() && *v > 0.0).unwrap_or(0.0);
@@ -471,6 +476,7 @@ fn wind_of(extras: &gltf::json::Extras) -> ModelMaterial {
         flutter,
         hangs,
         glossy_leaf,
+        foliage_data,
         translucency: translucency
             .filter(|v| v.is_finite() && *v >= 0.0)
             .unwrap_or(leaf)
@@ -725,6 +731,11 @@ pub struct ModelMaterial {
     /// (which keeps a matte leaf seen edge-on from mirroring a white sky).
     /// From glTF `extras`: `axcenity_glossy_leaf`.
     pub glossy_leaf: bool,
+    /// Whether its primitives' [`Primitive::colors`] are a plant's packed
+    /// data (occlusion, sway, flutter and a shade mask, as a generated tree
+    /// writes them), which the renderer bends and shades it by, and not
+    /// colours. From glTF `extras`: `axcenity_foliage: true`.
+    pub foliage_data: bool,
     /// How much light passes through it from behind, 0 for none: leaves.
     /// From glTF `extras`: `axcenity_translucency`, or a leaf's default.
     pub translucency: f32,
@@ -829,6 +840,7 @@ impl Default for ModelMaterial {
             flutter: 0.0,
             hangs: false,
             glossy_leaf: false,
+            foliage_data: false,
             translucency: 0.0,
             shading: ModelShading::Standard,
             defined_normal_texture: None,

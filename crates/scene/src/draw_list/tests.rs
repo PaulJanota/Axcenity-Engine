@@ -889,3 +889,31 @@ fn a_model_material_marked_cloth_draws_its_khr_sheen_and_anisotropy() {
     });
     assert!(matches!(standard.shading, Shading::Standard));
 }
+
+#[test]
+fn only_a_material_marked_foliage_data_hands_its_colours_on_as_a_plants_data() {
+    use axcenity_assets::{Model, ModelMaterial, Primitive};
+    let triangle = |foliage_data: bool| {
+        let mut primitive = Primitive::new(
+            vec![[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
+            vec![[0.0, 0.0, 1.0]; 3],
+            Vec::new(),
+            vec![0, 1, 2],
+            ModelMaterial {
+                foliage_data,
+                ..ModelMaterial::default()
+            },
+        );
+        primitive.colors = vec![[0.5, 0.25, 0.75, 1.0]; 3];
+        primitive
+    };
+    let model = Arc::new(Model::from_primitives(vec![triangle(true), triangle(false)]).unwrap());
+    let foliage: Vec<usize> = model_pieces(&model)
+        .iter()
+        .map(|piece| match &piece.shape {
+            Shape::Mesh(mesh) => mesh.foliage().len(),
+            _ => unreachable!("a model's pieces are meshes"),
+        })
+        .collect();
+    assert_eq!(foliage, [3, 0]);
+}

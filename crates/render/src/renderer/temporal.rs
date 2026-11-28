@@ -778,7 +778,10 @@ impl History {
         &self,
         draws: &[Draw<'_>],
         in_view: Option<&[bool]>,
-        posed: impl Fn(&Skin, MeshKey) -> Option<u32> + Sync,
+        (posed, foliage): (
+            impl Fn(&Skin, MeshKey) -> Option<u32> + Sync,
+            impl Fn(MeshKey) -> Option<u32> + Sync,
+        ),
         clock: [f32; 4],
     ) -> Moved {
         static AS_BEFORE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
@@ -800,7 +803,7 @@ impl History {
                 if in_view.is_some_and(|in_view| !in_view[first + at]) {
                     continue;
                 }
-                if let Some(instance) = self.moved_draw(draw, &posed, swaying) {
+                if let Some(instance) = self.moved_draw(draw, (&posed, &foliage), swaying) {
                     moved.push((draw.mesh(), instance));
                 }
             }
@@ -845,7 +848,10 @@ impl History {
     fn moved_draw(
         &self,
         draw: &Draw<'_>,
-        posed: &impl Fn(&Skin, MeshKey) -> Option<u32>,
+        (posed, foliage): (
+            &impl Fn(&Skin, MeshKey) -> Option<u32>,
+            &impl Fn(MeshKey) -> Option<u32>,
+        ),
         swaying: bool,
     ) -> Option<MotionInstance> {
         {
@@ -872,9 +878,10 @@ impl History {
                 return None;
             }
             // `previous_corner` in shader.wgsl: 1 for posed now but not
-            // last frame, else 2 more than where it was.
+            // last frame, else 2 more than where it was; at rest, its
+            // foliage data's place, if it has any (`corner_foliage`).
             let skin = match now {
-                None => [0, 0],
+                None => foliage(mesh).map_or([0, 0], |first| [first, super::foliage::FOLIAGE]),
                 Some(now) => match self.posed.get(&(item.id, mesh)) {
                     Some(&before) => [now, before + 2],
                     None => [now, 1],
@@ -1290,7 +1297,7 @@ mod tests {
         history.finish(&before, (Mat4::IDENTITY, clock(1.0)), HashMap::new(), true);
 
         for now in [clock(1.1), clock(1.0), [1.1, 0.0, 0.0, 0.0]] {
-            let moved = history.moved(&draws, None, |_, _| None, now);
+            let moved = history.moved(&draws, None, (|_, _| None, |_| None), now);
             let long_way = moved_the_long_way(&history, &draws, now);
             assert_eq!(moved.instances.len(), long_way.len(), "at {now:?}");
             for (got, want) in moved.instances.iter().zip(&long_way) {
@@ -1307,7 +1314,7 @@ mod tests {
             .filter(|(_, seen)| **seen)
             .map(|(draw, _)| draw.clone())
             .collect();
-        let moved = history.moved(&draws, Some(&in_view), |_, _| None, clock(1.1));
+        let moved = history.moved(&draws, Some(&in_view), (|_, _| None, |_| None), clock(1.1));
         let long_way = moved_the_long_way(&history, &seen, clock(1.1));
         assert!(!long_way.is_empty() && long_way.len() < 11);
         assert_eq!(moved.instances.len(), long_way.len());
@@ -1319,14 +1326,14 @@ mod tests {
         // flat one; with no wind and the same clock, only the moved one.
         assert_eq!(
             history
-                .moved(&draws, None, |_, _| None, clock(1.1))
+                .moved(&draws, None, (|_, _| None, |_| None), clock(1.1))
                 .instances
                 .len(),
             11
         );
         assert_eq!(
             history
-                .moved(&draws, None, |_, _| None, clock(1.0))
+                .moved(&draws, None, (|_, _| None, |_| None), clock(1.0))
                 .instances
                 .len(),
             1

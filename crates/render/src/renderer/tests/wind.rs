@@ -6,7 +6,7 @@ use crate::Sway;
 use glam::Vec2;
 
 /// The frame size, square.
-const SIZE: u32 = 128;
+pub(super) const SIZE: u32 = 128;
 /// How tall the plant is, in studs. It stands on the ground at the origin.
 const HEIGHT: f32 = 8.0;
 
@@ -30,7 +30,7 @@ fn plant(sway: bool) -> DrawItem {
 
 /// The plant glowing white against the black sky, seen side on from +Z,
 /// with no shadows.
-fn plant_seen_side_on(sway: bool, wind: Vec3) -> DrawList {
+pub(super) fn plant_seen_side_on(sway: bool, wind: Vec3) -> DrawList {
     let mut plant = plant(sway);
     plant.material.base_color = [0.0; 3];
     plant.material.emissive = [1.0; 3];
@@ -47,7 +47,7 @@ fn plant_seen_side_on(sway: bool, wind: Vec3) -> DrawList {
 
 /// The plant over a wide white floor, lit by a sun from +Z (so its shadow
 /// runs toward -Z, as long as it's tall), seen from above and behind.
-fn plant_and_its_shadow(sway: bool, wind: Vec3) -> DrawList {
+pub(super) fn plant_and_its_shadow(sway: bool, wind: Vec3) -> DrawList {
     let floor = DrawItem {
         transform: Mat4::from_scale_rotation_translation(
             Vec3::new(200.0, 1.0, 200.0),
@@ -69,14 +69,14 @@ fn plant_and_its_shadow(sway: bool, wind: Vec3) -> DrawList {
 }
 
 /// Where `point` is drawn in a `SIZE`-square frame of `list`, in pixels.
-fn on_screen(list: &DrawList, point: Vec3) -> Vec2 {
+pub(super) fn on_screen(list: &DrawList, point: Vec3) -> Vec2 {
     let clip = view_projection(list, 1.0) * point.extend(1.0);
     let ndc = clip.truncate() / clip.w;
     Vec2::new(ndc.x * 0.5 + 0.5, 0.5 - ndc.y * 0.5) * SIZE as f32
 }
 
 /// The pixel `point` is drawn on in `list`, drawn by `renderer`.
-fn pixel_on(renderer: &mut TextureRenderer, list: &DrawList, point: Vec3) -> [u8; 4] {
+pub(super) fn pixel_on(renderer: &mut TextureRenderer, list: &DrawList, point: Vec3) -> [u8; 4] {
     renderer.render(list).unwrap();
     let at = on_screen(list, point);
     let (x, y) = (at.x as usize, at.y as usize);
@@ -86,14 +86,14 @@ fn pixel_on(renderer: &mut TextureRenderer, list: &DrawList, point: Vec3) -> [u8
 }
 
 /// How many pixels one stud along X covers around `point`.
-fn pixels_per_stud(list: &DrawList, point: Vec3) -> f32 {
+pub(super) fn pixels_per_stud(list: &DrawList, point: Vec3) -> f32 {
     on_screen(list, point + Vec3::X).x - on_screen(list, point).x
 }
 
 /// The mean column of the pixels in rows `top..bottom`, each counted by
 /// its `weight` (so a part-covered edge pixel counts in part), or `None`
 /// if none weighs anything.
-fn mean_column(
+pub(super) fn mean_column(
     pixels: &[u8],
     (top, bottom): (f32, f32),
     weight: impl Fn([u8; 4]) -> f32,
@@ -126,7 +126,12 @@ fn brightness([r, ..]: [u8; 4]) -> f32 {
 
 /// Where the plant is drawn between `from` and `to` studs up, as the mean
 /// column of its pixels.
-fn plant_column(renderer: &mut TextureRenderer, list: &DrawList, from: f32, to: f32) -> f32 {
+pub(super) fn plant_column(
+    renderer: &mut TextureRenderer,
+    list: &DrawList,
+    from: f32,
+    to: f32,
+) -> f32 {
     renderer.render(list).unwrap();
     mean_column(
         &renderer.read_pixels(),

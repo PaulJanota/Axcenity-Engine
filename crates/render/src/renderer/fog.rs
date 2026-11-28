@@ -257,8 +257,11 @@ impl VolumetricFog {
         frame_layout: &wgpu::BindGroupLayout,
         alive: &Arc<()>,
     ) -> Self {
+        // Without the plants' foliage table, which only vertex shaders
+        // read (a compute stage has room for few storage buffers).
         let compute_entries: Vec<_> = frame_entries
             .iter()
+            .filter(|entry| entry.binding != super::foliage::FOLIAGE_BINDING)
             .map(|entry| wgpu::BindGroupLayoutEntry {
                 visibility: entry.visibility | wgpu::ShaderStages::COMPUTE,
                 ..*entry

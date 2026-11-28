@@ -2181,6 +2181,16 @@ pub trait MeshSource: Send + Sync {
     }
     /// Three per triangle, counter-clockwise seen from outside.
     fn indices(&self) -> &[u32];
+    /// A plant's packed data per corner (foliage W3, ADR-0053), one per
+    /// position, or empty for none (the default): `[0]` how open it is to
+    /// the sky (1 open, darker deep in a crown), `[1]` how much of the
+    /// wind's lean it takes (0 stays put, 1 the whole lean, in place of
+    /// leaning by height), `[2]` how much of its item's flutter it takes,
+    /// and `[3]` a shade mask (a leaf's tint, bark's weathering). Each is 0
+    /// to 1; outside that is clamped.
+    fn foliage(&self) -> &[[f32; 4]] {
+        &[]
+    }
     /// For an animated mesh, one per position: up to 4 joints of the
     /// item's [`Skin`] the corner moves with, and in [`skin_weights`] how
     /// much each counts (all 0 for a corner that never moves). Empty for a

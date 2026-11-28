@@ -481,10 +481,12 @@ pub(super) fn create_shadow_layers(
 /// The frame's bindings (group 0 in lighting.wgsl): its uniform, lights,
 /// tiles, posed corners and light probes, the shadow maps, the ambient occlusion,
 /// the environment and probe maps and the prepass's depth, with a sampler
-/// for each kind of map.
+/// for each kind of map, and the plants' foliage table (`foliage.rs`) for
+/// a layout that has it (compute layouts don't).
 pub(super) fn create_frame_bind_group(
     device: &wgpu::Device,
     layout: &wgpu::BindGroupLayout,
+    foliage: Option<&wgpu::Buffer>,
     [
         frame_buffer,
         light_buffer,
@@ -507,87 +509,94 @@ pub(super) fn create_frame_bind_group(
     ]: [&wgpu::TextureView; 8],
     [shadow_sampler, occlusion_sampler, environment_sampler]: [&wgpu::Sampler; 3],
 ) -> wgpu::BindGroup {
+    let mut entries = vec![
+        wgpu::BindGroupEntry {
+            binding: 0,
+            resource: frame_buffer.as_entire_binding(),
+        },
+        wgpu::BindGroupEntry {
+            binding: 1,
+            resource: wgpu::BindingResource::TextureView(shadow_view),
+        },
+        wgpu::BindGroupEntry {
+            binding: 2,
+            resource: wgpu::BindingResource::Sampler(shadow_sampler),
+        },
+        wgpu::BindGroupEntry {
+            binding: 3,
+            resource: light_buffer.as_entire_binding(),
+        },
+        wgpu::BindGroupEntry {
+            binding: 4,
+            resource: tile_buffer.as_entire_binding(),
+        },
+        wgpu::BindGroupEntry {
+            binding: POSED_BINDING,
+            resource: posed_buffer.as_entire_binding(),
+        },
+        wgpu::BindGroupEntry {
+            binding: 17,
+            resource: ray_shadow_mask.as_entire_binding(),
+        },
+        wgpu::BindGroupEntry {
+            binding: 18,
+            resource: ray_reflections.as_entire_binding(),
+        },
+        wgpu::BindGroupEntry {
+            binding: 19,
+            resource: weather_field.as_entire_binding(),
+        },
+        wgpu::BindGroupEntry {
+            binding: 6,
+            resource: wgpu::BindingResource::TextureView(spot_shadow_view),
+        },
+        wgpu::BindGroupEntry {
+            binding: 7,
+            resource: wgpu::BindingResource::TextureView(occlusion_view),
+        },
+        wgpu::BindGroupEntry {
+            binding: 8,
+            resource: wgpu::BindingResource::Sampler(occlusion_sampler),
+        },
+        wgpu::BindGroupEntry {
+            binding: 10,
+            resource: wgpu::BindingResource::TextureView(environment_view),
+        },
+        wgpu::BindGroupEntry {
+            binding: 11,
+            resource: wgpu::BindingResource::Sampler(environment_sampler),
+        },
+        wgpu::BindGroupEntry {
+            binding: 12,
+            resource: wgpu::BindingResource::TextureView(sky_image_view),
+        },
+        wgpu::BindGroupEntry {
+            binding: 13,
+            resource: wgpu::BindingResource::TextureView(probe_view),
+        },
+        wgpu::BindGroupEntry {
+            binding: 14,
+            resource: wgpu::BindingResource::TextureView(point_shadow_view),
+        },
+        wgpu::BindGroupEntry {
+            binding: 15,
+            resource: wgpu::BindingResource::TextureView(prepass_depth_view),
+        },
+        wgpu::BindGroupEntry {
+            binding: 16,
+            resource: light_probe_buffer.as_entire_binding(),
+        },
+    ];
+    if let Some(foliage) = foliage {
+        entries.push(wgpu::BindGroupEntry {
+            binding: super::foliage::FOLIAGE_BINDING,
+            resource: foliage.as_entire_binding(),
+        });
+    }
     device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("frame"),
         layout,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: frame_buffer.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: wgpu::BindingResource::TextureView(shadow_view),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: wgpu::BindingResource::Sampler(shadow_sampler),
-            },
-            wgpu::BindGroupEntry {
-                binding: 3,
-                resource: light_buffer.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 4,
-                resource: tile_buffer.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: POSED_BINDING,
-                resource: posed_buffer.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 17,
-                resource: ray_shadow_mask.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 18,
-                resource: ray_reflections.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 19,
-                resource: weather_field.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 6,
-                resource: wgpu::BindingResource::TextureView(spot_shadow_view),
-            },
-            wgpu::BindGroupEntry {
-                binding: 7,
-                resource: wgpu::BindingResource::TextureView(occlusion_view),
-            },
-            wgpu::BindGroupEntry {
-                binding: 8,
-                resource: wgpu::BindingResource::Sampler(occlusion_sampler),
-            },
-            wgpu::BindGroupEntry {
-                binding: 10,
-                resource: wgpu::BindingResource::TextureView(environment_view),
-            },
-            wgpu::BindGroupEntry {
-                binding: 11,
-                resource: wgpu::BindingResource::Sampler(environment_sampler),
-            },
-            wgpu::BindGroupEntry {
-                binding: 12,
-                resource: wgpu::BindingResource::TextureView(sky_image_view),
-            },
-            wgpu::BindGroupEntry {
-                binding: 13,
-                resource: wgpu::BindingResource::TextureView(probe_view),
-            },
-            wgpu::BindGroupEntry {
-                binding: 14,
-                resource: wgpu::BindingResource::TextureView(point_shadow_view),
-            },
-            wgpu::BindGroupEntry {
-                binding: 15,
-                resource: wgpu::BindingResource::TextureView(prepass_depth_view),
-            },
-            wgpu::BindGroupEntry {
-                binding: 16,
-                resource: light_probe_buffer.as_entire_binding(),
-            },
-        ],
+        entries: &entries,
     })
 }
 
@@ -900,6 +909,10 @@ pub(super) fn upload_custom_mesh_with(
     );
     mesh.version = source.version();
     mesh.skin = skinning.upload(source);
+    if let Some((foliage, counted)) = super::foliage::upload(device, bytes, source) {
+        mesh.foliage = Some(foliage);
+        mesh._foliage_bytes = Some(counted);
+    }
     Some(mesh)
 }
 
@@ -1016,6 +1029,8 @@ pub(super) fn upload_buffers(
         index_format,
         version: 0,
         skin: None,
+        foliage: None,
+        _foliage_bytes: None,
     }
 }
 

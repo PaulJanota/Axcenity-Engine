@@ -7,7 +7,7 @@ date: 2026-11-28
 supersedes:
 superseded_by:
 affects: [procedural, render, scene, assets, editor]
-source: [crates/render/src/renderer/types.rs, crates/render/src/shader.wgsl, crates/render/src/sway.wgsl, crates/scene/src/foliage.rs, crates/procedural/src/terrain_scatter.rs]
+source: [crates/render/src/renderer/types.rs, crates/render/src/renderer/foliage.rs, crates/render/src/shader.wgsl, crates/render/src/sway.wgsl, crates/scene/src/foliage.rs, crates/procedural/src/terrain_scatter.rs]
 docs: [docs/research/foliage-grass-seasons.md, docs/rendering/wind.md, docs/rendering/weather.md, docs/terrain.md]
 tags: [adr, rendering, foliage, procedural]
 ---
@@ -49,6 +49,13 @@ Foliage meshes carry their per-corner data in a storage table read by `vertex_in
 - A new frame binding or a share of an existing storage buffer, within wgpu's default of 8 storage buffers per stage.
 - Ray traced shadows and AO fall on grass (they trace from prepass pixels) but grass never shadows anything by rays; contact darkening stands in.
 - Revisit if a scene needs grass in the shadow maps beyond cascade 0, or if per-corner data must survive a mesh's re-simplification (the table is per mesh and LOD copy).
+
+## As built (foliage W3b, 2026-11-28)
+
+- The table is the frame's binding 20 (also in the shadow passes' group; volumetric fog's compute copy of the frame layout leaves it out, as a compute stage has no storage buffer to spare). It holds one word a corner (`unpack4x8unorm`: occlusion, sway, flutter, shade mask), copied each frame from each drawn mesh's own buffer when first drawn and kept while there's room (`crates/render/src/renderer/foliage.rs`).
+- The marker is `InstanceRaw::skin = [first corner, FOLIAGE]` with `FOLIAGE = u32::MAX - 1`, given after posing to unposed instances and casters by the mesh each view actually draws (a far cascade's simpler copy has its own place). `pose_corner`, `previous_corner`, the snow slab and lamp shadows' "moves" test treat it as at rest.
+- The data comes from `COLOR_0` only when a material's `extras` say `axcenity_foliage: true` (`ModelMaterial::foliage_data`), so ordinary vertex colours are never read as wind weights.
+- The sway (`G`) and flutter (`B`) weights are kept within 0 to 1: a corner never moves further than its plant's top would by height, so `Sway::reach` still bounds culling and the ray traced bending. The ray traced scene's bent copies read the mesh's own buffer, not the table.
 
 ## Implementation references
 

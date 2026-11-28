@@ -72,6 +72,32 @@ struct VertexIn {
 // `skin.x` names.
 @group(0) @binding(9) var<storage, read> posed_corners: array<u32>;
 
+// Plants' packed data per corner (foliage W3b, ADR-0053,
+// renderer/foliage.rs): one word a corner, 8 bits each of how open it is
+// to the sky, its share of the wind's lean, its share of its item's
+// flutter and a shade mask (a leaf's tint, bark's weathering), from the
+// first corner an unposed instance's `skin.x` names when its `skin.y` is
+// `FOLIAGE_CORNERS`.
+@group(0) @binding(20) var<storage, read> foliage_corners: array<u32>;
+
+// `skin.y` of an item at rest with foliage data. Must match `FOLIAGE` in
+// renderer/foliage.rs.
+const FOLIAGE_CORNERS: u32 = 4294967294u;
+
+// A corner without foliage data: open, leaning by its height on the
+// plant (`swayed_by`'s weight below 0), all of its item's flutter and no
+// shade mask (below 0).
+const NO_FOLIAGE: vec4<f32> = vec4<f32>(1.0, -1.0, 1.0, -1.0);
+
+// Corner `index`'s foliage data, as its instance's `skin` finds it, or
+// `NO_FOLIAGE`.
+fn corner_foliage(index: u32, skin: vec2<u32>) -> vec4<f32> {
+    if skin.y != FOLIAGE_CORNERS {
+        return NO_FOLIAGE;
+    }
+    return unpack4x8unorm(foliage_corners[skin.x + index]);
+}
+
 // Words per posed corner. Must match `POSED_WORDS` in posing.wgsl.
 const POSED_WORDS: u32 = 5u;
 // A zero direction. Must match `ZERO_DIRECTION` in posing.wgsl.
@@ -107,7 +133,7 @@ struct Posed {
 // (`skin.y` not 0: posed this frame, from corner `skin.x`), or at rest.
 fn pose_corner(index: u32, skin: vec2<u32>, rest_position: vec3<f32>, rest_normal: vec3<f32>,
     tangent: vec3<f32>) -> Posed {
-    if skin.y == 0u {
+    if skin.y == 0u || skin.y == FOLIAGE_CORNERS {
         return Posed(rest_position, rest_normal, tangent);
     }
     let at = skin.x + index;
@@ -121,10 +147,11 @@ fn unit_or_zero(v: vec3<f32>) -> vec3<f32> {
     return select(vec3<f32>(0.0), v * inverseSqrt(length_squared), length_squared > 0.0);
 }
 
-// Where `world` is bent by the frame's wind: `swayed_at` (sway.wgsl) at
-// this frame's time.
-fn swayed(world: vec3<f32>, sway: vec4<f32>) -> vec3<f32> {
-    return swayed_at(world, sway, frame.clock);
+// Where `world` is bent by the frame's wind: `swayed_by` (sway.wgsl) at
+// this frame's time, by the corner's `foliage` data (`corner_foliage`):
+// its shares of the lean and the flutter.
+fn swayed(world: vec3<f32>, sway: vec4<f32>, foliage: vec4<f32>) -> vec3<f32> {
+    return swayed_by(world, sway, frame.clock, foliage.yz);
 }
 
 // Per draw item. Must match `InstanceRaw` in renderer.rs.
@@ -199,6 +226,9 @@ struct VertexOut {
     // 1 for something that hangs (`Sway::hanging`: drapes, washing), which
     // lets light through as cloth does, not as a leaf.
     @location(12) @interpolate(flat) hangs: f32,
+    // A plant's baked data (`corner_foliage`): how open it is to the sky,
+    // and its shade mask (below 0 for an item without the data).
+    @location(13) foliage: vec2<f32>,
 }
 
 @vertex
@@ -217,8 +247,9 @@ fn item_vertex(vertex: VertexIn, instance: InstanceIn) -> VertexOut {
     let normal_matrix = mat3x3<f32>(instance.normal_0, instance.normal_1, instance.normal_2);
     let posed = pose_corner(vertex.index, instance.skin, vertex.position, vertex.normal,
         vertex.tangent.xyz);
+    let foliage = corner_foliage(vertex.index, instance.skin);
     var world_position = vec4<f32>(swayed((model * vec4<f32>(posed.position, 1.0)).xyz,
-        instance.sway), 1.0);
+        instance.sway, foliage), 1.0);
     let world_normal = normal_matrix * posed.normal;
 
     var out: VertexOut;
@@ -229,8 +260,9 @@ fn item_vertex(vertex: VertexIn, instance: InstanceIn) -> VertexOut {
     let moves = instance.sway.z > 0.0 || fract(instance.sway.w) > 0.0;
     out.hangs = select(0.0, 1.0, instance.sway.y < 0.0 && moves);
     out.rise = 0.0;
+    let at_rest = instance.skin.y == 0u || instance.skin.y == FOLIAGE_CORNERS;
     if frame.weather.y > 0.0 && frame.weather.z > 0.0 && instance.base_color.a >= 1.0
-        && instance.surface.z <= 0.0 && !moves && instance.skin.y == 0u
+        && instance.surface.z <= 0.0 && !moves && at_rest
         && floor(instance.sway.w) != ROLE_DECAL {
         let facing = world_normal / max(length(world_normal), 1e-6);
         out.rise = snow_cap(world_position.xyz, facing.y);
@@ -239,6 +271,7 @@ fn item_vertex(vertex: VertexIn, instance: InstanceIn) -> VertexOut {
     out.clip_position = frame.view_proj * world_position;
     out.world_position = world_position.xyz;
     out.normal = world_normal;
+    out.foliage = foliage.xw;
     out.base_color = instance.base_color;
     out.emissive = instance.emissive_fade.xyz;
     out.fade = instance.emissive_fade.w;
@@ -317,7 +350,8 @@ fn vs_shadow(
     let model = mat4x4<f32>(model_0, model_1, model_2, model_3);
     let posed = pose_corner(index, skin, position, vec3<f32>(0.0), vec3<f32>(0.0));
     // Swaying plants' shadows sway with them.
-    let world = swayed((model * vec4<f32>(posed.position, 1.0)).xyz, sway);
+    let world = swayed((model * vec4<f32>(posed.position, 1.0)).xyz, sway,
+        corner_foliage(index, skin));
     return shadow_cascade * vec4<f32>(world, 1.0);
 }
 
@@ -353,7 +387,8 @@ fn vs_shadow_cut_out(
 ) -> ShadowCutOut {
     let model = mat4x4<f32>(model_0, model_1, model_2, model_3);
     let posed = pose_corner(index, skin, position, vec3<f32>(0.0), vec3<f32>(0.0));
-    let world = swayed((model * vec4<f32>(posed.position, 1.0)).xyz, sway);
+    let world = swayed((model * vec4<f32>(posed.position, 1.0)).xyz, sway,
+        corner_foliage(index, skin));
     var out: ShadowCutOut;
     out.clip_position = shadow_cascade * vec4<f32>(world, 1.0);
     out.uv = mat2x2<f32>(maps.uv_matrix.xy, maps.uv_matrix.zw) * uv + maps.uv_offset.xy;
@@ -755,7 +790,11 @@ fn lit_pixel(
     let mapped = mix(
         1.0, map_value(occlusion_texel, maps.occlusion, maps.invert.z), maps.settings.z);
     let screen = select(1.0, screen_occlusion(in.clip_position.xy), solid);
-    let occlusion = mapped * screen;
+    // A plant's own baked occlusion (foliage W3b): darker deep in a crown
+    // and in the crotches of its limbs.
+    let foliage = in.foliage.y >= 0.0;
+    let baked = select(1.0, clamp(in.foliage.x, 0.0, 1.0), foliage);
+    let occlusion = mapped * screen * baked;
     // Non-metals reflect about 4% of light, or as their specular map says.
     let dielectric = mix(vec3<f32>(0.04), 0.08 * specular_texel.rgb, maps.specular.x);
 
@@ -782,7 +821,7 @@ fn lit_pixel(
         // leaves and its holes, and `lit_leaf` shades its inside and its foot
         // itself, so screen-space occlusion counts for a share of its strength.
         color = lit_leaf(in, shaded, geometric, metalness, roughness,
-            mapped * pow(screen, LEAF_SCREEN_OCCLUSION), dielectric, solid, maps.shading.y,
+            mapped * pow(screen, LEAF_SCREEN_OCCLUSION) * baked, dielectric, solid, maps.shading.y,
             maps.shading.z > 0.5);
     } else {
         // Bump shadowing only with a normal map (`maps.settings.x`, its
@@ -796,8 +835,13 @@ fn lit_pixel(
             // Its own relief shades slanting sunlight in its cracks.
             micro_open = mapped;
         }
+        // A tree's bark greys where its mask says it's weathered.
+        var base_color = shaded.base_color;
+        if foliage {
+            base_color = weathered_wood(base_color, in.foliage.y);
+        }
         color = light_surface_low(in.world_position, geometric, shaded.normal, in.clip_position.xy,
-            shaded.base_color, metalness, roughness, occlusion, dielectric, solid,
+            base_color, metalness, roughness, occlusion, dielectric, solid,
             maps.settings.x != 0.0, cavity, true);
     }
 
@@ -806,6 +850,20 @@ fn lit_pixel(
     let alpha = select(clamp(shaded.opacity, 0.0, 1.0), 1.0, solid);
     let seen = fogged(frame.fog, frame.camera_position.xyz, in.world_position, color + shaded.emissive);
     return vec4<f32>(seen, alpha);
+}
+
+// How far bark with a weathering mask of 1 goes toward silver-grey wood
+// (`weathered_wood`), and how much paler that is than the bark's own
+// brightness.
+const WOOD_WEATHERING: f32 = 0.65;
+const WEATHERED_WOOD_LIFT: f32 = 1.35;
+
+// Bark's colour where it's weathered by `amount` (0 to 1, a tree's
+// foliage mask): stripped and greyed, as dead wood bleaches in the sun.
+fn weathered_wood(color: vec3<f32>, amount: f32) -> vec3<f32> {
+    let grey = dot(color, vec3<f32>(0.2126, 0.7152, 0.0722));
+    let silver = vec3<f32>(grey * WEATHERED_WOOD_LIFT + 0.04) * vec3<f32>(1.0, 0.98, 0.94);
+    return mix(color, min(silver, vec3<f32>(1.0)), clamp(amount, 0.0, 1.0) * WOOD_WEATHERING);
 }
 
 // How dark an ambient occlusion map must be (times this) for water to
@@ -900,11 +958,14 @@ fn leaf_canopy(world_position: vec3<f32>, middle: vec3<f32>, half_size: vec3<f32
 
 // A leaf's own brightness and hue: every card faces its own way, so the way
 // it faces tells them apart without any data of its own, and where it is
-// shifts whole sprays of them together. Smooth, so a bent card has no seams.
-fn leaf_tone(unflipped_normal: vec3<f32>, world_position: vec3<f32>, base_color: vec3<f32>)
-    -> vec3<f32> {
+// shifts whole sprays of them together, or its cluster's shade (`mask`, 0
+// to 1, a tree's foliage data; below 0 for none) does. Smooth, so a bent
+// card has no seams.
+fn leaf_tone(unflipped_normal: vec3<f32>, world_position: vec3<f32>, base_color: vec3<f32>,
+    mask: f32) -> vec3<f32> {
     let n = unflipped_normal;
-    let spray = sin(dot(world_position, vec3<f32>(1.13, 0.71, 1.37)));
+    let spray = select(sin(dot(world_position, vec3<f32>(1.13, 0.71, 1.37))), 2.0 * mask - 1.0,
+        mask >= 0.0);
     let tone = 0.65 * sin(dot(n, vec3<f32>(41.3, 67.1, 29.7))) + 0.35 * spray;
     let hue = 0.65 * sin(dot(n, vec3<f32>(23.9, 13.7, 57.1))) + 0.35 * spray;
     // Olive one way, blue-green the other.
@@ -938,13 +999,16 @@ fn lit_leaf(
     // let nothing through), and partly from above (`LEAF_SKY_WRAP`).
     let away = -crown / max(length(crown), 1e-4);
     let far = normalize(away + vec3<f32>(0.0, LEAF_SKY_WRAP, 0.0));
-    let base_color = leaf_tone(normalize(in.normal), in.world_position, shaded.base_color);
-    // Darker toward its foot, where the plant shades itself.
+    let base_color = leaf_tone(normalize(in.normal), in.world_position, shaded.base_color,
+        in.foliage.y);
+    // Darker toward its foot, where the plant shades itself, and deep in
+    // its crown; a tree with its own baked occlusion (foliage W3b) has that
+    // in `occlusion` already, worked out from its crown's real shape.
     let foot = in.item_middle.y - in.item_half_size.y;
     let up_it = (in.world_position.y - foot) / max(2.0 * in.item_half_size.y, 0.001);
-    let open = mix(CANOPY_DEPTH_SHADE, 1.0, canopy.openness)
+    let open = select(mix(CANOPY_DEPTH_SHADE, 1.0, canopy.openness)
         * mix(mix(LEAF_FOOT_SHADE, LEAF_FOOT_SHADE_LOW, low), 1.0,
-            smoothstep(0.0, LEAF_FOOT_REACH, up_it));
+            smoothstep(0.0, LEAF_FOOT_REACH, up_it)), 1.0, in.foliage.y >= 0.0);
     let rough = select(max(roughness,
         mix(LEAF_ROUGHNESS_INSIDE, LEAF_ROUGHNESS_OUTSIDE, canopy.openness)), roughness,
         glossy_leaf);
@@ -1214,10 +1278,10 @@ struct MotionOut {
 
 // Corner `index` where it was last frame: `skin.y` is 0 for an item that
 // isn't posed (at rest), 1 for one posed this frame and not the last (where
-// it is now), else 2 more than its first corner in last frame's posed
-// corners.
+// it is now), `FOLIAGE_CORNERS` for one at rest with foliage data, else 2
+// more than its first corner in last frame's posed corners.
 fn previous_corner(index: u32, skin: vec2<u32>, rest: vec3<f32>) -> vec3<f32> {
-    if skin.y == 0u {
+    if skin.y == 0u || skin.y == FOLIAGE_CORNERS {
         return rest;
     }
     if skin.y == 1u {
@@ -1236,10 +1300,12 @@ fn vs_motion(@builtin(vertex_index) index: u32, @location(0) position: vec3<f32>
         instance.previous_3);
     // Placed as `item_vertex` places it, so the depth matches the prepass's.
     let posed = pose_corner(index, instance.skin, position, vec3<f32>(0.0), vec3<f32>(0.0));
-    let world = vec4<f32>(swayed((model * vec4<f32>(posed.position, 1.0)).xyz, instance.sway), 1.0);
+    let foliage = corner_foliage(index, instance.skin);
+    let world = vec4<f32>(swayed((model * vec4<f32>(posed.position, 1.0)).xyz, instance.sway,
+        foliage), 1.0);
     let was = previous_corner(index, instance.skin, position);
-    let world_before = vec4<f32>(swayed_at((previous * vec4<f32>(was, 1.0)).xyz, instance.sway,
-        motion_view.previous_clock), 1.0);
+    let world_before = vec4<f32>(swayed_by((previous * vec4<f32>(was, 1.0)).xyz, instance.sway,
+        motion_view.previous_clock, foliage.yz), 1.0);
     var out: MotionOut;
     out.clip_position = frame.view_proj * world;
     out.now = motion_view.view_proj * world;

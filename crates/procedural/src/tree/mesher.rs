@@ -32,6 +32,13 @@ pub struct TreeMesh {
     /// Bark only, one per position: how weathered the bark is there, 0 to 1
     /// ([`super::Bark::weathering`]); empty for leaves.
     pub weathering: Vec<f32>,
+    /// One per position: the packed colour the renderer's foliage shading
+    /// and wind read (`R` occlusion, `G` sway, `B` flutter, `A` weathering
+    /// or the cluster's shade; `paint.rs`).
+    pub colors: Vec<[f32; 4]>,
+    /// Bark only, one per position: the limb (index into the skeleton's
+    /// stems) the corner belongs to.
+    pub(super) limbs: Vec<u32>,
 }
 
 impl TreeMesh {
@@ -280,6 +287,10 @@ fn mesh_level(
             tube.mesh(&picks[split..], &mut level.bark);
         } else {
             tube.mesh(&picks, &mut level.bark);
+        }
+        for mesh in [&mut level.base, &mut level.bark] {
+            let new = mesh.positions.len() - mesh.limbs.len();
+            mesh.limbs.extend(std::iter::repeat_n(index as u32, new));
         }
     }
     weather(recipe, stems, &mut level.base);

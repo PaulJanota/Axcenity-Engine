@@ -200,6 +200,7 @@ fn encode_primitive(out: &mut Output, images: &mut Images, primitive: &Primitive
         tangents,
         regions,
         skin_uvs,
+        colors,
         indices,
         material,
         joints,
@@ -215,6 +216,7 @@ fn encode_primitive(out: &mut Output, images: &mut Images, primitive: &Primitive
     out.u32(regions.len() as u32);
     out.0.extend_from_slice(regions);
     out.array(skin_uvs);
+    out.array(colors);
     out.u32s(indices);
     out.u32(joints.len() as u32);
     for joint in joints {
@@ -651,6 +653,7 @@ fn whole(primitive: &Primitive) -> bool {
         && fits(primitive.tangents.len())
         && fits(primitive.regions.len())
         && fits(primitive.skin_uvs.len())
+        && fits(primitive.colors.len())
         && fits(primitive.joints.len())
         && primitive.weights.len() == primitive.joints.len()
 }
@@ -663,6 +666,7 @@ fn decode_primitive(input: &mut Input<'_>, images: &[Arc<Image>]) -> Option<Prim
     let region_count = input.count(1)?;
     let regions = input.take(region_count)?.to_vec();
     let skin_uvs = input.array()?;
+    let colors = input.array()?;
     let indices = input.u32s()?;
     let corners = positions.len();
     if indices.iter().any(|&index| index as usize >= corners) {
@@ -716,6 +720,7 @@ fn decode_primitive(input: &mut Input<'_>, images: &[Arc<Image>]) -> Option<Prim
         tangents,
         regions,
         skin_uvs,
+        colors,
         indices,
         material,
         joints,
@@ -971,7 +976,7 @@ mod tests {
                 primitive.uvs,
                 primitive.tangents,
                 primitive.regions,
-                primitive.skin_uvs,
+                (&primitive.skin_uvs, &primitive.colors),
                 primitive.indices,
                 primitive.joints,
                 primitive.weights,

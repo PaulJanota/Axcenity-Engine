@@ -185,6 +185,7 @@ impl Model {
                     tangents,
                     regions: primitive.regions.clone(),
                     skin_uvs: primitive.skin_uvs.clone(),
+                    colors: primitive.colors.clone(),
                     indices: primitive.indices.clone(),
                     material,
                     joints: primitive.joints.clone(),
@@ -265,6 +266,11 @@ pub struct Primitive {
     /// of a garment that lie under another are left out as the body's
     /// are (`hidden.rs`, `Model::without_covered`).
     pub skin_uvs: Vec<[f32; 2]>,
+    /// One per position, or empty: the file's vertex colours (`COLOR_0`,
+    /// linear RGBA). A generated tree packs its foliage data here (`R`
+    /// occlusion, `G` sway, `B` flutter, `A` weathering or tint; the
+    /// `procedural` crate's `tree/paint.rs`).
+    pub colors: Vec<[f32; 4]>,
     /// Three per triangle, counter-clockwise seen from outside.
     pub indices: Vec<u32>,
     pub material: ModelMaterial,
@@ -297,6 +303,7 @@ impl Primitive {
             + std::mem::size_of_val(self.tangents.as_slice())
             + self.regions.len()
             + std::mem::size_of_val(self.skin_uvs.as_slice())
+            + std::mem::size_of_val(self.colors.as_slice())
             + std::mem::size_of_val(self.indices.as_slice())
             + std::mem::size_of_val(self.joints.as_slice())
             + std::mem::size_of_val(self.weights.as_slice())
@@ -358,6 +365,7 @@ impl Primitive {
             tangents: Vec::new(),
             regions: Vec::new(),
             skin_uvs: Vec::new(),
+            colors: Vec::new(),
             indices,
             material,
             joints: Vec::new(),
@@ -1985,6 +1993,11 @@ impl Reader<'_> {
                 .map(|uvs| uvs.collect())
                 .filter(|uvs: &Vec<[f32; 2]>| uvs.len() == count)
                 .unwrap_or_default();
+            let colors: Vec<[f32; 4]> = reader
+                .read_colors(0)
+                .map(|colors| colors.into_rgba_f32().collect())
+                .filter(|colors: &Vec<[f32; 4]>| colors.len() == count)
+                .unwrap_or_default();
 
             // Each corner's 4 joints (the skin's numbers after the ones
             // before it) and weights, adding up to 1.
@@ -2047,6 +2060,7 @@ impl Reader<'_> {
                 tangents: Vec::new(),
                 regions,
                 skin_uvs,
+                colors,
                 indices,
                 material,
                 joints,

@@ -14,6 +14,7 @@
 
 pub mod leaves;
 pub mod mesher;
+mod paint;
 pub mod recipe;
 pub mod skeleton;
 
@@ -32,7 +33,7 @@ pub use skeleton::{Skeleton, Stem};
 
 /// Bump when the same recipe and variant would give a different mesh, so
 /// anything kept from an older one (a cooked model) is made again.
-pub const TREE_GENERATOR_VERSION: u32 = 6;
+pub const TREE_GENERATOR_VERSION: u32 = 7;
 
 /// The sway a generated tree's bark is given ([`ModelMaterial::sway`]): a
 /// built-in tree's (`scene/src/foliage.rs`).
@@ -75,14 +76,24 @@ pub struct LeafAnchor {
     pub position: Vec3,
     pub direction: Vec3,
     pub radius: f32,
+    /// How far its limb carries it in the wind (the `G` of its leaves'
+    /// colour, `paint.rs`).
+    pub sway: f32,
 }
 
 /// Tree number `variant` of `recipe`.
 pub fn generate(recipe: &TreeRecipe, variant: u32) -> Tree {
     let skeleton = skeleton::grow(recipe, variant);
     let mut levels = mesher::bark_levels(recipe, &skeleton);
-    let leaf_anchors = leaf_anchors(&skeleton, &recipe.leaves);
+    let sway = paint::Sway::new(&skeleton);
+    let leaf_anchors = leaf_anchors(&skeleton, &recipe.leaves, &sway);
     let (clusters, crown) = leaves::clusters(recipe, &leaf_anchors);
+    // Wood inside a leafy crown is shaded by it.
+    let shading = (!clusters.is_empty()).then_some(&crown);
+    for level in &mut levels {
+        paint::bark(&skeleton, &sway, shading, &mut level.base);
+        paint::bark(&skeleton, &sway, shading, &mut level.bark);
+    }
     for (index, level) in levels.iter_mut().enumerate() {
         let (budget, keep) = match index {
             0 => (recipe.mesh.triangles, 1.0),
@@ -106,7 +117,7 @@ pub fn generate(recipe: &TreeRecipe, variant: u32) -> Tree {
     }
 }
 
-fn leaf_anchors(skeleton: &Skeleton, leaves: &Leaves) -> Vec<LeafAnchor> {
+fn leaf_anchors(skeleton: &Skeleton, leaves: &Leaves, sway: &paint::Sway) -> Vec<LeafAnchor> {
     let deepest = skeleton.stems.iter().map(|s| s.level).max().unwrap_or(0);
     let mut anchors = Vec::new();
     // The finest limbs from `twig_start` out, and the outer parts of the
@@ -121,7 +132,7 @@ fn leaf_anchors(skeleton: &Skeleton, leaves: &Leaves) -> Vec<LeafAnchor> {
             None
         }
     };
-    for stem in &skeleton.stems {
+    for (index, stem) in skeleton.stems.iter().enumerate() {
         let Some(from) = from(stem.level) else {
             continue;
         };
@@ -136,6 +147,7 @@ fn leaf_anchors(skeleton: &Skeleton, leaves: &Leaves) -> Vec<LeafAnchor> {
                     position: stem.points[k],
                     direction: stem.direction(k),
                     radius: stem.radii[k],
+                    sway: sway.at(&skeleton.stems, index, stem.along[k] / length),
                 });
             }
         }
@@ -237,13 +249,16 @@ impl Tree {
             ..ModelMaterial::default()
         };
         let primitive = |mesh: &TreeMesh, material: ModelMaterial| {
-            Primitive::new(
+            let mut primitive = Primitive::new(
                 mesh.positions.clone(),
                 mesh.normals.clone(),
                 mesh.uvs.clone(),
                 mesh.indices.clone(),
                 material,
-            )
+            );
+            // Each corner's packed foliage colour (`paint.rs`).
+            primitive.colors = mesh.colors.clone();
+            primitive
         };
         let full = self.full();
         let has_base = !full.base.indices.is_empty();

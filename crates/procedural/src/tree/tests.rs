@@ -838,3 +838,65 @@ fn leaf_cards_face_out_of_the_crown_in_crossed_pairs_with_bent_light() {
         assert!(bent > 0.05, "{}: {bent}", recipe.name);
     }
 }
+
+#[test]
+fn every_corner_carries_its_packed_colour() {
+    for recipe in every_preset() {
+        let tree = generate(&recipe, 0);
+        for level in &tree.levels {
+            for mesh in [&level.base, &level.bark, &level.leaves] {
+                assert_eq!(mesh.colors.len(), mesh.positions.len(), "{}", recipe.name);
+                assert!(
+                    mesh.colors
+                        .iter()
+                        .all(|c| c.iter().all(|v| (0.0..=1.0).contains(v))),
+                    "{}",
+                    recipe.name
+                );
+            }
+        }
+        // The weathering rides in A.
+        let bark = &tree.full().bark;
+        for (color, weathering) in bark.colors.iter().zip(&bark.weathering) {
+            assert!((color[3] - weathering).abs() < 1e-6);
+        }
+    }
+}
+
+#[test]
+fn the_packed_colour_sways_out_along_the_limbs_and_flutters_at_the_tips() {
+    let recipe = TreeRecipe::preset(Preset::Oak);
+    let tree = generate(&recipe, 0);
+    let full = tree.full();
+    let mean = |values: &mut dyn Iterator<Item = f32>| {
+        let (sum, count) = values.fold((0.0, 0), |(s, n), v| (s + v, n + 1));
+        sum / count.max(1) as f32
+    };
+    // G: the trunk's foot stands still, the twigs ride the wind.
+    let base_sway = mean(&mut full.base.colors.iter().map(|c| c[1]));
+    let leaf_sway = mean(&mut full.leaves.colors.iter().map(|c| c[1]));
+    assert!(base_sway < 0.05, "{base_sway}");
+    assert!(leaf_sway > base_sway + 0.2, "{leaf_sway}");
+    // B: thick wood doesn't flutter; leaves do, their tips most.
+    let base_flutter = mean(&mut full.base.colors.iter().map(|c| c[2]));
+    assert!(base_flutter < 1e-3);
+    let leaves = &full.leaves;
+    let corner = |card: usize, k: usize| leaves.colors[card * 6 + k][2];
+    let cards = leaves.positions.len() / 6;
+    let foot = mean(&mut (0..cards).map(|c| (corner(c, 0) + corner(c, 5)) / 2.0));
+    let tip = mean(&mut (0..cards).map(|c| (corner(c, 2) + corner(c, 3)) / 2.0));
+    assert!(tip > foot + 0.4, "{foot} {tip}");
+    // R: leaves deep in the crown's shade are darker than those in the sky.
+    let crown = tree.crown;
+    let (mut deep, mut open) = (Vec::new(), Vec::new());
+    for (p, c) in leaves.positions.iter().zip(&leaves.colors) {
+        let depth = ((Vec3::from(*p) - crown.center) / crown.half_size).length();
+        if depth < 0.5 {
+            deep.push(c[0]);
+        } else if depth > 0.9 {
+            open.push(c[0]);
+        }
+    }
+    let (deep, open) = (mean(&mut deep.into_iter()), mean(&mut open.into_iter()));
+    assert!(deep + 0.05 < open, "{deep} {open}");
+}

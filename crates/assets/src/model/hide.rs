@@ -276,6 +276,7 @@ fn without(primitive: &Primitive, kept: &dyn Fn(&Primitive) -> Kept) -> Primitiv
         tangents: primitive.tangents.clone(),
         regions: primitive.regions.clone(),
         skin_uvs: primitive.skin_uvs.clone(),
+        colors: primitive.colors.clone(),
         indices,
         material: primitive.material.clone(),
         joints: primitive.joints.clone(),

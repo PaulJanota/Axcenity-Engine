@@ -313,6 +313,7 @@ impl Primitive {
             tangents: Vec::new(),
             regions: Vec::new(),
             skin_uvs: Vec::new(),
+            colors: Vec::new(),
             indices: Vec::new(),
             material: like.material.clone(),
             joints: Vec::new(),
@@ -361,6 +362,7 @@ impl Primitive {
             tangents: pick(&self.tangents, &used),
             regions: pick(&self.regions, &used),
             skin_uvs: pick(&self.skin_uvs, &used),
+            colors: pick(&self.colors, &used),
             indices,
             material: self.material.clone(),
             joints: pick(&self.joints, &used),
@@ -403,6 +405,7 @@ impl Primitive {
         );
         join(&mut self.regions, other.regions, before, added, 0);
         join(&mut self.skin_uvs, other.skin_uvs, before, added, [0.0; 2]);
+        join(&mut self.colors, other.colors, before, added, [1.0; 4]);
         join(&mut self.joints, other.joints, before, added, [0; 4]);
         join(&mut self.weights, other.weights, before, added, [0.0; 4]);
         super::morph::append(&mut self.morphs, other.morphs, before as u32);
@@ -427,6 +430,7 @@ mod tests {
             uvs: Vec::new(),
             regions: Vec::new(),
             skin_uvs: Vec::new(),
+            colors: Vec::new(),
             tangents: Vec::new(),
             indices: Vec::new(),
             material: Default::default(),

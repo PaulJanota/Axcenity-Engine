@@ -43,6 +43,8 @@ pub struct Cluster {
     /// Its size as a share of the recipe's (smaller toward the crown's top
     /// when [`Leaves::top_scale`](super::Leaves) says so).
     pub scale: f32,
+    /// How far its limb carries it in the wind ([`LeafAnchor::sway`]).
+    pub sway: f32,
     seed: u64,
 }
 
@@ -109,6 +111,7 @@ pub fn clusters(recipe: &TreeRecipe, anchors: &[LeafAnchor]) -> (Vec<Cluster>, C
                 axis,
                 light: 1.0,
                 scale: 1.0 + (leaves.top_scale.max(0.05) - 1.0) * top,
+                sway: anchor.sway,
                 seed,
             });
         }
@@ -289,6 +292,8 @@ pub fn mesh(
         // The middle of the cluster's ball of leaves, which its leaves'
         // light bends out from.
         let middle = cluster.position + cluster.axis * size * 0.5;
+        // Its own shade of the season's colour, the same for all its leaves.
+        let tint = Rng::new(cluster.seed, 3).unit();
         // The leaf before: its base, its way along and the way across it.
         let mut before: Option<(Vec3, Vec3, Vec3)> = None;
         for i in 0..count {
@@ -355,6 +360,7 @@ pub fn mesh(
                 },
                 detailed,
                 [out.x, out.y, out.z, cluster.light],
+                [cluster.light, cluster.sway, tint],
             );
         }
     }
@@ -381,7 +387,9 @@ struct Leaf {
 
 /// One leaf: a blade from its base to its tip, its halves folded up along
 /// the middle and its tip hanging, counter-clockwise seen from its face.
-fn leaf(mesh: &mut TreeMesh, leaf: Leaf, detailed: bool, crown: [f32; 4]) {
+/// `paint` is the cluster's light, sway and tint, for each corner's packed
+/// colour (`paint.rs`).
+fn leaf(mesh: &mut TreeMesh, leaf: Leaf, detailed: bool, crown: [f32; 4], paint: [f32; 3]) {
     let across = leaf
         .along
         .cross(leaf.facing)
@@ -472,5 +480,14 @@ fn leaf(mesh: &mut TreeMesh, leaf: Leaf, detailed: bool, crown: [f32; 4]) {
         mesh.uvs.push(uv);
         mesh.tangents.push([tangent.x, tangent.y, tangent.z, 1.0]);
         mesh.crown.push(crown);
+        let [light, sway, tint] = paint;
+        mesh.colors.push([
+            // Darker deep in the crown and at the leaf's foot.
+            (0.35 + 0.65 * light) * (0.8 + 0.2 * t),
+            sway,
+            // Tips and edges flutter most.
+            (0.2 + 0.6 * t + 0.4 * s.abs()).min(1.0),
+            tint,
+        ]);
     }
 }

@@ -98,15 +98,33 @@ fn hidden_along(origin: vec3<f32>, direction: vec3<f32>, radius: f32, near: f32)
 // `radius` (`radius` for nothing): a solid item anywhere along it, or a
 // cut-out further off than `near` where its texture isn't cut out.
 //
-// One query finds the nearest of both. A solid item's triangles are
-// committed as they come (its BLAS is opaque); a cut-out's come as
-// candidates (its BLAS isn't) and are confirmed here, past `near` only.
-// Until 2026-11-25 this was two queries a ray, the solid items' and the
-// cut-outs', and the nearer of their answers.
+// Two queries: the solid items' (their BLASes are opaque, so it finds the
+// nearest without coming back here), then the cut-outs' between `near` and
+// that, whose candidates are confirmed here. Asked together in one query
+// (2026-11-25 to 2026-11-28), every cut-out candidate along the whole ray
+// came back, those nearer than `near` and those behind what's solid too:
+// 0.4-1.1 ms more of Overgrown Street's AO.
 fn nearest_hit(origin: vec3<f32>, direction: vec3<f32>, near: f32, radius: f32) -> f32 {
+    // The solid items first: their BLASes are opaque, so the query finds
+    // the nearest without coming back here.
+    var solid: ray_query;
+    rayQueryInitialize(&solid, ray_scene, RayDesc(
+        0u, MASK_SOLID, 0.0, radius, origin, direction));
+    while rayQueryProceed(&solid) {
+    }
+    let blocked = rayQueryGetCommittedIntersection(&solid);
+    var nearest = radius;
+    if blocked.kind != RAY_QUERY_INTERSECTION_NONE {
+        nearest = blocked.t;
+    }
+    // Then the cut-outs, only between `near` and that: a candidate nearer
+    // than `near`, or past what's solid, never comes back to be checked.
+    if near >= nearest {
+        return nearest;
+    }
     var query: ray_query;
     rayQueryInitialize(&query, ray_scene, RayDesc(
-        0u, MASK_SOLID | MASK_CUT_OUTS, 0.0, radius, origin, direction));
+        0u, MASK_CUT_OUTS, near, nearest, origin, direction));
     while rayQueryProceed(&query) {
         let candidate = rayQueryGetCandidateIntersection(&query);
         if candidate.kind == RAY_QUERY_INTERSECTION_TRIANGLE && candidate.t > near
@@ -116,7 +134,7 @@ fn nearest_hit(origin: vec3<f32>, direction: vec3<f32>, near: f32, radius: f32) 
     }
     let hit = rayQueryGetCommittedIntersection(&query);
     if hit.kind == RAY_QUERY_INTERSECTION_NONE {
-        return radius;
+        return nearest;
     }
     return hit.t;
 }

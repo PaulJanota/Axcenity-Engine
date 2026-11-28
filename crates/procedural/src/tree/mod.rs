@@ -32,7 +32,7 @@ pub use skeleton::{Skeleton, Stem};
 
 /// Bump when the same recipe and variant would give a different mesh, so
 /// anything kept from an older one (a cooked model) is made again.
-pub const TREE_GENERATOR_VERSION: u32 = 5;
+pub const TREE_GENERATOR_VERSION: u32 = 6;
 
 /// The sway a generated tree's bark is given ([`ModelMaterial::sway`]): a
 /// built-in tree's (`scene/src/foliage.rs`).
@@ -55,8 +55,9 @@ pub struct Tree {
     /// The tree most detailed first, then each simpler copy
     /// ([`MeshDetail::lods`]), each within its triangle budget.
     pub levels: Vec<TreeLevel>,
-    /// Where leaves grow: the outer two thirds of every limb of the last
-    /// level and the tips of the level before, one place per ring.
+    /// Where leaves grow: the outer parts of every living limb of the last
+    /// level and of the level before ([`Leaves::twig_start`],
+    /// [`Leaves::limb_start`]), one place per ring.
     pub leaf_anchors: Vec<LeafAnchor>,
     /// The crown's box, around every place leaves grow.
     pub crown: Crown,
@@ -80,7 +81,7 @@ pub struct LeafAnchor {
 pub fn generate(recipe: &TreeRecipe, variant: u32) -> Tree {
     let skeleton = skeleton::grow(recipe, variant);
     let mut levels = mesher::bark_levels(recipe, &skeleton);
-    let leaf_anchors = leaf_anchors(&skeleton);
+    let leaf_anchors = leaf_anchors(&skeleton, &recipe.leaves);
     let (clusters, crown) = leaves::clusters(recipe, &leaf_anchors);
     for (index, level) in levels.iter_mut().enumerate() {
         let (budget, keep) = match index {
@@ -105,16 +106,17 @@ pub fn generate(recipe: &TreeRecipe, variant: u32) -> Tree {
     }
 }
 
-fn leaf_anchors(skeleton: &Skeleton) -> Vec<LeafAnchor> {
+fn leaf_anchors(skeleton: &Skeleton, leaves: &Leaves) -> Vec<LeafAnchor> {
     let deepest = skeleton.stems.iter().map(|s| s.level).max().unwrap_or(0);
     let mut anchors = Vec::new();
-    // The finest limbs from a third of the way out, and the tips of the
-    // limbs they grow on, so the crown fills in between the twigs.
+    // The finest limbs from `twig_start` out, and the outer parts of the
+    // limbs they grow on (from `limb_start`), so the crown fills in
+    // between the twigs.
     let from = |level: usize| {
         if level == deepest {
-            Some(0.35)
+            Some(leaves.twig_start)
         } else if level + 1 == deepest && level > 0 {
-            Some(0.7)
+            Some(leaves.limb_start)
         } else {
             None
         }
@@ -123,6 +125,10 @@ fn leaf_anchors(skeleton: &Skeleton) -> Vec<LeafAnchor> {
         let Some(from) = from(stem.level) else {
             continue;
         };
+        // A dead limb has no leaves.
+        if stem.broken {
+            continue;
+        }
         let length = stem.length().max(1e-6);
         for k in 0..stem.points.len() {
             if stem.along[k] / length >= from {

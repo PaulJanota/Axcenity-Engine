@@ -214,8 +214,19 @@ fn branch(
     let count = level.count.max(1) as f32;
     let (start, end) = (level.start.clamp(0.0, 1.0), level.end.clamp(0.0, 1.0));
     let jitter = rng.range(-0.35, 0.35);
+    // In whorls: which tier the limb is in, its place in the tier, and how
+    // many each tier has.
+    let whorl = (level.whorls > 0 && !terminal).then(|| {
+        let tiers = level.whorls.min(level.count.max(1));
+        let per = level.count.max(1).div_ceil(tiers);
+        ((i / per).min(tiers - 1), i % per, per, tiers)
+    });
     let t = if terminal {
         1.0
+    } else if let Some((tier, _, _, tiers)) = whorl {
+        // A tier's limbs all start at about one height.
+        (start + (end - start) * ((tier as f32 + 0.5 + jitter * 0.15) / tiers as f32))
+            .clamp(0.0, 1.0)
     } else {
         (start + (end - start) * ((i as f32 + 0.5 + jitter) / count)).clamp(0.0, 1.0)
     };
@@ -227,10 +238,13 @@ fn branch(
         t
     };
     let (base, parent_direction, parent_radius) = on.at(t);
-    if terminal && on.broken {
+    // Nothing carries on from a snapped end, and on a leafy tree a dead
+    // limb grows nothing at all.
+    if on.broken && (terminal || recipe.leaves.enabled) {
         return None;
     }
-    let broken = !terminal && level.broken > 0.0 && rng.unit() < level.broken.min(1.0);
+    let bare = !terminal && t < level.bare_below;
+    let broken = bare || (!terminal && level.broken > 0.0 && rng.unit() < level.broken.min(1.0));
     let mut length = on.length() * level.length * level.length_along.at(t) * rng.range(0.85, 1.15);
     // How much of the limb it would have grown is there: a snapped-off
     // stub bends only as much as that part of the whole limb would.
@@ -261,7 +275,15 @@ fn branch(
     // Turned round its parent by the roll, from a side that doesn't twist
     // with the parent's own direction.
     let side = parent_direction.any_orthonormal_vector();
-    let roll = (level.roll * i as f32 + rng.range(-12.0, 12.0)).to_radians();
+    let roll = match whorl {
+        // Evenly round the parent in each tier, each tier turned on from
+        // the one below.
+        Some((tier, place, per, _)) => {
+            360.0 * place as f32 / per as f32 + level.roll * tier as f32 + rng.range(-12.0, 12.0)
+        }
+        None => level.roll * i as f32 + rng.range(-12.0, 12.0),
+    }
+    .to_radians();
     let axis = Quat::from_axis_angle(parent_direction, roll) * side;
     let angle = if terminal {
         // Nearly straight on, as a leader carries on its limb.

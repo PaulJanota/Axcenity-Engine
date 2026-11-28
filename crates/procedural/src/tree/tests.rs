@@ -424,9 +424,14 @@ fn leafy_trees_have_leaves_in_every_copy_with_their_crown_data() {
         // where the full tree's first leaf starts, give or take its fold.
         let lod1 = &tree.levels[1].leaves;
         assert!(lod1.triangles() < full.triangles());
-        let corner = |i: usize| Vec3::from(lod1.positions[i]);
-        let base = (corner(0) + corner(3)) / 2.0;
-        let gap = base.distance(Vec3::from(full.positions[0]));
+        let corner = |mesh: &mesher::TreeMesh, i: usize| Vec3::from(mesh.positions[i]);
+        let base = (corner(lod1, 0) + corner(lod1, 3)) / 2.0;
+        let full_base = if recipe.leaves.textured() {
+            (corner(full, 0) + corner(full, 5)) / 2.0
+        } else {
+            corner(full, 0)
+        };
+        let gap = base.distance(full_base);
         assert!(gap < recipe.leaves.size * 0.2, "{}: {gap}", recipe.name);
     }
     let dead = generate(&TreeRecipe::preset(Preset::Dead), 0);
@@ -705,4 +710,131 @@ fn a_dead_tree_ends_in_weathered_splinters_and_snags() {
     // A living oak has no splinters.
     let oak = generate(&TreeRecipe::preset(Preset::Oak), 0);
     assert!(oak.skeleton.stems.iter().all(|stem| !stem.broken));
+}
+
+#[test]
+fn a_pine_grows_its_boughs_in_whorls_with_dead_stubs_at_the_bottom() {
+    let recipe = TreeRecipe::preset(Preset::Pine);
+    let level = &recipe.levels[0];
+    let tree = generate(&recipe, 0);
+    let stems = &tree.skeleton.stems;
+    let mut heights: Vec<f32> = stems
+        .iter()
+        .filter(|s| s.level == 1)
+        .map(|s| s.parent.unwrap().1)
+        .collect();
+    heights.sort_by(f32::total_cmp);
+    // Tiers: limbs of one whorl start within a few hundredths of each
+    // other, and the tiers are far apart.
+    let gap = (level.end - level.start) / level.whorls as f32;
+    let tiers = 1 + heights
+        .windows(2)
+        .filter(|pair| pair[1] - pair[0] > gap * 0.5)
+        .count();
+    assert_eq!(tiers, level.whorls as usize, "{heights:?}");
+    // The lowest boughs are dead stubs: snapped, bare and leafless.
+    let stubs: Vec<usize> = (0..stems.len())
+        .filter(|&i| stems[i].level == 1 && stems[i].parent.unwrap().1 < level.bare_below)
+        .collect();
+    assert!(!stubs.is_empty());
+    for &i in &stubs {
+        assert!(stems[i].broken);
+        assert!(stems.iter().all(|s| s.parent.map(|p| p.0) != Some(i)));
+    }
+    let lowest_leaf = tree
+        .leaf_anchors
+        .iter()
+        .map(|a| a.position.y)
+        .fold(f32::INFINITY, f32::min);
+    let highest_stub = stubs
+        .iter()
+        .map(|&i| stems[i].points[0].y)
+        .fold(f32::NEG_INFINITY, f32::max);
+    assert!(lowest_leaf > highest_stub, "{lowest_leaf} {highest_stub}");
+}
+
+#[test]
+fn clusters_toward_a_pines_top_are_smaller_and_turned_up() {
+    let recipe = TreeRecipe::preset(Preset::Pine);
+    let tree = generate(&recipe, 0);
+    let (clusters, crown) = super::leaves::clusters(&recipe, &tree.leaf_anchors);
+    let top = crown.center.y + crown.half_size.y * 0.8;
+    let middle = crown.center.y;
+    let (high, low): (Vec<_>, Vec<_>) = clusters
+        .iter()
+        .filter(|c| c.position.y > top || c.position.y < middle)
+        .partition(|c| c.position.y > top);
+    assert!(!high.is_empty() && !low.is_empty());
+    let mean = |set: &[&super::leaves::Cluster], f: &dyn Fn(&super::leaves::Cluster) -> f32| {
+        set.iter().map(|c| f(c)).sum::<f32>() / set.len() as f32
+    };
+    assert!(mean(&high, &|c| c.scale) < 0.85);
+    assert!(mean(&low, &|c| c.scale) > 0.99);
+    assert!(mean(&high, &|c| c.axis.y) > mean(&low, &|c| c.axis.y) + 0.2);
+}
+
+#[test]
+fn a_broadleaf_crown_keeps_air_pockets_inside_but_a_full_outline() {
+    let mut recipe = TreeRecipe::preset(Preset::Oak);
+    recipe.leaves.pockets = 0.0;
+    let anchors = generate(&recipe, 0).leaf_anchors;
+    let (solid, crown) = super::leaves::clusters(&recipe, &anchors);
+    recipe.leaves.pockets = 0.5;
+    let (holed, _) = super::leaves::clusters(&recipe, &anchors);
+    let depth = |p: Vec3| ((p - crown.center) / crown.half_size).length();
+    let inner =
+        |set: &[super::leaves::Cluster]| set.iter().filter(|c| depth(c.position) < 0.8).count();
+    let outer = |set: &[super::leaves::Cluster]| set.len() - inner(set);
+    assert!((inner(&holed) as f32) < inner(&solid) as f32 * 0.85);
+    // The shell is thinned by shade a little differently, never by pockets.
+    assert!(outer(&holed) as f32 > outer(&solid) as f32 * 0.9);
+}
+
+#[test]
+fn leaf_cards_face_out_of_the_crown_in_crossed_pairs_with_bent_light() {
+    for recipe in every_preset().filter(|r| r.leaves.enabled) {
+        let tree = generate(&recipe, 0);
+        let leaves = &tree.full().leaves;
+        let crown = tree.crown;
+        let corners = 6;
+        let cards = leaves.positions.len() / corners;
+        let (mut outward, mut crossed, mut bent) = (0, 0, 0.0);
+        let face = |card: usize| {
+            let p = |k: usize| Vec3::from(leaves.positions[card * corners + k]);
+            (p(1) - p(0)).cross(p(5) - p(0)).normalize_or_zero()
+        };
+        for card in 0..cards {
+            let p = |k: usize| Vec3::from(leaves.positions[card * corners + k]);
+            let middle = (p(0) + p(2) + p(3) + p(5)) / 4.0;
+            let f = face(card);
+            if f.dot(crown.normal(middle)) > 0.0 {
+                outward += 1;
+            }
+            // Crosswise to the card before, from the same foot.
+            if card > 0 {
+                let q = |k: usize| Vec3::from(leaves.positions[(card - 1) * corners + k]);
+                // (Give or take the fold, which lifts a card off its foot.)
+                let foot = |a: Vec3, b: Vec3| (a + b) / 2.0;
+                let same_foot = foot(p(0), p(5)).distance(foot(q(0), q(5)))
+                    < recipe.leaves.fold * recipe.leaves.size * 2.0 + 1e-4;
+                if same_foot && f.dot(face(card - 1)).abs() < 0.3 {
+                    crossed += 1;
+                }
+            }
+            for k in 0..corners {
+                let n = Vec3::from(leaves.normals[card * corners + k]);
+                bent += 1.0 - n.dot(f).clamp(-1.0, 1.0);
+            }
+        }
+        let share = outward as f32 / cards as f32;
+        assert!(share > 0.7, "{}: {share}", recipe.name);
+        assert!(
+            crossed as f32 > cards as f32 * 0.1,
+            "{}: {crossed} of {cards}",
+            recipe.name
+        );
+        // On average the light leans well off the flat card.
+        let bent = bent / (cards * corners) as f32;
+        assert!(bent > 0.05, "{}: {bent}", recipe.name);
+    }
 }

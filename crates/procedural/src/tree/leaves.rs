@@ -40,6 +40,9 @@ pub struct Cluster {
     pub position: Vec3,
     pub axis: Vec3,
     pub light: f32,
+    /// Its size as a share of the recipe's (smaller toward the crown's top
+    /// when [`Leaves::top_scale`](super::Leaves) says so).
+    pub scale: f32,
     seed: u64,
 }
 
@@ -65,6 +68,10 @@ pub fn clusters(recipe: &TreeRecipe, anchors: &[LeafAnchor]) -> (Vec<Cluster>, C
         return (Vec::new(), crown);
     }
     let up = Vec3::Y;
+    let pockets = leaves.pockets.clamp(0.0, 1.0);
+    let pocket_size = leaves.pocket_size.max(0.1);
+    let low = crown.center.y - crown.half_size.y;
+    let height = (crown.half_size.y * 2.0).max(1e-3);
     let mut clusters = Vec::new();
     for (index, anchor) in anchors.iter().enumerate() {
         let mut rng = Rng::new(recipe.seed ^ 0x1EAF_0000_0000_0000, index as u64);
@@ -76,15 +83,33 @@ pub fn clusters(recipe: &TreeRecipe, anchors: &[LeafAnchor]) -> (Vec<Cluster>, C
                 rng.range(-1.0, 1.0),
             );
             let position = anchor.position + side * anchor.radius * 2.0;
+            let seed = rng.next();
+            // Air pockets inside the crown (its outer shell kept whole, so
+            // its outline stays full): where a smooth noise over the crown
+            // is low.
+            let depth =
+                ((position - crown.center) / crown.half_size.max(Vec3::splat(1e-3))).length();
+            if pockets > 0.0
+                && depth < 0.8
+                && value_noise(position / pocket_size, recipe.seed) < pockets
+            {
+                continue;
+            }
             let out = crown.normal(position);
             let face = leaves.face_out.clamp(0.0, 1.0);
             let axis = (anchor.direction * (1.0 - face) + out * face + up * 0.2)
                 .normalize_or(anchor.direction);
+            // Toward the crown's top: smaller and turned up.
+            let top = smoothstep(0.65, 1.0, (position.y - low) / height);
+            let axis = axis
+                .lerp(up, leaves.top_lift.clamp(0.0, 1.0) * top)
+                .normalize_or(axis);
             clusters.push(Cluster {
                 position,
                 axis,
                 light: 1.0,
-                seed: rng.next(),
+                scale: 1.0 + (leaves.top_scale.max(0.05) - 1.0) * top,
+                seed,
             });
         }
     }
@@ -98,6 +123,33 @@ pub fn clusters(recipe: &TreeRecipe, anchors: &[LeafAnchor]) -> (Vec<Cluster>, C
     shade(&mut clusters, &crown);
     spread(&mut clusters, &crown);
     (clusters, crown)
+}
+
+/// A smooth noise of `p` (0 to 1, changing over about one unit), the same
+/// for the same `seed`: values at whole points from a hash, blended
+/// smoothly between them.
+fn value_noise(p: Vec3, seed: u64) -> f32 {
+    let cell = p.floor();
+    let f = p - cell;
+    let f = f * f * (Vec3::splat(3.0) - 2.0 * f);
+    let at = |dx: f32, dy: f32, dz: f32| {
+        let c = cell + Vec3::new(dx, dy, dz);
+        let key = (c.x as i64 as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15)
+            ^ (c.y as i64 as u64).wrapping_mul(0xC2B2_AE3D_27D4_EB4F)
+            ^ (c.z as i64 as u64).wrapping_mul(0x1656_67B1_9E37_79F9);
+        Rng::new(seed ^ 0x0090_C4E7, key).unit()
+    };
+    let lerp = |a: f32, b: f32, t: f32| a + (b - a) * t;
+    let x00 = lerp(at(0.0, 0.0, 0.0), at(1.0, 0.0, 0.0), f.x);
+    let x10 = lerp(at(0.0, 1.0, 0.0), at(1.0, 1.0, 0.0), f.x);
+    let x01 = lerp(at(0.0, 0.0, 1.0), at(1.0, 0.0, 1.0), f.x);
+    let x11 = lerp(at(0.0, 1.0, 1.0), at(1.0, 1.0, 1.0), f.x);
+    lerp(lerp(x00, x10, f.y), lerp(x01, x11, f.y), f.z)
+}
+
+fn smoothstep(from: f32, to: f32, x: f32) -> f32 {
+    let t = ((x - from) / (to - from)).clamp(0.0, 1.0);
+    t * t * (3.0 - 2.0 * t)
 }
 
 fn crown(anchors: &[LeafAnchor], grow: f32) -> Crown {
@@ -226,21 +278,54 @@ pub fn mesh(
         return mesh;
     }
     let growth = (clusters.len() as f32 / kept as f32).sqrt().min(MAX_GROWTH);
+    let crossed = leaves.crossed.clamp(0.0, 1.0);
     for cluster in &clusters[..kept] {
         let mut rng = Rng::new(cluster.seed, 2);
         let out = crown.normal(cluster.position);
         let side = cluster.axis.any_orthonormal_vector();
         let count = leaves.per_cluster.max(1);
         let turn = rng.range(0.0, std::f32::consts::TAU);
+        let size = leaves.size.max(0.01) * growth * cluster.scale;
+        // The middle of the cluster's ball of leaves, which its leaves'
+        // light bends out from.
+        let middle = cluster.position + cluster.axis * size * 0.5;
+        // The leaf before: its base, its way along and the way across it.
+        let mut before: Option<(Vec3, Vec3, Vec3)> = None;
         for i in 0..count {
             let around =
                 turn + std::f32::consts::TAU * (i as f32 + rng.range(-0.2, 0.2)) / count as f32;
             let lean = (leaves.spread + rng.range(-10.0, 10.0)).to_radians();
             let tilt = glam::Quat::from_axis_angle(cluster.axis, around) * side;
-            let along = (glam::Quat::from_axis_angle(tilt, lean) * cluster.axis).normalize();
+            let mut along = (glam::Quat::from_axis_angle(tilt, lean) * cluster.axis).normalize();
             let jitter = leaves.size_jitter.clamp(0.0, 0.9);
-            let mut length = leaves.size.max(0.01) * rng.range(1.0 - jitter, 1.0 + jitter) * growth;
+            let mut length = size * rng.range(1.0 - jitter, 1.0 + jitter);
             let mut width = length * leaves.width.max(0.0);
+            // Up a short stalk (the first at its foot), so the cluster is a
+            // ball rather than a flat rosette.
+            let up_stalk = if i == 0 { 0.0 } else { rng.range(0.1, 0.6) };
+            let mut base = cluster.position + cluster.axis * size * up_stalk;
+            // Facing out of the ball, turned a little at random, the crown
+            // and the sky having a say.
+            let roll = rng.range(-0.6, 0.6);
+            let away = (base + along * length * 0.5 - middle).reject_from(along);
+            let mut facing =
+                (away.normalize_or(out) + out * 0.4 + Vec3::Y * 0.3).normalize_or(Vec3::Y);
+            facing = glam::Quat::from_axis_angle(along, roll) * facing;
+            // Or crosswise to the leaf before, on the same stalk.
+            if rng.unit() < crossed
+                && let Some((at, way, across)) = before.take()
+            {
+                base = at;
+                along = way;
+                facing = across;
+            } else {
+                before = Some((base, along, along.cross(facing).normalize_or(side)));
+            }
+            // Its front out of the crown, so the crown seen from outside is
+            // the fronts of its leaves, lit by their bent normals.
+            if facing.reject_from(along).dot(out) < 0.0 {
+                facing = -facing;
+            }
             // A leaf cut out of a picture fills about 70% of its cell, so
             // the card is a little bigger, and as wide as its cell.
             let cell = leaves.textured().then(|| {
@@ -257,9 +342,11 @@ pub fn mesh(
             leaf(
                 &mut mesh,
                 Leaf {
-                    base: cluster.position,
+                    base,
                     along,
-                    facing: (Vec3::Y * 0.6 + out * 0.4).normalize_or(Vec3::Y),
+                    facing,
+                    middle,
+                    out,
                     length,
                     width,
                     droop: leaves.droop,
@@ -279,6 +366,10 @@ struct Leaf {
     along: Vec3,
     /// Which way its face would rather turn.
     facing: Vec3,
+    /// Its cluster's middle and the way out of the crown there: its light
+    /// bends out from both, so a crown is shaded as one volume.
+    middle: Vec3,
+    out: Vec3,
     length: f32,
     width: f32,
     droop: f32,
@@ -298,14 +389,16 @@ fn leaf(mesh: &mut TreeMesh, leaf: Leaf, detailed: bool, crown: [f32; 4]) {
     let face = across.cross(leaf.along);
     // (along, across) in shares of the length and width: a card for a
     // leaf cut out of a picture, else a leaf's outline.
+    // A card is bent along its length (a row of corners across its
+    // middle, so it hangs in a curve).
     let shape: &[[f32; 2]] = if leaf.cell.is_some() {
         if detailed {
             &[
-                [0.0, 0.0],
                 [0.0, 0.5],
+                [0.5, 0.5],
                 [1.0, 0.5],
-                [1.0, 0.0],
                 [1.0, -0.5],
+                [0.5, -0.5],
                 [0.0, -0.5],
             ]
         } else {
@@ -323,7 +416,9 @@ fn leaf(mesh: &mut TreeMesh, leaf: Leaf, detailed: bool, crown: [f32; 4]) {
     } else {
         &[[0.0, 0.0], [0.5, 0.45], [1.0, 0.0], [0.5, -0.45]]
     };
-    let triangles: &[[u32; 3]] = if shape.len() == 6 {
+    let triangles: &[[u32; 3]] = if leaf.cell.is_some() && detailed {
+        &[[0, 1, 5], [1, 4, 5], [1, 2, 4], [2, 3, 4]]
+    } else if shape.len() == 6 {
         &[[0, 1, 2], [0, 2, 3], [0, 3, 4], [0, 4, 5]]
     } else {
         &[[0, 1, 2], [0, 2, 3]]
@@ -350,7 +445,16 @@ fn leaf(mesh: &mut TreeMesh, leaf: Leaf, detailed: bool, crown: [f32; 4]) {
     }
     for (k, (&corner, normal)) in corners.iter().zip(&normals).enumerate() {
         let [t, s] = shape[k];
-        let normal = normal.normalize_or(face);
+        let flat = normal.normalize_or(face);
+        // Bent out from the cluster's middle and out of the crown, but
+        // never past the face's own side (it is lit from the side it faces).
+        let bent = flat + (corner - leaf.middle).normalize_or(leaf.out) * 0.6 + leaf.out * 0.4;
+        let bent = bent.normalize_or(flat);
+        let normal = if bent.dot(flat) < 0.3 {
+            (bent + flat).normalize_or(flat)
+        } else {
+            bent
+        };
         // The picture upright on the card, its stem at the leaf's base.
         let (uv, u_grows) = match leaf.cell {
             Some(([u0, v0, u1, v1], false)) => {

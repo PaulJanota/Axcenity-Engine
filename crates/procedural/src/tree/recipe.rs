@@ -149,6 +149,14 @@ pub struct BranchLevel {
     /// 0 to 1: the share of its limbs snapped off short, ending in
     /// splinters (snags on a dead tree).
     pub broken: f32,
+    /// Grows its limbs in this many tiers (whorls) round the parent, each
+    /// tier's limbs evenly round it, with bare trunk between; 0 spreads
+    /// them one by one.
+    pub whorls: u32,
+    /// Limbs growing below this place on their parent (0 to 1) are dead
+    /// stubs, snapped off short with nothing growing on them (a conifer's
+    /// shaded-out lower limbs).
+    pub bare_below: f32,
 }
 
 impl Default for BranchLevel {
@@ -170,6 +178,8 @@ impl Default for BranchLevel {
             randomness: 0.25,
             terminal: false,
             broken: 0.0,
+            whorls: 0,
+            bare_below: 0.0,
         }
     }
 }
@@ -311,6 +321,23 @@ pub struct Leaves {
     pub fold: f32,
     /// 0 to 1: how far each cluster turns to face out of the crown.
     pub face_out: f32,
+    /// Where leaves start along the finest limbs, and along the limbs
+    /// those grow on, from 0 (their base) to 1 (their tip).
+    pub twig_start: f32,
+    pub limb_start: f32,
+    /// 0 to 1: the share of each cluster's leaves set crosswise to the one
+    /// before (the pair an X seen down the leaf), so a cluster has depth
+    /// from every side.
+    pub crossed: f32,
+    /// 0 to 1: how much of the crown's inside is left as air pockets, and
+    /// about how big each is in studs.
+    pub pockets: f32,
+    pub pocket_size: f32,
+    /// Toward the top of the crown: how big the clusters are there (a
+    /// share of their size) and how far they turn up (0 to 1), as at a
+    /// conifer's leader.
+    pub top_scale: f32,
+    pub top_lift: f32,
     /// 0 to 1: how many clusters deep in the crown's own shade are left
     /// out (where little light reaches, a real tree grows few leaves).
     pub shade_thinning: f32,
@@ -346,6 +373,13 @@ impl Default for Leaves {
             droop: 0.15,
             fold: 0.2,
             face_out: 0.5,
+            twig_start: 0.35,
+            limb_start: 0.7,
+            crossed: 0.5,
+            pockets: 0.0,
+            pocket_size: 3.0,
+            top_scale: 1.0,
+            top_lift: 0.0,
             shade_thinning: 0.6,
             color: [0.09, 0.2, 0.045],
             roughness: 0.6,
@@ -595,10 +629,14 @@ impl TreeRecipe {
                     ..Bark::default()
                 },
                 leaves: Leaves {
-                    per_cluster: 11,
+                    per_cluster: 8,
                     size: 0.6,
                     spread: 70.0,
                     fold: 0.1,
+                    twig_start: 0.2,
+                    limb_start: 0.45,
+                    pockets: 0.35,
+                    pocket_size: 3.5,
                     color: [0.85, 0.95, 0.8],
                     texture: textures::BROAD_LEAVES.to_owned(),
                     normal_map: textures::BROAD_LEAVES_NORMAL.to_owned(),
@@ -621,8 +659,11 @@ impl TreeRecipe {
                     ..Trunk::default()
                 },
                 levels: vec![
+                    // Boughs in whorls, the lowest dead stubs.
                     BranchLevel {
-                        count: 26,
+                        count: 35,
+                        whorls: 7,
+                        bare_below: 0.36,
                         start: 0.25,
                         end: 0.98,
                         angle: 82.0,
@@ -655,14 +696,16 @@ impl TreeRecipe {
                     ..Bark::default()
                 },
                 leaves: Leaves {
-                    clusters: 3.0,
+                    clusters: 2.5,
                     per_cluster: 3,
-                    size: 2.2,
+                    size: 1.6,
                     size_jitter: 0.2,
                     spread: 35.0,
                     droop: 0.1,
                     fold: 0.05,
                     face_out: 0.3,
+                    top_scale: 0.55,
+                    top_lift: 0.6,
                     color: [0.9, 1.0, 0.9],
                     texture: textures::CONIFER.to_owned(),
                     normal_map: textures::CONIFER_NORMAL.to_owned(),
@@ -728,6 +771,10 @@ impl TreeRecipe {
                     spread: 70.0,
                     droop: 0.25,
                     fold: 0.1,
+                    twig_start: 0.25,
+                    limb_start: 0.5,
+                    pockets: 0.3,
+                    pocket_size: 2.5,
                     color: [0.95, 1.0, 0.85],
                     flutter: 0.09,
                     texture: textures::BROAD_LEAVES.to_owned(),

@@ -26,6 +26,8 @@ pub struct Stem {
     /// Studs along its parent's center line from the trunk's base to where
     /// it grows, so the bark's texture runs on from the parent's.
     pub v_start: f32,
+    /// Snapped off: its tip is splinters rather than a point.
+    pub broken: bool,
     /// The most its radius may be anywhere: a little under its parent's
     /// where it grows, so the pipe model never makes a limb burst out of
     /// the one it grows on.
@@ -90,7 +92,9 @@ pub fn grow(recipe: &TreeRecipe, variant: u32) -> Skeleton {
     for (level_index, level) in recipe.levels.iter().take(MAX_LEVELS).enumerate() {
         let mut grown = Vec::new();
         for &parent in &parents {
-            for i in 0..level.count {
+            // A terminal limb is number `count`, after the level's own.
+            let count = level.count + u32::from(level.terminal);
+            for i in 0..count {
                 // Each limb's own generator, from its parent and number, so
                 // a change to one level's count doesn't move another's.
                 let mut rng = Rng::new(
@@ -111,10 +115,14 @@ pub fn grow(recipe: &TreeRecipe, variant: u32) -> Skeleton {
     Skeleton { stems, base_end }
 }
 
-/// How many segments a limb `length` studs long is cut into.
-fn segments(length: f32, segment_length: f32) -> usize {
-    let per = segment_length.max(0.05);
-    ((length / per).ceil() as usize).clamp(3, 32)
+/// How many segments a limb `length` studs long is cut into: at least 3,
+/// unless that would make them shorter than `least` studs (a short, thick
+/// stub's rings would overlap), then 2.
+fn segments(length: f32, segment_length: f32, least: f32) -> usize {
+    if length / 3.0 < least {
+        return 2;
+    }
+    ((length / segment_length.max(0.05)).ceil() as usize).clamp(3, 32)
 }
 
 /// The trunk, and the point its finely meshed base ends at (0 for none).
@@ -157,7 +165,7 @@ fn trunk(recipe: &TreeRecipe, seed: u64) -> (Stem, usize) {
         base_end = n;
     }
     let from = if base_end > 0 { base_top } else { -sink };
-    let n = segments(length - from, recipe.mesh.segment_length);
+    let n = segments(length - from, recipe.mesh.segment_length, 0.0);
     heights.extend((0..=n).map(|k| from + (length - from) * k as f32 / n as f32));
     let mut points = Vec::with_capacity(heights.len());
     let mut radii = Vec::with_capacity(heights.len());
@@ -166,7 +174,15 @@ fn trunk(recipe: &TreeRecipe, seed: u64) -> (Stem, usize) {
         let t = (h / length).clamp(0.0, 1.0);
         let taper = 1.0 + (trunk.tip_radius - 1.0) * t;
         let flare = 1.0 + trunk.flare * (-h.max(0.0) / trunk.flare_height.max(0.1)).exp();
-        radii.push(radius * taper.max(0.0) * flare);
+        // Under the ground it spreads on into a skirt of roots, widest at
+        // the sunk foot.
+        let under = if sink > 0.0 {
+            (-h / sink).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
+        let skirt = 1.0 + trunk.root_spread.max(0.0) * under * under;
+        radii.push(radius * taper.max(0.0) * flare * skirt);
     }
     let along = lengths_along(&points);
     let stem = Stem {
@@ -176,6 +192,7 @@ fn trunk(recipe: &TreeRecipe, seed: u64) -> (Stem, usize) {
         radii,
         along,
         v_start: 0.0,
+        broken: trunk.broken,
         cap: f32::INFINITY,
     };
     (stem, base_end)
@@ -192,10 +209,16 @@ fn branch(
     rng: &mut Rng,
 ) -> Option<Stem> {
     let on = &stems[parent];
+    // The terminal limb carries its parent on from the tip.
+    let terminal = level.terminal && i == level.count;
     let count = level.count.max(1) as f32;
     let (start, end) = (level.start.clamp(0.0, 1.0), level.end.clamp(0.0, 1.0));
     let jitter = rng.range(-0.35, 0.35);
-    let t = (start + (end - start) * ((i as f32 + 0.5 + jitter) / count)).clamp(0.0, 1.0);
+    let t = if terminal {
+        1.0
+    } else {
+        (start + (end - start) * ((i as f32 + 0.5 + jitter) / count)).clamp(0.0, 1.0)
+    };
     // The trunk's sunk foot isn't a place to grow from.
     let t = if on.level == 0 {
         let ground = recipe.trunk.sink.max(0.0) / on.length().max(1e-3);
@@ -204,10 +227,35 @@ fn branch(
         t
     };
     let (base, parent_direction, parent_radius) = on.at(t);
-    let length = on.length() * level.length * level.length_along.at(t) * rng.range(0.85, 1.15);
+    if terminal && on.broken {
+        return None;
+    }
+    let broken = !terminal && level.broken > 0.0 && rng.unit() < level.broken.min(1.0);
+    let mut length = on.length() * level.length * level.length_along.at(t) * rng.range(0.85, 1.15);
+    // How much of the limb it would have grown is there: a snapped-off
+    // stub bends only as much as that part of the whole limb would.
+    let mut kept = 1.0;
+    if broken {
+        // Snapped off somewhere along its first half.
+        kept = rng.range(0.2, 0.55);
+        length *= kept;
+    }
     let cap = parent_radius * 0.9;
-    let radius = (parent_radius * level.radius).min(cap);
-    if length < 0.2 || radius < recipe.mesh.min_radius {
+    // A terminal limb starts as thick as its parent's tip, so the two read
+    // as one limb.
+    let radius = if terminal {
+        parent_radius * 0.9
+    } else {
+        (parent_radius * level.radius).min(cap)
+    };
+    // A limb that hardly comes out of its parent isn't a tube (its rings
+    // would overlap): a knot the bark's texture shows better.
+    let out_of_parent = if terminal {
+        length
+    } else {
+        length - parent_radius
+    };
+    if length < 0.2 || out_of_parent < radius * 3.0 || radius < recipe.mesh.min_radius {
         return None;
     }
     // Turned round its parent by the roll, from a side that doesn't twist
@@ -215,9 +263,15 @@ fn branch(
     let side = parent_direction.any_orthonormal_vector();
     let roll = (level.roll * i as f32 + rng.range(-12.0, 12.0)).to_radians();
     let axis = Quat::from_axis_angle(parent_direction, roll) * side;
-    let angle = (level.angle + rng.range(-1.0, 1.0) * level.angle_spread).to_radians();
+    let angle = if terminal {
+        // Nearly straight on, as a leader carries on its limb.
+        rng.range(5.0, 15.0)
+    } else {
+        level.angle + rng.range(-1.0, 1.0) * level.angle_spread
+    }
+    .to_radians();
     let mut direction = (Quat::from_axis_angle(axis, angle) * parent_direction).normalize();
-    let n = segments(length, recipe.mesh.segment_length);
+    let n = segments(length, recipe.mesh.segment_length, radius * 2.0);
     let step = length / n as f32;
     let mut points = Vec::with_capacity(n + 1);
     let mut radii = Vec::with_capacity(n + 1);
@@ -237,15 +291,18 @@ fn branch(
         radii.push(radius * (1.0 + (tip - 1.0) * along));
         // Bends: down under its weight, which grows with how level it is,
         // up toward the light, and a little wander.
-        let share = 1.0 / n as f32;
+        let share = kept / n as f32;
         let level_ness = 1.0 - direction.y.abs();
         let wave = |(frequency, phase): (f32, f32)| (frequency * along + phase).sin();
         let wander = Vec3::new(wave(waves[0]), wave(waves[1]), wave(waves[2]));
-        direction = (direction
+        let bent = (direction
             + Vec3::NEG_Y * level.gravity * share * (0.4 + level_ness)
             + Vec3::Y * level.upward * share
             + wander * level.randomness * share * 3.0)
             .normalize_or(direction);
+        // Never more than a gentle turn at one ring, or a limb of few
+        // segments kinks and its tube folds at the bend.
+        direction = turned_at_most(direction, bent, MAX_TURN.to_radians());
         point += direction * step;
     }
     let along = lengths_along(&points);
@@ -257,8 +314,21 @@ fn branch(
         radii,
         along,
         v_start,
+        broken,
         cap,
     })
+}
+
+/// The most a limb turns at one of its points, in degrees.
+const MAX_TURN: f32 = 35.0;
+
+/// `to`, or `from` turned toward it by no more than `limit` radians.
+fn turned_at_most(from: Vec3, to: Vec3, limit: f32) -> Vec3 {
+    let angle = from.angle_between(to);
+    if angle <= limit {
+        return to;
+    }
+    from.slerp(to, limit / angle).normalize_or(to)
 }
 
 fn lengths_along(points: &[Vec3]) -> Vec<f32> {

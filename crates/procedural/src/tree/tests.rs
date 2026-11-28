@@ -130,11 +130,14 @@ fn thin_limbs_are_left_out_with_what_would_grow_on_them() {
 #[test]
 fn the_bark_is_a_clean_mesh_facing_out() {
     for recipe in every_preset() {
-        let tree = generate(&recipe, 1);
-        for level in &tree.levels {
-            assert!(!level.base.indices.is_empty(), "{}", recipe.name);
-            clean_and_facing_out(&level.base, &recipe.name);
-            clean_and_facing_out(&level.bark, &recipe.name);
+        for variant in 0..6 {
+            let tree = generate(&recipe, variant);
+            for level in &tree.levels {
+                assert!(!level.base.indices.is_empty(), "{}", recipe.name);
+                let name = format!("{} {variant}", recipe.name);
+                clean_and_facing_out(&level.base, &format!("{name} base"));
+                clean_and_facing_out(&level.bark, &format!("{name} bark"));
+            }
         }
     }
 }
@@ -154,7 +157,7 @@ fn clean_and_facing_out(mesh: &mesher::TreeMesh, name: &str) {
         }
         // Every triangle's winding agrees with its corners' normals (it
         // faces out), but for the ones too small to have a direction.
-        let mut against = 0;
+        let mut against = Vec::new();
         for triangle in mesh.indices.chunks(3) {
             let [a, b, c] = [0, 1, 2].map(|i| Vec3::from(mesh.positions[triangle[i] as usize]));
             let face = (b - a).cross(c - a);
@@ -166,10 +169,13 @@ fn clean_and_facing_out(mesh: &mesher::TreeMesh, name: &str) {
                 .map(|&i| Vec3::from(mesh.normals[i as usize]))
                 .sum();
             if face.dot(normal) < 0.0 {
-                against += 1;
+                against.push((triangle.to_vec(), [a, b, c]));
             }
         }
-        assert_eq!(against, 0, "{name}");
+        assert!(
+            against.is_empty(),
+            "{name}: faces against their normals {against:?}"
+        );
     }
 }
 
@@ -186,8 +192,10 @@ fn the_bark_texture_runs_on_along_each_limb_and_from_its_parent() {
     }
     // Around a limb, U makes whole repeats, so its seam meets itself.
     let corners = mesher::ring_corners(&recipe, stems[0].radii[0]) as usize;
-    let around = tree.full().bark.uvs[corners][0];
-    assert!(around >= 1.0 && (around - around.round()).abs() < 1e-5);
+    // (The grain's spiral shifts a whole ring alike.)
+    let uvs = &tree.full().bark.uvs;
+    let around = uvs[corners][0] - uvs[0][0];
+    assert!(around >= 1.0 && (around - around.round()).abs() < 1e-4);
 }
 
 #[test]
@@ -428,6 +436,8 @@ fn leafy_trees_have_leaves_in_every_copy_with_their_crown_data() {
 #[test]
 fn the_crown_shades_itself_and_thins_where_dark() {
     let mut recipe = TreeRecipe::preset(Preset::Oak);
+    // Few leaves a cluster, so neither crown is cut to the triangle budget.
+    recipe.leaves.per_cluster = 3;
     recipe.leaves.shade_thinning = 0.0;
     let dense = generate(&recipe, 0);
     recipe.leaves.shade_thinning = 1.0;
@@ -573,4 +583,126 @@ fn textured_leaves_are_cards_showing_one_leaf_of_their_picture_each() {
             .iter()
             .all(|m| m.material != "Leaves")
     );
+}
+
+/// Prints each preset's limbs per level and triangles per copy, to check
+/// budgets: `cargo test -p axcenity-procedural print_tree_stats -- --ignored
+/// --nocapture`.
+#[test]
+#[ignore]
+fn print_tree_stats() {
+    for recipe in every_preset() {
+        let tree = generate(&recipe, 0);
+        let mut per_level = [0usize; 6];
+        for stem in &tree.skeleton.stems {
+            per_level[stem.level] += 1;
+        }
+        println!(
+            "{}: limbs per level {:?}",
+            recipe.name,
+            &per_level[..=recipe.levels.len()]
+        );
+        for (index, level) in tree.levels.iter().enumerate() {
+            println!(
+                "  LOD{index}: base {} bark {} leaves {} = {}",
+                level.base.triangles(),
+                level.bark.triangles(),
+                level.leaves.triangles(),
+                level.triangles()
+            );
+        }
+    }
+}
+
+#[test]
+fn side_limbs_are_welded_onto_their_parents() {
+    for recipe in every_preset() {
+        let tree = generate(&recipe, 0);
+        // (A slender birch's limbs are all fine twigs.)
+        if let Some(share) = mesher::welded_share(&recipe, &tree.skeleton) {
+            assert!(share > 0.6, "{}: {share}", recipe.name);
+        }
+    }
+}
+
+#[test]
+fn limbs_carry_on_into_terminal_twigs() {
+    let recipe = TreeRecipe::preset(Preset::Oak);
+    assert!(recipe.levels[2].terminal);
+    let tree = generate(&recipe, 0);
+    let stems = &tree.skeleton.stems;
+    // Every limb of the level before whose tip is thick enough to mesh a
+    // twig has one growing on from it, about straight on.
+    let parents: Vec<usize> = (0..stems.len())
+        .filter(|&i| {
+            // (Its tip after the pipe model; a little thicker than when the
+            // twig grew.)
+            stems[i].level == 2 && *stems[i].radii.last().unwrap() >= recipe.mesh.min_radius * 1.5
+        })
+        .collect();
+    assert!(parents.len() >= 10, "{}", parents.len());
+    let carried = parents
+        .iter()
+        .filter(|&&parent| {
+            let tip = stems[parent].direction(stems[parent].points.len() - 1);
+            stems.iter().any(|child| {
+                child.parent == Some((parent, 1.0)) && child.direction(0).dot(tip) > 0.7
+            })
+        })
+        .count();
+    assert_eq!(carried, parents.len());
+}
+
+#[test]
+fn the_roots_spread_under_the_ground() {
+    for recipe in every_preset() {
+        let tree = generate(&recipe, 0);
+        let trunk = &tree.skeleton.stems[0];
+        assert!((trunk.points[0].y + recipe.trunk.sink).abs() < 0.01);
+        let at_ground = trunk.at(recipe.trunk.sink / trunk.length()).2;
+        assert!(trunk.radii[0] > at_ground * 1.3, "{}", recipe.name);
+        let base = &tree.full().base;
+        let lowest = base
+            .positions
+            .iter()
+            .map(|p| p[1])
+            .fold(f32::INFINITY, f32::min);
+        assert!(
+            // Deeper where the leaning foot and its tendrils tip down.
+            (-1.2..=-0.3).contains(&lowest),
+            "{}: {lowest}",
+            recipe.name
+        );
+    }
+}
+
+#[test]
+fn a_dead_tree_ends_in_weathered_splinters_and_snags() {
+    let recipe = TreeRecipe::preset(Preset::Dead);
+    let tree = generate(&recipe, 0);
+    let stems = &tree.skeleton.stems;
+    assert!(stems[0].broken);
+    let snags = stems.iter().filter(|stem| stem.broken).count();
+    assert!(snags >= 4, "{snags}");
+    let bark = &tree.full().bark;
+    assert_eq!(bark.weathering.len(), bark.positions.len());
+    // Splinters are bare wood; the bark weathers going up, none at the foot.
+    let splinters = bark.weathering.iter().filter(|&&w| w == 1.0).count();
+    assert!(splinters > 0);
+    let top = stems[0].points.last().unwrap().y;
+    for (w, p) in bark.weathering.iter().zip(&bark.positions) {
+        assert!((0.0..=1.0).contains(w));
+        if p[1] < top * 0.2 {
+            assert_eq!(*w, 0.0);
+        }
+    }
+    let base = &tree.full().base;
+    for (w, p) in base.weathering.iter().zip(&base.positions) {
+        if p[1] < top * 0.2 {
+            assert_eq!(*w, 0.0);
+        }
+    }
+    // A living oak has no splinters.
+    let oak = generate(&TreeRecipe::preset(Preset::Oak), 0);
+    assert!(oak.skeleton.stems.iter().all(|stem| !stem.broken));
 }

@@ -12,8 +12,13 @@ fn the_same_recipe_and_variant_give_the_same_tree() {
     for recipe in every_preset() {
         let a = generate(&recipe, 3);
         let b = generate(&recipe, 3);
-        assert_eq!(a.bark.positions, b.bark.positions, "{}", recipe.name);
-        assert_eq!(a.bark.indices, b.bark.indices, "{}", recipe.name);
+        assert_eq!(a.levels.len(), b.levels.len());
+        for (a, b) in a.levels.iter().zip(&b.levels) {
+            for (a, b) in [(&a.base, &b.base), (&a.bark, &b.bark)] {
+                assert_eq!(a.positions, b.positions, "{}", recipe.name);
+                assert_eq!(a.indices, b.indices, "{}", recipe.name);
+            }
+        }
     }
 }
 
@@ -22,7 +27,7 @@ fn another_variant_is_another_tree() {
     let recipe = TreeRecipe::preset(Preset::Oak);
     let a = generate(&recipe, 0);
     let b = generate(&recipe, 1);
-    assert_ne!(a.bark.positions, b.bark.positions);
+    assert_ne!(a.full().bark.positions, b.full().bark.positions);
 }
 
 #[test]
@@ -126,7 +131,16 @@ fn thin_limbs_are_left_out_with_what_would_grow_on_them() {
 fn the_bark_is_a_clean_mesh_facing_out() {
     for recipe in every_preset() {
         let tree = generate(&recipe, 1);
-        let mesh = &tree.bark;
+        for level in &tree.levels {
+            assert!(!level.base.indices.is_empty(), "{}", recipe.name);
+            clean_and_facing_out(&level.base, &recipe.name);
+            clean_and_facing_out(&level.bark, &recipe.name);
+        }
+    }
+}
+
+fn clean_and_facing_out(mesh: &mesher::TreeMesh, name: &str) {
+    {
         let n = mesh.positions.len();
         assert_eq!(mesh.normals.len(), n);
         assert_eq!(mesh.uvs.len(), n);
@@ -134,9 +148,9 @@ fn the_bark_is_a_clean_mesh_facing_out() {
         assert_eq!(mesh.indices.len() % 3, 0);
         assert!(mesh.indices.iter().all(|&i| (i as usize) < n));
         for (p, normal) in mesh.positions.iter().zip(&mesh.normals) {
-            assert!(p.iter().all(|v| v.is_finite()), "{}", recipe.name);
+            assert!(p.iter().all(|v| v.is_finite()), "{name}");
             let length = Vec3::from(*normal).length();
-            assert!((length - 1.0).abs() < 1e-3, "{}: {length}", recipe.name);
+            assert!((length - 1.0).abs() < 1e-3, "{name}: {length}");
         }
         // Every triangle's winding agrees with its corners' normals (it
         // faces out), but for the ones too small to have a direction.
@@ -155,7 +169,7 @@ fn the_bark_is_a_clean_mesh_facing_out() {
                 against += 1;
             }
         }
-        assert_eq!(against, 0, "{}", recipe.name);
+        assert_eq!(against, 0, "{name}");
     }
 }
 
@@ -172,7 +186,7 @@ fn the_bark_texture_runs_on_along_each_limb_and_from_its_parent() {
     }
     // Around a limb, U makes whole repeats, so its seam meets itself.
     let corners = mesher::ring_corners(&recipe, stems[0].radii[0]) as usize;
-    let around = tree.bark.uvs[corners][0];
+    let around = tree.full().bark.uvs[corners][0];
     assert!(around >= 1.0 && (around - around.round()).abs() < 1e-5);
 }
 
@@ -190,9 +204,24 @@ fn a_tree_is_a_model_as_tall_as_it_was_grown() {
     for recipe in every_preset() {
         let tree = generate(&recipe, 0);
         let model = tree.to_model(&recipe).unwrap();
-        assert_eq!(model.primitives.len(), 1);
-        assert_eq!(model.primitives[0].material.name, "Bark");
-        assert!(model.primitives[0].material.sway > 0.0);
+        assert_eq!(model.primitives.len(), 2);
+        assert_eq!(model.primitives[0].material.name, "TrunkBase");
+        assert_eq!(model.primitives[1].material.name, "Bark");
+        for primitive in &model.primitives {
+            // The base sways with the rest, so they never part.
+            assert_eq!(primitive.material.sway, model.primitives[1].material.sway);
+            assert!(primitive.material.sway > 0.0);
+            assert_eq!(primitive.lods.len(), tree.levels.len() - 1);
+            // Fitted with the full model: inside its 1×1×1 box.
+            for copy in &primitive.lods {
+                assert!(
+                    copy.positions
+                        .iter()
+                        .flatten()
+                        .all(|v| v.abs() <= 0.5 + 1e-4)
+                );
+            }
+        }
         // The trunk's length and sunk foot, give or take its lean and the
         // limbs that reach above it.
         let tall = recipe.trunk.length + recipe.trunk.sink;
@@ -206,17 +235,142 @@ fn a_tree_is_a_model_as_tall_as_it_was_grown() {
 }
 
 #[test]
-fn every_preset_stays_within_a_hero_trees_triangles_without_leaves() {
-    // The plan's hero budget is 60k at LOD0 with leaves (T2 sets it per
-    // level); bark alone stays well under it.
+fn every_copy_is_simpler_than_the_last_and_within_its_budget() {
     for recipe in every_preset() {
-        let triangles = generate(&recipe, 0).triangles();
-        assert!(
-            triangles > 500 && triangles < 45_000,
-            "{}: {triangles}",
-            recipe.name
-        );
+        let tree = generate(&recipe, 0);
+        assert_eq!(tree.levels.len(), 4, "{}", recipe.name);
+        let budgets = std::iter::once(recipe.mesh.triangles)
+            .chain(recipe.mesh.lods.iter().map(|lod| lod.triangles));
+        let mut before = usize::MAX;
+        for (level, budget) in tree.levels.iter().zip(budgets) {
+            let triangles = level.triangles();
+            assert!(triangles <= budget as usize, "{}: {triangles}", recipe.name);
+            assert!(triangles < before, "{}: {triangles}", recipe.name);
+            before = triangles;
+        }
+        assert!(tree.triangles() > 500, "{}", recipe.name);
     }
+    // A tight budget leaves the thin limbs out, the trunk always in.
+    let mut recipe = TreeRecipe::preset(Preset::Oak);
+    let full = generate(&recipe, 0).triangles();
+    recipe.mesh.triangles = (full / 3) as u32;
+    let tight = generate(&recipe, 0);
+    assert!(tight.triangles() <= full / 3);
+    assert!(!tight.full().bark.indices.is_empty());
+}
+
+#[test]
+fn simpler_copies_keep_the_limbs_where_they_are() {
+    let tree = generate(&TreeRecipe::preset(Preset::Oak), 0);
+    let bounds = |level: &super::BarkLevel| {
+        level
+            .base
+            .positions
+            .iter()
+            .chain(&level.bark.positions)
+            .fold((Vec3::INFINITY, Vec3::NEG_INFINITY), |(lo, hi), p| {
+                (lo.min(Vec3::from(*p)), hi.max(Vec3::from(*p)))
+            })
+    };
+    let (low, high) = bounds(tree.full());
+    for level in &tree.levels[1..] {
+        let (lo, hi) = bounds(level);
+        assert!(lo.cmpge(low - 0.05).all() && hi.cmple(high + 0.05).all());
+        // The trunk's top is the same point in every copy.
+        let tip = |l: &super::BarkLevel| l.bark.positions[trunk_tip(&tree, l)];
+        assert_eq!(tip(level), tip(tree.full()));
+    }
+}
+
+/// Where the trunk's tip point is in a copy's bark: right after its rings.
+fn trunk_tip(tree: &super::Tree, level: &super::BarkLevel) -> usize {
+    // The trunk's tube comes first; its tip is the first corner with the
+    // tip's own normal, straight along the trunk.
+    let along = tree.skeleton.stems[0].direction(tree.skeleton.stems[0].points.len() - 1);
+    level
+        .bark
+        .normals
+        .iter()
+        .position(|n| Vec3::from(*n).distance(along) < 1e-6)
+        .unwrap()
+}
+
+#[test]
+fn the_trunk_base_meets_the_trunk_without_a_gap() {
+    for recipe in every_preset() {
+        let tree = generate(&recipe, 0);
+        for level in &tree.levels {
+            let trunk = mesher::ring_corners(&recipe, tree.skeleton.stems[0].radii[0]);
+            // The trunk's corners in this copy: its first ring's U reaches
+            // a whole number again at the last corner.
+            let first_ring: Vec<Vec3> = level
+                .bark
+                .positions
+                .iter()
+                .zip(&level.bark.uvs)
+                .take_while(|(_, uv)| uv[1] == level.bark.uvs[0][1])
+                .map(|(p, _)| Vec3::from(*p))
+                .collect();
+            let n = first_ring.len() - 1;
+            assert!(n as u32 <= trunk);
+            let base = &level.base.positions;
+            let top_count = base
+                .iter()
+                .rev()
+                .zip(level.base.uvs.iter().rev())
+                .take_while(|(_, uv)| uv[1] == level.base.uvs.last().unwrap()[1])
+                .count();
+            let top: Vec<Vec3> = base[base.len() - top_count..]
+                .iter()
+                .map(|p| Vec3::from(*p))
+                .collect();
+            let times = (top.len() - 1) / n;
+            assert_eq!((top.len() - 1) % n, 0, "{}", recipe.name);
+            for (j, point) in top.iter().enumerate() {
+                let low = first_ring[j / times];
+                let high = first_ring[(j / times + 1).min(n)];
+                let f = (j % times) as f32 / times as f32;
+                let on = low.lerp(high, f);
+                assert!(point.distance(on) < 1e-4, "{}: {j}", recipe.name);
+            }
+        }
+    }
+}
+
+#[test]
+fn buttresses_swell_the_base_only_where_it_is_detailed() {
+    let recipe = TreeRecipe::preset(Preset::Oak);
+    let tree = generate(&recipe, 0);
+    let trunk = &tree.skeleton.stems[0];
+    // How far round the ground's ring the radius swings, as a share.
+    let swing = |level: &super::BarkLevel| {
+        let ring = level
+            .base
+            .uvs
+            .iter()
+            .take_while(|uv| uv[1] == level.base.uvs[0][1])
+            .count();
+        let center = trunk.points[0];
+        let radii: Vec<f32> = level.base.positions[..ring]
+            .iter()
+            .map(|p| {
+                (Vec3::from(*p) - center)
+                    .reject_from(trunk.direction(0))
+                    .length()
+            })
+            .collect();
+        let max = radii.iter().copied().fold(0.0, f32::max);
+        let min = radii.iter().copied().fold(f32::INFINITY, f32::min);
+        max / min - 1.0
+    };
+    assert!(
+        swing(tree.full()) > recipe.trunk.buttress * 0.6,
+        "{}",
+        swing(tree.full())
+    );
+    // The coarsest copies' bases are plain round tubes.
+    let last = tree.levels.last().unwrap();
+    assert!(swing(last) < 0.02, "{}", swing(last));
 }
 
 #[test]
@@ -244,24 +398,33 @@ fn write_preset_trees() {
     };
     for recipe in every_preset() {
         let tree = generate(&recipe, 0);
-        let mut obj = String::new();
-        for p in &tree.bark.positions {
-            obj.push_str(&format!("v {} {} {}\n", p[0], p[1], p[2]));
+        for (index, level) in tree.levels.iter().enumerate() {
+            let mut obj = String::new();
+            let mut offset = 1;
+            for (name, mesh) in [("TrunkBase", &level.base), ("Bark", &level.bark)] {
+                obj.push_str(&format!("o {name}\n"));
+                for p in &mesh.positions {
+                    obj.push_str(&format!("v {} {} {}\n", p[0], p[1], p[2]));
+                }
+                for n in &mesh.normals {
+                    obj.push_str(&format!("vn {} {} {}\n", n[0], n[1], n[2]));
+                }
+                for t in mesh.indices.chunks(3) {
+                    let [a, b, c] = [t[0] + offset, t[1] + offset, t[2] + offset];
+                    obj.push_str(&format!("f {a}//{a} {b}//{b} {c}//{c}\n"));
+                }
+                offset += mesh.positions.len() as u32;
+            }
+            let path =
+                std::path::Path::new(&folder).join(format!("{}_LOD{index}.obj", recipe.name));
+            std::fs::write(&path, obj).unwrap();
+            println!(
+                "{} LOD{index}: {} triangles (base {})",
+                recipe.name,
+                level.triangles(),
+                level.base.triangles()
+            );
         }
-        for n in &tree.bark.normals {
-            obj.push_str(&format!("vn {} {} {}\n", n[0], n[1], n[2]));
-        }
-        for t in tree.bark.indices.chunks(3) {
-            let [a, b, c] = [t[0] + 1, t[1] + 1, t[2] + 1];
-            obj.push_str(&format!("f {a}//{a} {b}//{b} {c}//{c}\n"));
-        }
-        let path = std::path::Path::new(&folder).join(format!("{}.obj", recipe.name));
-        std::fs::write(&path, obj).unwrap();
-        println!(
-            "{}: {} triangles, {} limbs",
-            recipe.name,
-            tree.triangles(),
-            tree.skeleton.stems.len()
-        );
+        println!("{}: {} limbs", recipe.name, tree.skeleton.stems.len());
     }
 }

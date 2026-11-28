@@ -464,3 +464,122 @@ fn the_farthest_cascade_draws_casters_at_the_level_their_size_in_its_map_calls_f
     assert_eq!(lighting::shadow_level(0.2), 1);
     assert_eq!(lighting::shadow_level(0.05), 2);
 }
+
+/// A tree's piece with two simpler copies (the detailed square's, keys 901
+/// and 902) and a stand-in (`MeshSource::stand_in`): its own (key 960), or
+/// covered by that one.
+struct StandingIn {
+    key: u64,
+    covered: bool,
+}
+
+const SQUARE_CORNERS: [[f32; 3]; 4] = [
+    [-0.5, -0.5, 0.5],
+    [0.5, -0.5, 0.5],
+    [0.5, 0.5, 0.5],
+    [-0.5, 0.5, 0.5],
+];
+
+impl MeshSource for StandingIn {
+    fn key(&self) -> u64 {
+        self.key
+    }
+    fn positions(&self) -> &[[f32; 3]] {
+        &SQUARE_CORNERS
+    }
+    fn normals(&self) -> &[[f32; 3]] {
+        &[[0.0, 0.0, 1.0]; 4]
+    }
+    fn uvs(&self) -> &[[f32; 2]] {
+        &[]
+    }
+    fn indices(&self) -> &[u32] {
+        &[0, 1, 2, 0, 2, 3]
+    }
+    fn lod_count(&self) -> usize {
+        if self.key == 960 { 0 } else { 2 }
+    }
+    fn lod(&self, level: usize) -> Option<&Arc<dyn MeshSource>> {
+        use super::level_of_detail::Detailed;
+        static COPIES: std::sync::OnceLock<[Arc<dyn MeshSource>; 2]> = std::sync::OnceLock::new();
+        let copies = COPIES.get_or_init(|| {
+            [1, 2].map(|level| Arc::new(Detailed { level }) as Arc<dyn MeshSource>)
+        });
+        copies
+            .get(level.checked_sub(1)?)
+            .filter(|_| self.key != 960)
+    }
+    fn stand_in(&self) -> crate::StandIn<'_> {
+        static STAND_IN: std::sync::OnceLock<Arc<dyn MeshSource>> = std::sync::OnceLock::new();
+        if self.key == 960 {
+            return crate::StandIn::Own;
+        }
+        let stand_in = STAND_IN.get_or_init(|| {
+            Arc::new(StandingIn {
+                key: 960,
+                covered: false,
+            })
+        });
+        if self.covered {
+            crate::StandIn::Covered(stand_in)
+        } else {
+            crate::StandIn::Mesh(stand_in)
+        }
+    }
+}
+
+#[test]
+fn the_farthest_cascade_casts_a_far_items_stand_in_and_leaves_out_what_it_covers() {
+    // A tree's two pieces near the camera, so it draws them at full detail:
+    // one with a stand-in, one the stand-in covers. The first is a cut-out.
+    let piece = |covered: bool, x: f32| DrawItem {
+        shape: Shape::Mesh(Arc::new(StandingIn {
+            key: if covered { 951 } else { 950 },
+            covered,
+        })),
+        material: Material {
+            alpha_cutoff: if covered { 0.0 } else { 0.5 },
+            ..Material::default()
+        },
+        ..item(Shape::Block, Vec3::new(x, 0.0, -3.0), 1.0)
+    };
+    let list = list_of(vec![piece(false, -1.0), piece(true, 1.0)]);
+    let DrawPlan { casters, .. } = plan(&list);
+    let radius = casters[0][0].sphere.1;
+    let sun = ShadowView::Sun(Frustum::of(Mat4::ZERO));
+    let groups_in = |extent: f32, uploaded: &(dyn Fn(MeshKey) -> bool + Sync)| {
+        let lods = lighting::FarCascadeLods {
+            view: 1,
+            extent,
+            uploaded,
+        };
+        let views = lighting::casters_in_views(&casters, &[sun, sun], 1, false, Some(lods));
+        let groups = |at: usize| -> Vec<(MeshKey, bool)> {
+            views[at]
+                .groups
+                .iter()
+                .map(|((mesh, material), _)| (*mesh, material.is_some()))
+                .collect()
+        };
+        (groups(0), groups(1))
+    };
+    let everything: &(dyn Fn(MeshKey) -> bool + Sync) = &|_| true;
+    // The nearer cascade draws both as the camera does, the cut-out
+    // through its holes.
+    let (near, far) = groups_in(10.0 * radius, everything);
+    let (own, covered) = (MeshKey::Custom(950), MeshKey::Custom(951));
+    let mut sorted = near.clone();
+    sorted.sort();
+    assert_eq!(sorted, [(own, true), (covered, false)]);
+    // At the first simpler level the stand-in isn't used yet: past the
+    // near cascades the cut-out casts whole, with the other piece.
+    assert_eq!(far, [(MeshKey::Custom(901), false)]);
+    // From `STAND_IN_LEVEL`, the stand-in casts in the first piece's place,
+    // through its holes, and the covered piece is left out.
+    assert_eq!(lighting::shadow_level(2.0 / 40.0), crate::STAND_IN_LEVEL);
+    let (_, far) = groups_in(40.0 * radius, everything);
+    assert_eq!(far, [(MeshKey::Custom(960), true)]);
+    // Until the stand-in is on the GPU, both cast their simplest copy.
+    let (_, far) = groups_in(40.0 * radius, &|mesh| mesh != MeshKey::Custom(960));
+    assert_eq!(far, [(MeshKey::Custom(902), false)]);
+}

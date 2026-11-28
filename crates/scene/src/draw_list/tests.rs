@@ -917,3 +917,75 @@ fn only_a_material_marked_foliage_data_hands_its_colours_on_as_a_plants_data() {
         .collect();
     assert_eq!(foliage, [3, 0]);
 }
+
+#[test]
+fn a_models_stand_in_takes_the_place_of_its_pieces_by_material_and_covers_the_rest() {
+    use axcenity_assets::{Model, ModelMaterial, Primitive};
+    let triangle = |material: &str, foliage_data: bool| {
+        let mut primitive = Primitive::new(
+            vec![[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
+            vec![[0.0, 0.0, 1.0]; 3],
+            Vec::new(),
+            vec![0, 1, 2],
+            ModelMaterial {
+                name: material.to_owned(),
+                foliage_data,
+                ..ModelMaterial::default()
+            },
+        );
+        primitive.colors = vec![[0.5, 0.25, 0.75, 1.0]; 3];
+        primitive
+    };
+    let stand_ins = |model: &Arc<Model>| -> Vec<Option<(bool, u64)>> {
+        model_pieces(model)
+            .iter()
+            .map(|piece| match &piece.shape {
+                Shape::Mesh(mesh) => match mesh.stand_in() {
+                    StandIn::Own => None,
+                    StandIn::Mesh(stand_in) => Some((false, stand_in.key())),
+                    StandIn::Covered(by) => Some((true, by.key())),
+                },
+                _ => unreachable!("a model's pieces are meshes"),
+            })
+            .collect()
+    };
+    // A generated tree: its base, bark and leaves, and a stand-in of bark
+    // (the base joined to it) and leaves.
+    let mut tree = Model::from_primitives(vec![
+        triangle("TrunkBase", true),
+        triangle("Bark", true),
+        triangle("Leaves", true),
+    ])
+    .unwrap();
+    let proxy = vec![triangle("Bark", true), triangle("Leaves", true)];
+    let (bark, leaves) = (proxy[0].key(), proxy[1].key());
+    tree.proxy = proxy;
+    let tree = Arc::new(tree);
+    assert_eq!(
+        stand_ins(&tree),
+        [
+            Some((true, bark)),
+            Some((false, bark)),
+            Some((false, leaves))
+        ]
+    );
+    // The stand-in is the proxy's own mesh, with its foliage data.
+    let pieces = model_pieces(&tree);
+    let Shape::Mesh(leaf_piece) = &pieces[2].shape else {
+        unreachable!()
+    };
+    let StandIn::Mesh(stand_in) = leaf_piece.stand_in() else {
+        panic!("the leaves have a stand-in")
+    };
+    assert_eq!(stand_in.foliage().len(), 3);
+    assert_eq!(stand_in.lod_count(), 0);
+    assert!(matches!(stand_in.stand_in(), StandIn::Own));
+    // A stand-in whose material matches none takes the first piece left.
+    let mut rock = Model::from_primitives(vec![triangle("Rock", false)]).unwrap();
+    rock.proxy = vec![triangle("Other", false)];
+    let key = rock.proxy[0].key();
+    assert_eq!(stand_ins(&Arc::new(rock)), [Some((false, key))]);
+    // No stand-in: each piece is its own.
+    let plain = Arc::new(Model::from_primitives(vec![triangle("Rock", false)]).unwrap());
+    assert_eq!(stand_ins(&plain), [None]);
+}

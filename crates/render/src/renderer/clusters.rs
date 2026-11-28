@@ -26,7 +26,7 @@ use super::lighting::{key_digest, material_key_with};
 use super::ray_cut_outs::has_holes;
 use super::ray_tracing::{SurfaceRaw, surface_of};
 use super::terrain::LastArrays;
-use super::{MaterialKey, MeshKey};
+use super::{MaterialKey, MeshKey, StandInKey};
 use crate::draw_list::{DrawItem, ItemChunk};
 use crate::{MeshSource, Shape};
 
@@ -77,6 +77,8 @@ pub(super) struct Cluster {
     /// Each item's own shape as a mesh key (what it's drawn with unless a
     /// level of detail takes its place).
     pub(super) mesh_keys: Vec<MeshKey>,
+    /// What stands in for each item's mesh far away (`MeshSource::stand_in`).
+    pub(super) stand_ins: Vec<StandInKey>,
     /// Where each item stands.
     pub(super) transforms: Vec<Mat4>,
     /// Whether each item is posed by a skin (such an item's bounds follow
@@ -127,6 +129,10 @@ impl Cluster {
             meshes,
             mesh_of,
             mesh_keys: items.iter().map(|item| MeshKey::of(&item.shape)).collect(),
+            stand_ins: items
+                .iter()
+                .map(|item| StandInKey::of(&item.shape))
+                .collect(),
             transforms: items.iter().map(|item| item.transform).collect(),
             skinned: items.iter().map(|item| item.skin.is_some()).collect(),
             ray_kinds: items.iter().map(RayKind::of).collect(),
@@ -240,6 +246,7 @@ mod tests {
             assert_eq!(cluster.digests[local], key_digest(&material_key(item)));
             assert_eq!(cluster.ray_kinds[index], RayKind::of(item));
             assert_eq!(cluster.mesh_keys[index], MeshKey::of(&item.shape));
+            assert_eq!(cluster.stand_ins[index], StandInKey::of(&item.shape));
             assert_eq!(cluster.transforms[index], item.transform);
             assert_eq!(cluster.skinned[index], item.skin.is_some());
             assert_eq!(cluster.mesh_of[index], BUILT_IN, "blocks are built in");

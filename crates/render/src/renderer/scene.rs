@@ -1294,6 +1294,11 @@ impl ScenePipeline {
             // than the camera does: those copies go up too.
             uses.add_lods(&draws, &groups, self.frame);
         }
+        if self.graphics.shadow_lod || self.may_trace_rays() {
+            // What stands in for far meshes there and in the ray traced
+            // scene goes up too.
+            uses.add_stand_ins(&draws, &groups, self.frame);
+        }
         cpu.lap(CpuSection::Materials);
         self.upload_new(list, &draws, &uses);
         cpu.lap(CpuSection::Uploads);

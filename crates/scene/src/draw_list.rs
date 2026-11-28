@@ -18,7 +18,8 @@ use axcenity_render::glam::{Mat4, Quat, Vec3};
 use axcenity_render::{
     AmbientLight, Camera, Channel, ChannelMap, Clouds, Cone, DecalRole, DrawItem, DrawList, Fog,
     Light, Material, MeshSource, NormalMap, PointShadows, PostProcessing, ProbeImage, RectArea,
-    ReflectionProbe, Shadows, Shape, Sky, SkyImage, SpotShadows, TextureMaps, TextureSource,
+    ReflectionProbe, Shadows, Shape, Sky, SkyImage, SpotShadows, StandIn, TextureMaps,
+    TextureSource,
 };
 use axcenity_ui::{Stylesheet, UiInput, UiInteraction, UiLayout};
 
@@ -783,12 +784,14 @@ pub(crate) struct ModelPiece {
 
 /// The [`ModelPiece`]s of `model`, one per primitive.
 pub(crate) fn model_pieces(model: &Arc<Model>) -> Vec<ModelPiece> {
+    let stand_ins = stand_ins(model);
     model
         .primitives
         .iter()
+        .zip(stand_ins)
         .enumerate()
-        .map(|(index, primitive)| ModelPiece {
-            shape: Shape::Mesh(Arc::new(ModelMesh::new(model, index))),
+        .map(|(index, (primitive, stand_in))| ModelPiece {
+            shape: Shape::Mesh(Arc::new(ModelMesh::new(model, index, stand_in))),
             material: model_material(&primitive.material),
             sway: primitive.material.sway,
             flutter: primitive.material.flutter,
@@ -812,32 +815,96 @@ pub(crate) fn draw_id(thing: impl Hash) -> u64 {
     hasher.finish().max(1)
 }
 
-/// One primitive of a model at one level of detail, handed to the renderer
-/// without copying it.
+/// What stands in for one of a model's primitives far away
+/// ([`MeshSource::stand_in`]), from its `_PROXY` objects ([`Model::proxy`]).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum StandInOf {
+    /// It has none: the model has no stand-in.
+    Own,
+    /// The stand-in primitive at this index of [`Model::proxy`].
+    Proxy(usize),
+    /// Another primitive's stand-in covers it; this one of [`Model::proxy`]
+    /// says when that's on the GPU.
+    Covered(usize),
+}
+
+/// What stands in for each of `model`'s primitives. A stand-in stands in
+/// for the whole model: each of its primitives takes the place of the
+/// first primitive with the same material (a tree's `Bark` and `Leaves`),
+/// one without a match the first primitive left, and the primitives left
+/// after that are covered (a tree's `TrunkBase`, joined to its stand-in's
+/// bark). A stand-in primitive with no primitive left is not used.
+fn stand_ins(model: &Model) -> Vec<StandInOf> {
+    if model.proxy.is_empty() {
+        return vec![StandInOf::Own; model.primitives.len()];
+    }
+    let mut of: Vec<Option<usize>> = vec![None; model.primitives.len()];
+    let mut unmatched = Vec::new();
+    for (index, proxy) in model.proxy.iter().enumerate() {
+        let matching = model
+            .primitives
+            .iter()
+            .enumerate()
+            .position(|(at, primitive)| {
+                of[at].is_none() && primitive.material.name == proxy.material.name
+            });
+        match matching {
+            Some(at) => of[at] = Some(index),
+            None => unmatched.push(index),
+        }
+    }
+    for index in unmatched {
+        if let Some(at) = of.iter().position(Option::is_none) {
+            of[at] = Some(index);
+        }
+    }
+    of.into_iter()
+        .map(|proxy| proxy.map_or(StandInOf::Covered(0), StandInOf::Proxy))
+        .collect()
+}
+
+/// One primitive of a model at one level of detail, or one of its stand-in
+/// primitives, handed to the renderer without copying it.
 struct ModelMesh {
     model: Arc<Model>,
+    /// Its place in [`Model::primitives`], or in [`Model::proxy`] for a
+    /// stand-in.
     index: usize,
+    stand_in_primitive: bool,
     /// 0 for the primitive itself, else which of its simpler copies.
     level: usize,
     /// Its simpler copies, each made the first time it's drawn and kept:
     /// the renderer asks for one per draw.
     copies: Vec<OnceLock<Arc<dyn MeshSource>>>,
+    /// What stands in for it, made the first time it's asked for and kept.
+    stand_in: (StandInOf, OnceLock<Arc<dyn MeshSource>>),
 }
 
 impl ModelMesh {
-    fn new(model: &Arc<Model>, index: usize) -> Self {
+    fn new(model: &Arc<Model>, index: usize, stand_in: StandInOf) -> Self {
         Self {
             model: model.clone(),
             index,
+            stand_in_primitive: false,
             level: 0,
             copies: (0..model.primitives[index].lods.len())
                 .map(|_| OnceLock::new())
                 .collect(),
+            stand_in: (stand_in, OnceLock::new()),
+        }
+    }
+
+    /// The primitive at its full detail.
+    fn full(&self) -> &Primitive {
+        if self.stand_in_primitive {
+            &self.model.proxy[self.index]
+        } else {
+            &self.model.primitives[self.index]
         }
     }
 
     fn primitive(&self) -> &Primitive {
-        let full = &self.model.primitives[self.index];
+        let full = self.full();
         match self.level {
             0 => full,
             level => &full.lods[level - 1],
@@ -867,7 +934,7 @@ impl MeshSource for ModelMesh {
     fn foliage(&self) -> &[[f32; 4]] {
         // Only a material that says so packs a plant's data in its colours
         // (the primitive's own: a simpler copy's is the same).
-        if self.model.primitives[self.index].material.foliage_data {
+        if self.full().material.foliage_data {
             &self.primitive().colors
         } else {
             &[]
@@ -900,10 +967,31 @@ impl MeshSource for ModelMesh {
             Arc::new(ModelMesh {
                 model: self.model.clone(),
                 index: self.index,
+                stand_in_primitive: self.stand_in_primitive,
                 level,
                 copies: Vec::new(),
+                stand_in: (StandInOf::Own, OnceLock::new()),
             })
         }))
+    }
+    fn stand_in(&self) -> StandIn<'_> {
+        let mesh = |index: usize| {
+            self.stand_in.1.get_or_init(|| {
+                Arc::new(ModelMesh {
+                    model: self.model.clone(),
+                    index,
+                    stand_in_primitive: true,
+                    level: 0,
+                    copies: Vec::new(),
+                    stand_in: (StandInOf::Own, OnceLock::new()),
+                })
+            })
+        };
+        match self.stand_in.0 {
+            StandInOf::Own => StandIn::Own,
+            StandInOf::Covered(index) => StandIn::Covered(mesh(index)),
+            StandInOf::Proxy(index) => StandIn::Mesh(mesh(index)),
+        }
     }
 }
 

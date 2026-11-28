@@ -1510,6 +1510,7 @@ fn row_menu(
                     .into_iter()
                     .chain(Insertable::TOOLS)
                     .chain(Insertable::VEHICLES)
+                    .chain(Insertable::NATURE)
                     .chain(Insertable::AGENTS)
                     .chain(Insertable::SPLINES)
                     .chain(Insertable::CHECKPOINTS)
@@ -1933,6 +1934,11 @@ pub fn insert_hint(what: Insertable) -> String {
              a third-person controller, Health, Inventory and an Animator playing the starter \
              state machine (Idle, Walk, Run, Jump, Fall, Sit, Crouch and more). It stands at \
              rest while editing and animates in Play."
+        }
+        Insertable::Tree => {
+            "Insert a Tree grown from a recipe: an oak with a detailed trunk base, leaves and \
+             simpler copies for distance. Its recipe and model are written into the project's \
+             assets/trees folder the first time; edit the recipe and insert again to regrow it."
         }
         Insertable::Humanoid => {
             "Insert a Humanoid into the selected character's Model: Roblox-style properties \

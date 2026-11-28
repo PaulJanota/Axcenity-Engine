@@ -193,7 +193,7 @@ pub struct MeshDetail {
 impl Default for MeshDetail {
     fn default() -> Self {
         Self {
-            segment_length: 1.5,
+            segment_length: 1.0,
             radial_per_stud: 3.0,
             radial_min: 3,
             radial_max: 16,
@@ -304,6 +304,16 @@ pub struct Leaves {
     pub translucency: f32,
     /// How far (studs) each leaf shivers in the wind.
     pub flutter: f32,
+    /// A picture of leaves each leaf is drawn with, cut out by its alpha,
+    /// and its normal map (OpenGL-style), relative to the recipe's folder;
+    /// empty draws plain green blades.
+    pub texture: String,
+    pub normal_map: String,
+    /// Where each leaf is in `texture`, as `[u0, v0, u1, v1]` (0 to 1, V
+    /// down), its stem at the bottom (or at the right, `stem_right`). Each
+    /// leaf picks one.
+    pub cells: Vec<[f32; 4]>,
+    pub stem_right: bool,
 }
 
 impl Default for Leaves {
@@ -324,8 +334,59 @@ impl Default for Leaves {
             roughness: 0.6,
             translucency: 0.42,
             flutter: 0.06,
+            texture: String::new(),
+            normal_map: String::new(),
+            cells: Vec::new(),
+            stem_right: false,
         }
     }
+}
+
+impl Leaves {
+    /// The cells of a picture of `columns` × `rows` leaves.
+    pub fn grid(columns: u32, rows: u32) -> Vec<[f32; 4]> {
+        let (columns, rows) = (columns.max(1), rows.max(1));
+        (0..rows)
+            .flat_map(|row| {
+                (0..columns).map(move |column| {
+                    let (w, h) = (1.0 / columns as f32, 1.0 / rows as f32);
+                    [
+                        column as f32 * w,
+                        row as f32 * h,
+                        (column + 1) as f32 * w,
+                        (row + 1) as f32 * h,
+                    ]
+                })
+            })
+            .collect()
+    }
+
+    /// Whether leaves are cut out of a picture.
+    pub fn textured(&self) -> bool {
+        !self.texture.is_empty() && !self.cells.is_empty()
+    }
+}
+
+/// The pictures that come with the engine for the presets, beside a
+/// recipe in `textures/` (CC0, from ambientCG).
+pub mod textures {
+    pub const OAK_BARK: &str = "textures/bark_oak_color.jpg";
+    pub const OAK_BARK_NORMAL: &str = "textures/bark_oak_normal.jpg";
+    pub const PINE_BARK: &str = "textures/bark_pine_color.jpg";
+    pub const PINE_BARK_NORMAL: &str = "textures/bark_pine_normal.jpg";
+    pub const BIRCH_BARK: &str = "textures/bark_birch_color.jpg";
+    pub const BIRCH_BARK_NORMAL: &str = "textures/bark_birch_normal.jpg";
+    pub const BROAD_LEAVES: &str = "textures/leaves_broad.png";
+    pub const BROAD_LEAVES_NORMAL: &str = "textures/leaves_broad_normal.jpg";
+    pub const CONIFER: &str = "textures/leaves_conifer.png";
+    pub const CONIFER_NORMAL: &str = "textures/leaves_conifer_normal.jpg";
+    /// The three sprays in [`CONIFER`], small to large, their stems at the
+    /// right.
+    pub const CONIFER_SPRAYS: [[f32; 4]; 3] = [
+        [0.285, 0.062, 0.715, 0.27],
+        [0.078, 0.312, 0.898, 0.609],
+        [0.039, 0.641, 0.934, 0.977],
+    ];
 }
 
 /// The bark's look.
@@ -338,6 +399,10 @@ pub struct Bark {
     /// Studs one copy of the bark's textures covers around a limb and along
     /// it.
     pub uv_tile: [f32; 2],
+    /// The bark's color and normal maps (OpenGL-style, green up), relative
+    /// to the recipe's folder; empty for none.
+    pub texture: String,
+    pub normal_map: String,
 }
 
 impl Default for Bark {
@@ -346,6 +411,8 @@ impl Default for Bark {
             color: [0.24, 0.17, 0.11],
             roughness: 0.9,
             uv_tile: [4.0, 6.0],
+            texture: String::new(),
+            normal_map: String::new(),
         }
     }
 }
@@ -489,6 +556,24 @@ impl TreeRecipe {
                         ..twigs.clone()
                     },
                 ],
+                bark: Bark {
+                    color: [0.85, 0.8, 0.72],
+                    uv_tile: [4.0, 8.0],
+                    texture: textures::OAK_BARK.to_owned(),
+                    normal_map: textures::OAK_BARK_NORMAL.to_owned(),
+                    ..Bark::default()
+                },
+                leaves: Leaves {
+                    per_cluster: 11,
+                    size: 0.6,
+                    spread: 70.0,
+                    fold: 0.1,
+                    color: [0.85, 0.95, 0.8],
+                    texture: textures::BROAD_LEAVES.to_owned(),
+                    normal_map: textures::BROAD_LEAVES_NORMAL.to_owned(),
+                    cells: Leaves::grid(3, 3),
+                    ..Leaves::default()
+                },
                 ..base
             },
             Preset::Pine => TreeRecipe {
@@ -530,20 +615,26 @@ impl TreeRecipe {
                 ],
                 pipe: 0.3,
                 bark: Bark {
-                    color: [0.21, 0.13, 0.09],
+                    color: [1.0, 1.0, 1.0],
+                    uv_tile: [3.0, 6.0],
+                    texture: textures::PINE_BARK.to_owned(),
+                    normal_map: textures::PINE_BARK_NORMAL.to_owned(),
                     ..Bark::default()
                 },
                 leaves: Leaves {
-                    clusters: 4.0,
-                    per_cluster: 9,
-                    size: 0.9,
-                    size_jitter: 0.15,
-                    width: 0.08,
-                    spread: 40.0,
-                    droop: 0.05,
-                    fold: 0.0,
-                    face_out: 0.2,
-                    color: [0.04, 0.11, 0.05],
+                    clusters: 3.0,
+                    per_cluster: 3,
+                    size: 2.2,
+                    size_jitter: 0.2,
+                    spread: 35.0,
+                    droop: 0.1,
+                    fold: 0.05,
+                    face_out: 0.3,
+                    color: [0.9, 1.0, 0.9],
+                    texture: textures::CONIFER.to_owned(),
+                    normal_map: textures::CONIFER_NORMAL.to_owned(),
+                    cells: textures::CONIFER_SPRAYS.to_vec(),
+                    stem_right: true,
                     ..Leaves::default()
                 },
                 ..base
@@ -579,17 +670,24 @@ impl TreeRecipe {
                     },
                 ],
                 bark: Bark {
-                    color: [0.72, 0.7, 0.66],
+                    color: [1.0, 1.0, 0.95],
                     roughness: 0.8,
-                    ..Bark::default()
+                    uv_tile: [3.0, 4.0],
+                    texture: textures::BIRCH_BARK.to_owned(),
+                    normal_map: textures::BIRCH_BARK_NORMAL.to_owned(),
                 },
                 leaves: Leaves {
-                    clusters: 4.0,
-                    size: 0.6,
-                    width: 0.6,
+                    clusters: 5.0,
+                    per_cluster: 10,
+                    size: 0.42,
+                    spread: 70.0,
                     droop: 0.25,
-                    color: [0.13, 0.25, 0.05],
+                    fold: 0.1,
+                    color: [0.95, 1.0, 0.85],
                     flutter: 0.09,
+                    texture: textures::BROAD_LEAVES.to_owned(),
+                    normal_map: textures::BROAD_LEAVES_NORMAL.to_owned(),
+                    cells: Leaves::grid(3, 3),
                     ..Leaves::default()
                 },
                 ..base
@@ -627,7 +725,10 @@ impl TreeRecipe {
                     },
                 ],
                 bark: Bark {
-                    color: [0.3, 0.27, 0.24],
+                    color: [0.75, 0.72, 0.7],
+                    uv_tile: [4.0, 8.0],
+                    texture: textures::OAK_BARK.to_owned(),
+                    normal_map: textures::OAK_BARK_NORMAL.to_owned(),
                     ..Bark::default()
                 },
                 leaves: Leaves {

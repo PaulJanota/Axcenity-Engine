@@ -112,6 +112,7 @@ mod texture_set;
 mod to_terrain;
 mod toolbox;
 mod tree_ops;
+mod trees;
 mod ui_graphs;
 mod ui_links;
 mod ui_selection;

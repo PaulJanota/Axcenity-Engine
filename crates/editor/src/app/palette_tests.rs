@@ -199,6 +199,7 @@ fn every_ribbon_and_menu_command_can_be_run_from_the_palette() {
         "Interact",
         "Spawn",
         "Vehicle",
+        "Nature",
         "Studios",
         "Scene",
         "Layout",

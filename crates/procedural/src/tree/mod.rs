@@ -20,23 +20,33 @@ pub mod skeleton;
 #[cfg(test)]
 mod tests;
 
-use axcenity_assets::{Model, ModelError, ModelMaterial, Primitive};
+use axcenity_assets::{AlphaMode, Model, ModelError, ModelMaterial, Primitive};
 use glam::Vec3;
 
 pub use leaves::Crown;
 pub use mesher::{TreeLevel, TreeMesh};
 pub use recipe::{
-    Bark, BranchLevel, Curve, Leaves, LodDetail, MeshDetail, Preset, TreeRecipe, Trunk,
+    Bark, BranchLevel, Curve, Leaves, LodDetail, MeshDetail, Preset, TreeRecipe, Trunk, textures,
 };
 pub use skeleton::{Skeleton, Stem};
 
 /// Bump when the same recipe and variant would give a different mesh, so
 /// anything kept from an older one (a cooked model) is made again.
-pub const TREE_GENERATOR_VERSION: u32 = 3;
+pub const TREE_GENERATOR_VERSION: u32 = 4;
 
 /// The sway a generated tree's bark is given ([`ModelMaterial::sway`]): a
 /// built-in tree's (`scene/src/foliage.rs`).
 pub const TREE_SWAY: f32 = 0.2;
+
+/// The texture files of one of a tree's materials, relative to the
+/// recipe's folder.
+#[derive(Clone, Debug, PartialEq)]
+pub struct MaterialTextures {
+    pub material: String,
+    pub color: Option<String>,
+    /// OpenGL-style (green up).
+    pub normal: Option<String>,
+}
 
 /// A grown and meshed tree.
 #[derive(Clone, Debug)]
@@ -141,6 +151,57 @@ impl Tree {
     /// Its studs are the model's: a MeshPart sized to [`Model::size`]
     /// draws it at the size it was grown.
     pub fn to_model(&self, recipe: &TreeRecipe) -> Result<Model, ModelError> {
+        let mut levels = self.level_primitives(recipe).into_iter();
+        // The model's box is the full tree's, as a file's own copies don't
+        // count toward it either; the copies are fitted the same way.
+        let mut model = Model::from_primitives(levels.next().unwrap_or_default())?;
+        let size = Vec3::from(model.size);
+        let center = Vec3::from(model.center);
+        let flat = size.cmple(Vec3::splat(1e-6));
+        let scale = Vec3::select(flat, Vec3::ONE, size.recip());
+        let normal_scale = Vec3::select(flat, Vec3::ONE, size);
+        for copies in levels {
+            for (part, mut copy) in copies.into_iter().enumerate() {
+                for position in &mut copy.positions {
+                    *position = ((Vec3::from(*position) - center) * scale).to_array();
+                }
+                for normal in &mut copy.normals {
+                    *normal = (Vec3::from(*normal) * normal_scale)
+                        .normalize_or_zero()
+                        .to_array();
+                }
+                if let Some(primitive) = model.primitives.get_mut(part) {
+                    primitive.lods.push(copy);
+                }
+            }
+        }
+        Ok(model)
+    }
+
+    /// The tree as a file's objects, in studs: `Tree` and its first two
+    /// simpler copies, `Tree_LOD1` and `Tree_LOD2` (as many as a model
+    /// file's loader takes), each with the primitives [`Tree::to_model`]
+    /// has, for writing as a `.glb` that loads as that model does.
+    pub fn objects(&self, recipe: &TreeRecipe) -> Vec<(String, Vec<Primitive>)> {
+        self.level_primitives(recipe)
+            .into_iter()
+            .take(3)
+            .enumerate()
+            .map(|(index, primitives)| {
+                let name = match index {
+                    0 => "Tree".to_owned(),
+                    _ => format!("Tree_LOD{index}"),
+                };
+                (name, primitives)
+            })
+            .collect()
+    }
+
+    /// Each copy's primitives, most detailed first: the trunk's base (when
+    /// it has one), the bark and the leaves (when it has any; a copy whose
+    /// leaves were all left out keeps the copy before's, as a primitive's
+    /// copies only ever get simpler).
+    fn level_primitives(&self, recipe: &TreeRecipe) -> Vec<Vec<Primitive>> {
         let bark = &recipe.bark;
         let material = |name: &str| ModelMaterial {
             name: name.to_owned(),
@@ -153,6 +214,12 @@ impl Tree {
         let leaf = &recipe.leaves;
         let leaf_material = ModelMaterial {
             name: "Leaves".to_owned(),
+            // A leaf texture's clear parts are cut out.
+            alpha_mode: if leaf.textured() {
+                AlphaMode::Mask { cutoff: 0.5 }
+            } else {
+                AlphaMode::Opaque
+            },
             base_color: [leaf.color[0], leaf.color[1], leaf.color[2], 1.0],
             roughness: leaf.roughness.clamp(0.0, 1.0),
             metalness: 0.0,
@@ -175,31 +242,45 @@ impl Tree {
         let full = self.full();
         let has_base = !full.base.indices.is_empty();
         let has_leaves = !full.leaves.indices.is_empty();
-        let parts = 1 + usize::from(has_base) + usize::from(has_leaves);
-        // Every copy is fitted with the full model, so all are placed
-        // alike, then handed to their primitive. A copy whose leaves were
-        // all left out keeps its last ones (a primitive's copies only
-        // ever get simpler).
-        let mut primitives = Vec::new();
         let mut leaves = &full.leaves;
-        for level in &self.levels {
-            if has_base {
-                primitives.push(primitive(&level.base, material("TrunkBase")));
-            }
-            primitives.push(primitive(&level.bark, material("Bark")));
-            if has_leaves {
-                if !level.leaves.indices.is_empty() {
-                    leaves = &level.leaves;
+        self.levels
+            .iter()
+            .map(|level| {
+                let mut primitives = Vec::new();
+                if has_base {
+                    primitives.push(primitive(&level.base, material("TrunkBase")));
                 }
-                primitives.push(primitive(leaves, leaf_material.clone()));
-            }
-        }
-        let mut model = Model::from_primitives(primitives)?;
-        let copies: Vec<Primitive> = model.primitives.drain(parts..).collect();
-        for (index, copy) in copies.into_iter().enumerate() {
-            model.primitives[index % parts].lods.push(copy);
-        }
-        Ok(model)
+                primitives.push(primitive(&level.bark, material("Bark")));
+                if has_leaves {
+                    if !level.leaves.indices.is_empty() {
+                        leaves = &level.leaves;
+                    }
+                    primitives.push(primitive(leaves, leaf_material.clone()));
+                }
+                primitives
+            })
+            .collect()
+    }
+
+    /// The texture files each of the model's materials uses, relative to
+    /// the recipe's folder (where the model is written beside it), for the
+    /// materials that have any.
+    pub fn textures(recipe: &TreeRecipe) -> Vec<MaterialTextures> {
+        let file = |path: &str| (!path.is_empty()).then(|| path.to_owned());
+        let bark = |material: &str| MaterialTextures {
+            material: material.to_owned(),
+            color: file(&recipe.bark.texture),
+            normal: file(&recipe.bark.normal_map),
+        };
+        let leaves = MaterialTextures {
+            material: "Leaves".to_owned(),
+            color: file(&recipe.leaves.texture),
+            normal: file(&recipe.leaves.normal_map),
+        };
+        [bark("TrunkBase"), bark("Bark"), leaves]
+            .into_iter()
+            .filter(|textures| textures.color.is_some() || textures.normal.is_some())
+            .collect()
     }
 
     /// The most detailed copy's triangles.

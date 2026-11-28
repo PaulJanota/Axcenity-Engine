@@ -74,6 +74,7 @@ mod tests {
             &Insertable::SPAWNING,
             &Insertable::TOOLS,
             &Insertable::VEHICLES,
+            &Insertable::NATURE,
             &Insertable::CAMERAS,
             &Insertable::CONSTRAINTS,
         ];

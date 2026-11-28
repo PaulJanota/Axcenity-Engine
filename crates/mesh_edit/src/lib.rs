@@ -103,7 +103,9 @@ pub use bake::{BakeReport, BakeSettings, Overlap};
 pub use csg::{Operation, boolean};
 pub use fracture::{Pattern, fracture, seed_points, voronoi_pieces};
 pub use generate::{Settings, generate, generate_for};
-pub use glb::{EmbeddedImage, EmbeddedMaps, GlbMaterial, MaterialMaps, write_glb};
+pub use glb::{
+    EmbeddedImage, EmbeddedMaps, GlbMaterial, MaterialMaps, write_glb, write_objects_glb,
+};
 pub use group::{
     GroupLook, GroupMode, GroupSource, GroupStats, Grouped, group, group_source, group_source_with,
     group_with_mode, save_group,

@@ -8,7 +8,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use axcenity_assets::{AlphaMode, Image, ModelMaterial};
+use axcenity_assets::{AlphaMode, Image, ModelMaterial, Primitive};
 use glam::{Vec2, Vec3};
 use serde_json::{Value, json};
 
@@ -226,6 +226,56 @@ pub fn write_glb(pieces: &[Mesh], materials: &[GlbMaterial], interior: &GlbMater
                 file.add_primitive(&surface_triangles(piece, surface), material)
             })
             .collect();
+        nodes.push(json!({ "name": name, "mesh": meshes.len() }));
+        meshes.push(json!({ "name": name, "primitives": primitives }));
+    }
+    let roots = (0..nodes.len()).collect();
+    file.finish(nodes, meshes, roots)
+}
+
+/// A .glb of named objects, one node each (no transform) with a primitive
+/// per entry, in the model's own units: what a generator makes (a tree's
+/// `Tree` with its `Tree_LOD1` and `Tree_LOD2` copies, which the loader
+/// takes as levels of detail by material). Each material is written once
+/// by name, with its wind and leaf values in its `extras` and the textures
+/// linked from `maps`, by material name (files relative to the `.glb`).
+pub fn write_objects_glb(
+    objects: &[(String, Vec<Primitive>)],
+    maps: &[(String, MaterialMaps)],
+) -> Vec<u8> {
+    let mut file = File::default();
+    let mut material_of: HashMap<String, usize> = HashMap::new();
+    let mut nodes = Vec::new();
+    let mut meshes = Vec::new();
+    for (name, primitives) in objects {
+        let primitives: Vec<Value> = primitives
+            .iter()
+            .filter(|primitive| !primitive.indices.is_empty())
+            .map(|primitive| {
+                let material = *material_of
+                    .entry(primitive.material.name.clone())
+                    .or_insert_with(|| {
+                        let none = MaterialMaps::default();
+                        let maps = maps
+                            .iter()
+                            .find(|(name, _)| *name == primitive.material.name)
+                            .map_or(&none, |(_, maps)| maps);
+                        file.add_material_with(&primitive.material, maps)
+                    });
+                let vertices = Vertices {
+                    positions: primitive.positions.iter().map(|&p| Vec3::from(p)).collect(),
+                    normals: primitive.normals.iter().map(|&n| Vec3::from(n)).collect(),
+                    uvs: primitive.uvs.iter().map(|&uv| Vec2::from(uv)).collect(),
+                    indices: primitive.indices.clone(),
+                    ..Vertices::default()
+                };
+                file.add_primitive(&vertices, material)
+            })
+            .collect();
+        if primitives.is_empty() {
+            nodes.push(json!({ "name": name }));
+            continue;
+        }
         nodes.push(json!({ "name": name, "mesh": meshes.len() }));
         meshes.push(json!({ "name": name, "primitives": primitives }));
     }

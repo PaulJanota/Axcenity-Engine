@@ -32,6 +32,7 @@ tags: [asset-pipeline, import]
 | Texture roles by name | Used for packed layouts | Decides roles; Lambert/Phong names win over misused slots |
 | LODs | `_LOD1`/`_LOD2` objects, else meshopt to 1/2 and 1/4 of triangles (≥ 256 triangles; a copy that saves < 20% is dropped) | Same; hidden LOD objects read too |
 | Collision pieces (R15.2) | `_COL`/`_COL1`… objects: one convex piece each, not drawn, `Model::collision` | Same; hidden pieces read too |
+| Stand-ins (foliage W4) | `_PROXY` objects: not drawn, not simplified, `Model::proxy` (far shadows and ray tracing; a generated tree's `Tree_PROXY`) | Same |
 | Rig | glTF skins | Skeletons, clusters (inverse bind), takes baked at the file's frame rate |
 | Not read | Vertex colors, `KHR_materials_emissive_strength`, glTF morph-weight animation | Per-UV-set texture choice |
 

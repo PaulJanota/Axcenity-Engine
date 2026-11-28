@@ -58,6 +58,10 @@ const DIMMING: f32 = 0.3;
 /// The most a kept cluster grows when a simpler copy keeps a share of them.
 const MAX_GROWTH: f32 = 1.8;
 
+/// The most the stand-in's cards grow: it is only seen in far shadows and
+/// reflections, where a few big cards read as the crown.
+const PROXY_GROWTH: f32 = 3.0;
+
 /// How much bigger a card is than the leaf it shows: a leaf fills about
 /// 70% of its cell in a picture of leaves.
 const CELL_FILL: f32 = 1.3;
@@ -261,32 +265,168 @@ pub fn leaf_triangles(detailed: bool) -> usize {
     if detailed { 4 } else { 2 }
 }
 
-/// The leaves of the first `keep` share of `clusters` (at most `budget`
-/// triangles), the kept ones grown to cover about as much as all would.
+/// What one copy of the tree keeps of its leaves.
+#[derive(Clone, Copy, Debug)]
+pub struct CopyLeaves {
+    /// The share of the clusters it keeps.
+    pub keep: f32,
+    /// Clusters deeper in the crown than this (0 to 1) are left out
+    /// ([`LodDetail::shell`](super::LodDetail)).
+    pub shell: f32,
+    /// Leaves of four triangles (else two).
+    pub detailed: bool,
+    /// The most triangles its leaves may have.
+    pub budget: usize,
+    /// Leaves in each cluster, in place of the recipe's (the stand-in's
+    /// few big crossed cards).
+    pub cards: Option<u32>,
+    /// The most a kept leaf grows to cover for those left out.
+    pub max_growth: f32,
+}
+
+impl CopyLeaves {
+    /// A simpler copy keeping `keep` of the clusters, those inside `shell`
+    /// left out.
+    pub fn copy(keep: f32, shell: f32, detailed: bool, budget: usize) -> Self {
+        Self {
+            keep,
+            shell,
+            detailed,
+            budget,
+            cards: None,
+            max_growth: MAX_GROWTH,
+        }
+    }
+
+    /// The stand-in for far shadows and ray tracing: a crossed pair of big
+    /// cards for each of `keep` of the clusters on the crown's shell.
+    pub fn proxy(keep: f32, shell: f32, budget: usize) -> Self {
+        Self {
+            cards: Some(2),
+            max_growth: PROXY_GROWTH,
+            ..Self::copy(keep, shell, false, budget)
+        }
+    }
+}
+
+/// How far out in its crown each cluster is, by the crown's own shape (a
+/// cone, a dome or a column alike): out from its middle as a share of how
+/// far the crown reaches at that height, or up as a share of the way to
+/// the crown's top above it.
+pub struct Shell {
+    center: Vec3,
+    low: Vec3,
+    cell: Vec3,
+    /// The farthest any cluster reaches from the middle, by height.
+    reach: [f32; SLICES],
+    /// The highest cluster in each column (`COLUMNS` × `COLUMNS` over the
+    /// crown's box).
+    top: [f32; COLUMNS * COLUMNS],
+    half_height: f32,
+}
+
+/// Slices of the crown by height, and columns along each side.
+const SLICES: usize = 12;
+const COLUMNS: usize = 8;
+
+impl Shell {
+    pub fn of(clusters: &[Cluster], crown: &Crown) -> Self {
+        let low = crown.center - crown.half_size;
+        let size = (crown.half_size * 2.0).max(Vec3::splat(1e-3));
+        let cell = Vec3::new(
+            size.x / COLUMNS as f32,
+            size.y / SLICES as f32,
+            size.z / COLUMNS as f32,
+        );
+        let mut shell = Self {
+            center: crown.center,
+            low,
+            cell,
+            reach: [0.0; SLICES],
+            top: [f32::NEG_INFINITY; COLUMNS * COLUMNS],
+            half_height: crown.half_size.y.max(1e-3),
+        };
+        let mut reach = [0.0f32; SLICES];
+        for cluster in clusters {
+            let p = cluster.position;
+            let slice = shell.slice(p);
+            reach[slice] = reach[slice].max(shell.out(p));
+            let column = shell.column(p);
+            shell.top[column] = shell.top[column].max(p.y);
+        }
+        // Each slice reaches as far as its neighbours do, so a thin slice
+        // doesn't make its few clusters all the outside.
+        for (i, each) in shell.reach.iter_mut().enumerate() {
+            let near = i.saturating_sub(1)..=(i + 1).min(SLICES - 1);
+            *each = reach[near].iter().copied().fold(1e-3, f32::max);
+        }
+        shell
+    }
+
+    fn out(&self, p: Vec3) -> f32 {
+        Vec3::new(p.x - self.center.x, 0.0, p.z - self.center.z).length()
+    }
+
+    fn slice(&self, p: Vec3) -> usize {
+        (((p.y - self.low.y) / self.cell.y) as usize).min(SLICES - 1)
+    }
+
+    fn column(&self, p: Vec3) -> usize {
+        let x = (((p.x - self.low.x) / self.cell.x).max(0.0) as usize).min(COLUMNS - 1);
+        let z = (((p.z - self.low.z) / self.cell.z).max(0.0) as usize).min(COLUMNS - 1);
+        x + COLUMNS * z
+    }
+
+    /// 0 deep inside the crown to 1 on its outside.
+    pub fn depth(&self, p: Vec3) -> f32 {
+        let across = self.out(p) / self.reach[self.slice(p)];
+        let up = 1.0 - (self.top[self.column(p)] - p.y) / self.half_height;
+        across.max(up).clamp(0.0, 1.0)
+    }
+
+    /// Whether `cluster` lies deeper in the crown than `limit`, hidden by
+    /// the clusters round it.
+    pub fn inside(&self, cluster: &Cluster, limit: f32) -> bool {
+        limit > 0.0 && self.depth(cluster.position) < limit
+    }
+}
+
+/// The leaves of the first `copy.keep` share of `clusters` (at most
+/// `copy.budget` triangles), those inside its shell left out, the kept
+/// ones grown to cover about as much as all would.
 pub fn mesh(
     recipe: &TreeRecipe,
     clusters: &[Cluster],
     crown: &Crown,
-    keep: f32,
-    detailed: bool,
-    budget: usize,
+    copy: CopyLeaves,
 ) -> TreeMesh {
     let leaves = &recipe.leaves;
     let mut mesh = TreeMesh::default();
-    let per_cluster = leaves.per_cluster.max(1) as usize * leaf_triangles(detailed);
-    let kept = ((clusters.len() as f32 * keep.clamp(0.0, 1.0)).ceil() as usize)
-        .min(budget / per_cluster)
-        .min(clusters.len());
+    let count = copy.cards.unwrap_or(leaves.per_cluster).max(1);
+    let per_cluster = count as usize * leaf_triangles(copy.detailed);
+    // Still in their spread order, so any first few cover the shell.
+    let shell = Shell::of(clusters, crown);
+    let outer: Vec<&Cluster> = clusters
+        .iter()
+        .filter(|cluster| !shell.inside(cluster, copy.shell))
+        .collect();
+    let kept = ((clusters.len() as f32 * copy.keep.clamp(0.0, 1.0)).ceil() as usize)
+        .min(copy.budget / per_cluster)
+        .min(outer.len());
     if kept == 0 {
         return mesh;
     }
-    let growth = (clusters.len() as f32 / kept as f32).sqrt().min(MAX_GROWTH);
+    // Grown to cover about as much as all the leaves would.
+    let all = clusters.len() * leaves.per_cluster.max(1) as usize;
+    let growth = (all as f32 / (kept * count as usize) as f32)
+        .sqrt()
+        .min(copy.max_growth.max(1.0));
     let crossed = leaves.crossed.clamp(0.0, 1.0);
-    for cluster in &clusters[..kept] {
+    let detailed = copy.detailed;
+    for &cluster in &outer[..kept] {
         let mut rng = Rng::new(cluster.seed, 2);
         let out = crown.normal(cluster.position);
         let side = cluster.axis.any_orthonormal_vector();
-        let count = leaves.per_cluster.max(1);
         let turn = rng.range(0.0, std::f32::consts::TAU);
         let size = leaves.size.max(0.01) * growth * cluster.scale;
         // The middle of the cluster's ball of leaves, which its leaves'

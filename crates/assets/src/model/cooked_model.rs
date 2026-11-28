@@ -126,6 +126,7 @@ fn encode(model: &Model) -> Option<Vec<u8>> {
         primitives,
         hull_points,
         collision,
+        proxy,
         warnings,
         rig,
         morph_targets,
@@ -148,6 +149,10 @@ fn encode(model: &Model) -> Option<Vec<u8>> {
     }
     body.u32(primitives.len() as u32);
     for primitive in primitives {
+        encode_primitive(&mut body, &mut images, primitive)?;
+    }
+    body.u32(proxy.len() as u32);
+    for primitive in proxy {
         encode_primitive(&mut body, &mut images, primitive)?;
     }
     match rig {
@@ -600,6 +605,11 @@ fn decode(input: &mut Input<'_>, project: &Path, relative: &str) -> Option<Model
     for _ in 0..count {
         primitives.push(decode_primitive(input, &images)?);
     }
+    let count = input.count(1)?;
+    let mut proxy = Vec::with_capacity(count);
+    for _ in 0..count {
+        proxy.push(decode_primitive(input, &images)?);
+    }
     let rig = match input.u8()? {
         0 => None,
         1 => Some(Arc::new(decode_rig(input)?)),
@@ -624,6 +634,7 @@ fn decode(input: &mut Input<'_>, project: &Path, relative: &str) -> Option<Model
     if input.at != input.bytes.len()
         || !primitives
             .iter()
+            .chain(&proxy)
             .flat_map(|primitive| std::iter::once(primitive).chain(&primitive.lods))
             .all(whole)
     {
@@ -636,6 +647,7 @@ fn decode(input: &mut Input<'_>, project: &Path, relative: &str) -> Option<Model
         primitives,
         hull_points,
         collision,
+        proxy,
         warnings: Vec::new(),
         rig,
         morph_targets,
@@ -1032,6 +1044,10 @@ mod tests {
         for each in &model.primitives {
             describe_primitive(&mut out, each);
         }
+        out.push_str("proxy\n");
+        for each in &model.proxy {
+            describe_primitive(&mut out, each);
+        }
         out
     }
 
@@ -1176,6 +1192,26 @@ mod tests {
         let again = Assets::new(&project).model_blocking(model).unwrap();
         assert_eq!(describe(&again), describe(&first));
         assert_eq!(again.collision, first.collision);
+        let _ = fs::remove_dir_all(project);
+    }
+
+    #[test]
+    fn a_cooked_model_keeps_its_proxy() {
+        let project = std::env::temp_dir().join(format!(
+            "axcenity-cooked-model-proxy-{}",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&project);
+        let folder = project.join("assets/models");
+        let gltf = crate::model::tests::rock_with_proxy(&folder);
+        fs::write(folder.join("rock.gltf"), gltf).unwrap();
+        let model = "assets/models/rock.gltf";
+        let first = Assets::new(&project).model_blocking(model).unwrap();
+        assert_eq!(first.proxy.len(), 1);
+        assert!(read(&project, model, "").is_some());
+        let again = Assets::new(&project).model_blocking(model).unwrap();
+        assert_eq!(describe(&again), describe(&first));
+        assert_eq!(again.proxy[0].positions, first.proxy[0].positions);
         let _ = fs::remove_dir_all(project);
     }
 

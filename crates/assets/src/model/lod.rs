@@ -55,19 +55,34 @@ const NORMAL_WEIGHT: f32 = 0.5;
 const UV_WEIGHT: f32 = 1.0;
 
 /// The level of detail an object of this name holds: 1 or 2 for a name
-/// ending in `_LOD1` or `_LOD2` (in any case), else 0, the full model.
+/// ending in `_LOD1` or `_LOD2` (in any case), [`PROXY`] for one ending in
+/// `_PROXY`, else 0, the full model.
 pub fn level_of(name: &str) -> u8 {
     let name = name.trim().to_ascii_lowercase();
+    if name.ends_with(PROXY_SUFFIX) && name.len() > PROXY_SUFFIX.len() {
+        return PROXY;
+    }
     (1..=LEVELS)
         .find(|level| name.ends_with(&format!("_lod{level}")))
         .unwrap_or(0)
 }
 
-/// The path of the full object a `_LOD1` or `_LOD2` copy at `path` is a
-/// copy of (`Rock` for `Rock_LOD1`), or `None` if it isn't one.
+/// The level of a `_PROXY` object: the model's stand-in for far shadows
+/// and ray tracing ([`Model::proxy`](super::Model)), never drawn as it.
+pub const PROXY: u8 = u8::MAX;
+
+const PROXY_SUFFIX: &str = "_proxy";
+
+/// The path of the full object a `_LOD1` or `_LOD2` copy or `_PROXY`
+/// stand-in at `path` is for (`Rock` for `Rock_LOD1`), or `None` if it
+/// isn't one.
 pub(super) fn full_path(path: &str) -> Option<&str> {
     let path = path.trim_end();
-    (level_of(path) > 0).then(|| &path[..path.len() - "_lod1".len()])
+    match level_of(path) {
+        0 => None,
+        PROXY => Some(&path[..path.len() - PROXY_SUFFIX.len()]),
+        _ => Some(&path[..path.len() - "_lod1".len()]),
+    }
 }
 
 /// Splits `primitives` into the full model's and their simpler copies, and
@@ -664,5 +679,11 @@ mod tests {
         assert_eq!(level_of("Rock"), 0);
         assert_eq!(level_of("Rock_LOD3"), 0);
         assert_eq!(level_of("LOD1"), 0);
+        assert_eq!(level_of("Tree_PROXY"), PROXY);
+        assert_eq!(level_of("tree_proxy "), PROXY);
+        assert_eq!(level_of("_PROXY"), 0);
+        assert_eq!(full_path("Tree_PROXY"), Some("Tree"));
+        assert_eq!(full_path("Tree_LOD2"), Some("Tree"));
+        assert_eq!(full_path("Tree"), None);
     }
 }

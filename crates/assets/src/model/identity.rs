@@ -669,6 +669,8 @@ impl Model {
             primitives,
             hull_points: self.hull_points.clone(),
             collision: self.collision.clone(),
+            // A stand-in has no identity: it isn't drawn.
+            proxy: self.proxy.iter().map(Primitive::shared).collect(),
             warnings: Vec::new(),
             rig,
             morph_targets,
@@ -739,6 +741,7 @@ mod tests {
             primitives: vec![primitive],
             hull_points: Vec::new(),
             collision: Vec::new(),
+            proxy: Vec::new(),
             warnings: Vec::new(),
             rig: Some(Arc::new(rig)),
             morph_targets: vec![

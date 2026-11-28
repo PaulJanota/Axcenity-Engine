@@ -215,6 +215,10 @@ pub struct MeshDetail {
     /// The simpler copies drawn farther away, each coarser than the one
     /// before (the renderer draws at most three).
     pub lods: Vec<LodDetail>,
+    /// The stand-in for far shadows and ray tracing (the model's
+    /// `Tree_PROXY`): only the thick limbs and a few big crossed cards on
+    /// the crown's shell, cut out as the leaves are. `None` makes none.
+    pub proxy: Option<LodDetail>,
 }
 
 impl Default for MeshDetail {
@@ -238,6 +242,7 @@ impl Default for MeshDetail {
                     base_radial: 2,
                     triangles: 25_000,
                     leaves: 0.5,
+                    shell: 0.45,
                 },
                 LodDetail {
                     segment_scale: 2.5,
@@ -246,6 +251,7 @@ impl Default for MeshDetail {
                     base_radial: 1,
                     triangles: 8_000,
                     leaves: 0.25,
+                    shell: 0.65,
                 },
                 LodDetail {
                     segment_scale: 4.0,
@@ -254,8 +260,18 @@ impl Default for MeshDetail {
                     base_radial: 1,
                     triangles: 2_000,
                     leaves: 0.1,
+                    shell: 0.75,
                 },
             ],
+            proxy: Some(LodDetail {
+                segment_scale: 4.0,
+                radial_scale: 0.25,
+                min_radius: 0.25,
+                base_radial: 1,
+                triangles: 1_200,
+                leaves: 0.25,
+                shell: 0.7,
+            }),
         }
     }
 }
@@ -282,6 +298,10 @@ pub struct LodDetail {
     /// crown, the kept ones grown to cover about as much), each leaf of two
     /// triangles instead of four.
     pub leaves: f32,
+    /// 0 to 1: clusters deeper in the crown than this (0 its middle, 1 its
+    /// outline) are left out, as the shell hides them; fewer layers of
+    /// cut-out cards to draw, shadow and trace.
+    pub shell: f32,
 }
 
 impl Default for LodDetail {
@@ -293,6 +313,7 @@ impl Default for LodDetail {
             base_radial: 1,
             triangles: 25_000,
             leaves: 0.5,
+            shell: 0.0,
         }
     }
 }

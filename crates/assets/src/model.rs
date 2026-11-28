@@ -126,6 +126,11 @@ pub struct Model {
     /// each the corners of one convex piece, fitted like the triangles.
     /// Empty when it has none.
     pub collision: Vec<Vec<[f32; 3]>>,
+    /// The file's `_PROXY` objects (see [`lod::level_of`]): a few cheap
+    /// triangles standing in for the model in far shadows and ray tracing
+    /// (a generated tree's bare limbs and coarse crown cards), fitted like
+    /// the triangles, never drawn as the model. Empty when it has none.
+    pub proxy: Vec<Primitive>,
     /// Problems that didn't stop it loading, such as an FBX texture that
     /// isn't there (the model is drawn without it). They finish the sentence
     /// "The model `…` ".
@@ -203,6 +208,7 @@ impl Model {
             primitives,
             hull_points: self.hull_points.clone(),
             collision: self.collision.clone(),
+            proxy: self.proxy.iter().map(Primitive::shared).collect(),
             warnings: Vec::new(),
             rig: self.rig.clone(),
             morph_targets: self.morph_targets.clone(),
@@ -379,6 +385,28 @@ impl Primitive {
     /// Different for every primitive loaded.
     pub fn key(&self) -> u64 {
         self.key
+    }
+
+    /// The same triangles under the same key (so whatever was made of them
+    /// is used again), for a new model that keeps them unchanged.
+    pub(crate) fn shared(&self) -> Primitive {
+        Primitive {
+            key: self.key,
+            positions: self.positions.clone(),
+            normals: self.normals.clone(),
+            uvs: self.uvs.clone(),
+            tangents: self.tangents.clone(),
+            regions: self.regions.clone(),
+            skin_uvs: self.skin_uvs.clone(),
+            colors: self.colors.clone(),
+            indices: self.indices.clone(),
+            material: self.material.clone(),
+            joints: self.joints.clone(),
+            weights: self.weights.clone(),
+            morphs: self.morphs.clone(),
+            lods: self.lods.iter().map(Primitive::shared).collect(),
+            level: self.level,
+        }
     }
 }
 
@@ -2583,7 +2611,10 @@ fn fit_with(
     simplify: Option<Option<InProject<'_>>>,
 ) -> Result<Model, ModelError> {
     // A file with only `_LOD1` objects has them as its full model.
-    if primitives.iter().all(|primitive| primitive.level > 0) {
+    if primitives
+        .iter()
+        .all(|primitive| primitive.level > 0 && primitive.level != lod::PROXY)
+    {
         for primitive in &mut primitives {
             primitive.level = 0;
         }
@@ -2650,6 +2681,13 @@ fn fit_with(
             );
         }
     }
+    // The stand-in, placed as the rest, kept apart.
+    let (mut proxy, primitives): (Vec<Primitive>, Vec<Primitive>) = primitives
+        .into_iter()
+        .partition(|primitive| primitive.level == lod::PROXY);
+    for primitive in &mut proxy {
+        primitive.level = 0;
+    }
     let collision = pieces
         .into_iter()
         .map(|piece| {
@@ -2672,6 +2710,7 @@ fn fit_with(
         },
         hull_points,
         collision,
+        proxy,
         warnings: Vec::new(),
         rig: None,
         morph_targets: Vec::new(),

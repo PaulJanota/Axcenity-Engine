@@ -448,6 +448,8 @@ fn written_objects_load_back_with_their_copies_and_wind() {
         ("Tree".to_owned(), vec![sheet(8, 4.0)]),
         ("Tree_LOD1".to_owned(), vec![sheet(4, 4.0)]),
         ("Tree_LOD2".to_owned(), vec![sheet(2, 4.0)]),
+        // The stand-in for far shadows and ray tracing, kept apart.
+        ("Tree_PROXY".to_owned(), vec![sheet(1, 4.0)]),
     ];
     let bytes = write_objects_glb(&objects, &[]);
     let models = load_models(
@@ -464,6 +466,9 @@ fn written_objects_load_back_with_their_copies_and_wind() {
     assert_eq!(primitive.indices.len() / 3, 128);
     let copies: Vec<usize> = primitive.lods.iter().map(|c| c.indices.len() / 3).collect();
     assert_eq!(copies, [32, 8]);
+    assert_eq!(model.proxy.len(), 1);
+    assert_eq!(model.proxy[0].indices.len() / 3, 2);
+    assert_eq!(model.proxy[0].colors.len(), 4);
     let material = &primitive.material;
     assert_eq!(material.name, "Leaves");
     assert!(material.double_sided);

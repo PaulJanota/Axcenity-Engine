@@ -152,6 +152,7 @@ impl Model {
                 .collect(),
             hull_points: self.hull_points.clone(),
             collision: self.collision.clone(),
+            proxy: self.proxy.iter().map(Primitive::shared).collect(),
             warnings: Vec::new(),
             rig: self.rig.clone(),
             morph_targets: self.morph_targets.clone(),

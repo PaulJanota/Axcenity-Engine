@@ -473,6 +473,46 @@ pub(super) fn rock_with_pieces(folder: &Path) -> &'static str {
     }"#
 }
 
+/// A rock (two triangles) with a `_PROXY` stand-in of one triangle,
+/// moved off to the side, written into `folder` (glTF text returned).
+pub(super) fn rock_with_proxy(folder: &Path) -> String {
+    rock_with_pieces(folder).replace(
+        r#""nodes": [
+            { "name": "Rock", "mesh": 0 },
+            { "name": "Rock_COL", "mesh": 1, "translation": [0, 0, 5], "scale": [2, 2, 1],
+              "children": [3] },
+            { "name": "Rock_col2", "mesh": 0 },
+            { "name": "Inner", "mesh": 1 }
+        ],
+        "scenes": [ { "nodes": [0, 1, 2] } ],"#,
+        r#""nodes": [
+            { "name": "Rock", "mesh": 0 },
+            { "name": "Rock_PROXY", "mesh": 1, "translation": [0, 0, 5] }
+        ],
+        "scenes": [ { "nodes": [0, 1] } ],"#,
+    )
+}
+
+#[test]
+fn a_files_proxy_objects_stand_apart_fitted_with_it() {
+    let folder = std::env::temp_dir().join(format!("axcenity-gltf-proxy-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&folder);
+    let gltf = rock_with_proxy(&folder);
+    assert!(gltf.contains("Rock_PROXY"));
+    let model = load_model(gltf.as_bytes(), &folder, ModelFormat::Gltf).unwrap();
+    assert_eq!(model.primitives.len(), 1, "the stand-in isn't drawn");
+    assert_eq!(model.size, [1.0, 1.0, 0.0], "nor does it size the model");
+    assert_eq!(model.proxy.len(), 1);
+    let proxy = &model.proxy[0];
+    assert_eq!(proxy.positions.len(), 3);
+    assert!(proxy.lods.is_empty());
+    // Fitted like the triangles: the square's middle is the origin, and
+    // the stand-in sits its 5 studs off (unscaled along the flat axis).
+    assert!(proxy.positions.iter().all(|p| (p[2] - 5.0).abs() < 1e-5));
+    assert!(proxy.positions.iter().any(|p| (p[0] + 0.5).abs() < 1e-5));
+    let _ = std::fs::remove_dir_all(folder);
+}
+
 #[test]
 fn a_files_col_objects_are_its_collision_pieces_not_drawn_and_not_sizing_it() {
     let folder = std::env::temp_dir().join(format!("axcenity-gltf-col-{}", std::process::id()));

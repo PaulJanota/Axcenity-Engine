@@ -66,6 +66,21 @@ impl TreeMesh {
         self.weathering.push(weathering);
     }
 
+    /// Adds `other`'s corners and triangles to these.
+    pub(super) fn append(&mut self, other: &TreeMesh) {
+        let first = self.positions.len() as u32;
+        self.positions.extend_from_slice(&other.positions);
+        self.normals.extend_from_slice(&other.normals);
+        self.uvs.extend_from_slice(&other.uvs);
+        self.tangents.extend_from_slice(&other.tangents);
+        self.crown.extend_from_slice(&other.crown);
+        self.weathering.extend_from_slice(&other.weathering);
+        self.colors.extend_from_slice(&other.colors);
+        self.limbs.extend_from_slice(&other.limbs);
+        self.indices
+            .extend(other.indices.iter().map(|&i| first + i));
+    }
+
     /// Joins `rings` rings of `ring` corners each (the last repeating the
     /// first, for the texture's seam), starting at corner `first`.
     fn strip(&mut self, first: u32, rings: u32, ring: u32) {
@@ -185,32 +200,8 @@ pub fn bark_levels(recipe: &TreeRecipe, skeleton: &Skeleton) -> Vec<TreeLevel> {
             .map(|lod| Detail::lod(recipe, lod)),
     );
     let mut levels: Vec<TreeLevel> = Vec::new();
-    for mut detail in details {
-        let mut level = mesh_level(recipe, skeleton, &frames, detail);
-        // Thin limbs go first until it fits, then the base's detail, then
-        // rings and corners all over.
-        let thickest = skeleton.stems[1..]
-            .iter()
-            .map(|stem| stem.radii[0])
-            .fold(0.0, f32::max);
-        for _ in 0..48 {
-            if level.triangles() <= detail.triangles {
-                break;
-            }
-            if detail.min_radius <= thickest {
-                detail.min_radius = (detail.min_radius * 1.3).max(detail.min_radius + 0.01);
-            } else if detail.base_radial > 1 {
-                detail.base_radial -= 1;
-            } else {
-                detail.spacing = detail.spacing.max(recipe.mesh.segment_length.max(0.05)) * 1.5;
-                detail.base_spacing = detail.spacing;
-                detail.radial *= 0.8;
-                if detail.radial < 0.05 {
-                    break;
-                }
-            }
-            level = mesh_level(recipe, skeleton, &frames, detail);
-        }
+    for detail in details {
+        let level = fitted_level(recipe, skeleton, &frames, detail);
         // A copy no simpler than the one before it isn't worth keeping.
         if let Some(before) = levels.last()
             && level.triangles() >= before.triangles()
@@ -220,6 +211,55 @@ pub fn bark_levels(recipe: &TreeRecipe, skeleton: &Skeleton) -> Vec<TreeLevel> {
         levels.push(level);
     }
     levels
+}
+
+/// The bark of the tree's stand-in for far shadows and ray tracing
+/// ([`MeshDetail::proxy`]), its leaves left for [`super::leaves`].
+pub fn proxy_level(recipe: &TreeRecipe, skeleton: &Skeleton) -> Option<TreeLevel> {
+    let proxy = recipe.mesh.proxy.as_ref()?;
+    let frames: Vec<Vec<Vec3>> = skeleton.stems.iter().map(sides).collect();
+    Some(fitted_level(
+        recipe,
+        skeleton,
+        &frames,
+        Detail::lod(recipe, proxy),
+    ))
+}
+
+/// One copy's bark, meshed with `detail` and made simpler until it fits
+/// its triangle budget.
+fn fitted_level(
+    recipe: &TreeRecipe,
+    skeleton: &Skeleton,
+    frames: &[Vec<Vec3>],
+    mut detail: Detail,
+) -> TreeLevel {
+    let mut level = mesh_level(recipe, skeleton, frames, detail);
+    // Thin limbs go first until it fits, then the base's detail, then
+    // rings and corners all over.
+    let thickest = skeleton.stems[1..]
+        .iter()
+        .map(|stem| stem.radii[0])
+        .fold(0.0, f32::max);
+    for _ in 0..48 {
+        if level.triangles() <= detail.triangles {
+            break;
+        }
+        if detail.min_radius <= thickest {
+            detail.min_radius = (detail.min_radius * 1.3).max(detail.min_radius + 0.01);
+        } else if detail.base_radial > 1 {
+            detail.base_radial -= 1;
+        } else {
+            detail.spacing = detail.spacing.max(recipe.mesh.segment_length.max(0.05)) * 1.5;
+            detail.base_spacing = detail.spacing;
+            detail.radial *= 0.8;
+            if detail.radial < 0.05 {
+                break;
+            }
+        }
+        level = mesh_level(recipe, skeleton, frames, detail);
+    }
+    level
 }
 
 fn mesh_level(

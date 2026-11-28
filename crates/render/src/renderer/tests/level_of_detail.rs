@@ -279,3 +279,49 @@ fn foliage_fades_out_near_its_cull_distance_and_is_culled_past_it() {
     let stats = renderer.stats();
     assert_eq!((stats.items_drawn, stats.items_culled), (0, 1));
 }
+
+/// A group's items keep their levels with the group (`lod::GroupStates`),
+/// not by ID: each frame's draws must be what the same item listed singly
+/// gets, through its hysteresis and its cross-fades.
+#[test]
+fn a_grouped_items_level_follows_the_same_rules_as_one_listed_singly() {
+    use crate::renderer::lod::LodStates;
+    let threshold = LOD_SCREEN_SIZES[0];
+    let start = distance_for(threshold * 1.05);
+    let single = square_at(start, 7);
+    let mut grouped = single.clone();
+    grouped.chunks = vec![crate::draw_list::ItemChunk::of(std::mem::take(
+        &mut grouped.items,
+    ))];
+    let (mut singly, mut together) = (LodStates::default(), LodStates::default());
+    // On the line, just inside it (kept by hysteresis), past it (a
+    // cross-fade to level 1), held there, then back near (a fade back).
+    let mut sizes = vec![1.05, 0.95, 0.8];
+    sizes.extend([0.8; FADE_FRAMES as usize + 2]);
+    sizes.extend([1.2; 4]);
+    let (mut faded, mut reached) = (false, false);
+    for (at, size) in sizes.into_iter().enumerate() {
+        let frame = at as u64 + 1;
+        let back = distance_for(threshold * size) - start;
+        let at_camera = |mut list: DrawList| {
+            list.camera.position = Vec3::new(0.0, 0.0, back);
+            list.camera.look_at = list.camera.position + Vec3::NEG_Z;
+            list
+        };
+        let (single, grouped) = (at_camera(single.clone()), at_camera(grouped.clone()));
+        let drawn = |states: &mut LodStates, list: &DrawList| {
+            let resolved = states.resolve(list, frame, None);
+            resolved
+                .draws
+                .iter()
+                .map(|draw| (draw.level, draw.fade, draw.casts_shadow, draw.mesh()))
+                .collect::<Vec<_>>()
+        };
+        let one = drawn(&mut singly, &single);
+        assert_eq!(one, drawn(&mut together, &grouped), "frame {frame}");
+        faded |= one.len() == 2;
+        reached |= one[0].0 == Some(1);
+    }
+    assert!(faded && reached, "the walk crossed a threshold");
+    assert_eq!(together.level_of(7), singly.level_of(7));
+}

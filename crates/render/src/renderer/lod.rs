@@ -5,7 +5,11 @@
 //!
 //! An item's level is kept between frames by its [`DrawItem::id`] and
 //! mesh, so it switches only once its size is clearly past a threshold
-//! (hysteresis), and doesn't flicker when it sits on one.
+//! (hysteresis), and doesn't flicker when it sits on one. A group's items
+//! (`DrawList::chunks`) keep theirs with the group, by their place in it
+//! (`GroupStates`): a group's items never change, and looking each one up
+//! by its ID every frame cost Overgrown Street's 59,000 items with levels
+//! 0.55 ms of the frame's thread.
 
 use std::sync::{Arc, Mutex, PoisonError};
 
@@ -193,6 +197,7 @@ pub(super) fn lod_level(size: f32, current: Option<usize>, levels: usize) -> usi
 }
 
 /// An item's level, kept between frames.
+#[derive(Clone)]
 struct LodState {
     level: usize,
     /// The level it's switching from and the frame the switch began, while
@@ -210,11 +215,35 @@ type LodKey = (u64, u64);
 #[derive(Default)]
 pub(super) struct LodStates {
     states: FxHashMap<LodKey, Mutex<LodState>>,
+    /// The levels of each group's items, by the address of its items.
+    groups: FxHashMap<usize, Mutex<GroupStates>>,
     /// The editor's LOD preview: the item with this [`DrawItem::id`] is
     /// drawn at this level whatever its size, with no fade.
     pub(super) forced: Option<(u64, usize)>,
     /// How far items with a cull distance cast their shadows.
     pub(super) shadows: ShadowReach,
+}
+
+/// A group's items' levels, by their place in the group (`None` for one
+/// with no levels, or none yet). It holds the items, so their address,
+/// which it's kept by, stays theirs.
+struct GroupStates {
+    items: Arc<[DrawItem]>,
+    states: Vec<Option<LodState>>,
+    last_used: u64,
+}
+
+/// Where [`resolve_item`] finds and keeps an item's level.
+enum Slot<'s> {
+    /// The list's own items': shared among the threads, by ID and mesh.
+    Shared(&'s FxHashMap<LodKey, Mutex<LodState>>),
+    /// A group's item's own place among its group's.
+    Own(&'s mut Option<LodState>),
+}
+
+/// The key a group's states are kept by: the address of its items.
+fn group_address(chunk: &ItemChunk) -> usize {
+    Arc::as_ptr(&chunk.items).cast::<u8>() as usize
 }
 
 /// What [`LodStates::resolve`] gives a frame.
@@ -246,8 +275,18 @@ impl LodStates {
     /// The level the item with this [`DrawItem::id`] was last drawn at (the
     /// one coming in, while it cross-fades), if it has levels.
     pub(super) fn level_of(&self, id: u64) -> Option<usize> {
-        self.states.iter().find_map(|(&(item, _), state)| {
+        let own = self.states.iter().find_map(|(&(item, _), state)| {
             (item == id).then(|| state.lock().unwrap_or_else(PoisonError::into_inner).level)
+        });
+        own.or_else(|| {
+            self.groups.values().find_map(|group| {
+                let group = group.lock().unwrap_or_else(PoisonError::into_inner);
+                group
+                    .items
+                    .iter()
+                    .zip(&group.states)
+                    .find_map(|(item, state)| (item.id == id).then_some(state.as_ref()?.level))
+            })
         })
     }
 
@@ -272,7 +311,7 @@ impl LodStates {
                 ..Part::default()
             };
             for item in items {
-                resolve_item(states, item, camera, frame, forced, &mut part);
+                resolve_item(Slot::Shared(states), item, camera, frame, forced, &mut part);
             }
             part
         });
@@ -292,11 +331,27 @@ impl LodStates {
                 in_kept += count;
             }
         }
+        // Each kept group's levels, made for one seen for the first time.
+        for chunk in &kept {
+            self.groups.entry(group_address(chunk)).or_insert_with(|| {
+                Mutex::new(GroupStates {
+                    items: chunk.items.clone(),
+                    states: vec![None; chunk.items.len()],
+                    last_used: frame,
+                })
+            });
+        }
+        let groups = &self.groups;
         let own_parts = parts.len();
         parts.extend(map_each(&kept, worth_sharing(in_kept), |chunk| {
             let chunk: &'a ItemChunk = chunk;
             let mut part = Part::default();
             part.draws.reserve(chunk.items.len());
+            // Only this thread wants this group: the lock is taken once.
+            let mut group = groups[&group_address(chunk)]
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner);
+            group.last_used = frame;
             for (at, item) in chunk.items.iter().enumerate() {
                 let drawn = part.draws.len();
                 if let Some(reach) = reach {
@@ -307,7 +362,8 @@ impl LodStates {
                         continue;
                     }
                 }
-                resolve_item(states, item, camera, frame, forced, &mut part);
+                let slot = Slot::Own(&mut group.states[at]);
+                resolve_item(slot, item, camera, frame, forced, &mut part);
                 // One draw, or two while it changes its level of detail.
                 for draw in &mut part.draws[drawn..] {
                     draw.at = at as u32;
@@ -342,6 +398,12 @@ impl LodStates {
                 let state = state.get_mut().unwrap_or_else(PoisonError::into_inner);
                 frame - state.last_drawn < FORGET_FRAMES
             });
+            // A group not kept for as long is let go of, and its hold on
+            // its items with it.
+            self.groups.retain(|_, group| {
+                let group = group.get_mut().unwrap_or_else(PoisonError::into_inner);
+                frame - group.last_used < FORGET_FRAMES
+            });
         }
         resolved
     }
@@ -349,7 +411,7 @@ impl LodStates {
 
 /// Adds the copies of `item` the frame draws to `part`.
 fn resolve_item<'a>(
-    states: &FxHashMap<LodKey, Mutex<LodState>>,
+    slot: Slot<'_>,
     item: &'a DrawItem,
     camera: &Camera,
     frame: u64,
@@ -396,21 +458,34 @@ fn resolve_item<'a>(
         part.draws.push(with_level(lod_level(size, None, levels)));
         return;
     }
-    let key = (item.id, source.key());
-    let Some(state) = states.get(&key) else {
-        let level = lod_level(size, None, levels);
-        part.born.push((
-            key,
-            LodState {
-                level,
-                fading_from: None,
-                last_drawn: frame,
-            },
-        ));
-        part.draws.push(with_level(level));
-        return;
+    let born = |level| LodState {
+        level,
+        fading_from: None,
+        last_drawn: frame,
     };
-    let mut state = state.lock().unwrap_or_else(PoisonError::into_inner);
+    let mut guard;
+    let state: &mut LodState = match slot {
+        Slot::Shared(states) => {
+            let key = (item.id, source.key());
+            let Some(state) = states.get(&key) else {
+                let level = lod_level(size, None, levels);
+                part.born.push((key, born(level)));
+                part.draws.push(with_level(level));
+                return;
+            };
+            guard = state.lock().unwrap_or_else(PoisonError::into_inner);
+            &mut guard
+        }
+        Slot::Own(state) => match state {
+            Some(state) => state,
+            None => {
+                let level = lod_level(size, None, levels);
+                *state = Some(born(level));
+                part.draws.push(with_level(level));
+                return;
+            }
+        },
+    };
     if state.last_drawn + 1 < frame {
         // Not drawn last frame (hidden, or just shown): no fade.
         state.level = lod_level(size, None, levels);
@@ -496,7 +571,14 @@ mod tests {
                 fade: 0.0,
             };
             let rules = (None, shadows);
-            resolve_item(&FxHashMap::default(), &item, &camera, 0, rules, &mut part);
+            resolve_item(
+                Slot::Shared(&FxHashMap::default()),
+                &item,
+                &camera,
+                0,
+                rules,
+                &mut part,
+            );
             part.draws.first().map(|draw| draw.casts_shadow)
         };
         assert_eq!(casts(20.0, 100.0), Some(true), "near");
@@ -543,7 +625,14 @@ mod tests {
         };
         let mut part = Part::default();
         let rules = (None, shadows);
-        resolve_item(&FxHashMap::default(), &item, &camera, 0, rules, &mut part);
+        resolve_item(
+            Slot::Shared(&FxHashMap::default()),
+            &item,
+            &camera,
+            0,
+            rules,
+            &mut part,
+        );
         assert!(part.draws[0].casts_shadow);
         assert!((part.draws[0].shadow - 0.5).abs() < 1e-5);
     }

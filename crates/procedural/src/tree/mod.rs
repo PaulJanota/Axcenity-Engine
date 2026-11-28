@@ -22,13 +22,13 @@ mod tests;
 use axcenity_assets::{Model, ModelError, ModelMaterial, Primitive};
 use glam::Vec3;
 
-pub use mesher::TreeMesh;
-pub use recipe::{Bark, BranchLevel, Curve, MeshDetail, Preset, TreeRecipe, Trunk};
+pub use mesher::{BarkLevel, TreeMesh};
+pub use recipe::{Bark, BranchLevel, Curve, LodDetail, MeshDetail, Preset, TreeRecipe, Trunk};
 pub use skeleton::{Skeleton, Stem};
 
 /// Bump when the same recipe and variant would give a different mesh, so
 /// anything kept from an older one (a cooked model) is made again.
-pub const TREE_GENERATOR_VERSION: u32 = 1;
+pub const TREE_GENERATOR_VERSION: u32 = 2;
 
 /// The sway a generated tree's bark is given ([`ModelMaterial::sway`]): a
 /// built-in tree's (`scene/src/foliage.rs`).
@@ -38,7 +38,9 @@ pub const TREE_SWAY: f32 = 0.2;
 #[derive(Clone, Debug)]
 pub struct Tree {
     pub skeleton: Skeleton,
-    pub bark: TreeMesh,
+    /// The bark, most detailed first, then each simpler copy
+    /// ([`MeshDetail::lods`]), each within its triangle budget.
+    pub levels: Vec<BarkLevel>,
     /// Where leaves will grow (foliage plan T3): the outer half of every
     /// limb of the last level, one place per segment.
     pub leaf_anchors: Vec<LeafAnchor>,
@@ -56,11 +58,11 @@ pub struct LeafAnchor {
 /// Tree number `variant` of `recipe`.
 pub fn generate(recipe: &TreeRecipe, variant: u32) -> Tree {
     let skeleton = skeleton::grow(recipe, variant);
-    let bark = mesher::bark(recipe, &skeleton);
+    let levels = mesher::bark_levels(recipe, &skeleton);
     let leaf_anchors = leaf_anchors(&skeleton);
     Tree {
         skeleton,
-        bark,
+        levels,
         leaf_anchors,
     }
 }
@@ -84,31 +86,57 @@ fn leaf_anchors(skeleton: &Skeleton) -> Vec<LeafAnchor> {
 }
 
 impl Tree {
-    /// The tree as a model: its bark as one primitive (named "Bark") that
-    /// sways as a tree does. Its studs are the model's: a MeshPart sized to
-    /// [`Model::size`] draws it at the size it was grown.
+    /// The most detailed bark.
+    pub fn full(&self) -> &BarkLevel {
+        &self.levels[0]
+    }
+
+    /// The tree as a model: the trunk's base (named "TrunkBase", when the
+    /// recipe gives it one) and the rest of its bark ("Bark") as two
+    /// primitives, each with the simpler copies as its levels of detail.
+    /// Both sway alike, as a tree does, so where they meet never opens.
+    /// Its studs are the model's: a MeshPart sized to [`Model::size`]
+    /// draws it at the size it was grown.
     pub fn to_model(&self, recipe: &TreeRecipe) -> Result<Model, ModelError> {
         let bark = &recipe.bark;
-        let material = ModelMaterial {
-            name: "Bark".to_owned(),
+        let material = |name: &str| ModelMaterial {
+            name: name.to_owned(),
             base_color: [bark.color[0], bark.color[1], bark.color[2], 1.0],
             roughness: bark.roughness.clamp(0.0, 1.0),
             metalness: 0.0,
             sway: TREE_SWAY,
             ..ModelMaterial::default()
         };
-        let mesh = &self.bark;
-        let primitive = Primitive::new(
-            mesh.positions.clone(),
-            mesh.normals.clone(),
-            mesh.uvs.clone(),
-            mesh.indices.clone(),
-            material,
-        );
-        Model::from_primitives(vec![primitive])
+        let primitive = |mesh: &TreeMesh, name: &str| {
+            Primitive::new(
+                mesh.positions.clone(),
+                mesh.normals.clone(),
+                mesh.uvs.clone(),
+                mesh.indices.clone(),
+                material(name),
+            )
+        };
+        let has_base = !self.full().base.indices.is_empty();
+        let parts = 1 + usize::from(has_base);
+        // Every copy is fitted with the full model, so all are placed
+        // alike, then handed to their primitive.
+        let mut primitives = Vec::new();
+        for level in &self.levels {
+            if has_base {
+                primitives.push(primitive(&level.base, "TrunkBase"));
+            }
+            primitives.push(primitive(&level.bark, "Bark"));
+        }
+        let mut model = Model::from_primitives(primitives)?;
+        let copies: Vec<Primitive> = model.primitives.drain(parts..).collect();
+        for (index, copy) in copies.into_iter().enumerate() {
+            model.primitives[index % parts].lods.push(copy);
+        }
+        Ok(model)
     }
 
+    /// The most detailed copy's triangles.
     pub fn triangles(&self) -> usize {
-        self.bark.triangles()
+        self.full().triangles()
     }
 }

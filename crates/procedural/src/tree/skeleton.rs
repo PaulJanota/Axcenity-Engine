@@ -71,6 +71,9 @@ impl Stem {
 #[derive(Clone, Debug)]
 pub struct Skeleton {
     pub stems: Vec<Stem>,
+    /// The trunk's point where its finely meshed base ends
+    /// ([`super::MeshDetail::base_height`]); 0 when it has none.
+    pub base_end: usize,
 }
 
 /// The seed for variant `variant` of a recipe seeded with `seed`.
@@ -81,7 +84,8 @@ pub(super) fn variant_seed(seed: u64, variant: u32) -> u64 {
 /// Grows the limbs of `recipe`'s tree number `variant`.
 pub fn grow(recipe: &TreeRecipe, variant: u32) -> Skeleton {
     let seed = variant_seed(recipe.seed, variant);
-    let mut stems = vec![trunk(recipe, seed)];
+    let (trunk, base_end) = trunk(recipe, seed);
+    let mut stems = vec![trunk];
     let mut parents = vec![0];
     for (level_index, level) in recipe.levels.iter().take(MAX_LEVELS).enumerate() {
         let mut grown = Vec::new();
@@ -104,7 +108,7 @@ pub fn grow(recipe: &TreeRecipe, variant: u32) -> Skeleton {
         parents = grown;
     }
     pipe_radii(&mut stems, recipe.pipe);
-    Skeleton { stems }
+    Skeleton { stems, base_end }
 }
 
 /// How many segments a limb `length` studs long is cut into.
@@ -113,7 +117,8 @@ fn segments(length: f32, segment_length: f32) -> usize {
     ((length / per).ceil() as usize).clamp(3, 32)
 }
 
-fn trunk(recipe: &TreeRecipe, seed: u64) -> Stem {
+/// The trunk, and the point its finely meshed base ends at (0 for none).
+fn trunk(recipe: &TreeRecipe, seed: u64) -> (Stem, usize) {
     let trunk = &recipe.trunk;
     let mut rng = Rng::new(seed, 0);
     let length = trunk.length.max(0.1);
@@ -140,11 +145,23 @@ fn trunk(recipe: &TreeRecipe, seed: u64) -> Stem {
             )
     };
     let sink = trunk.sink.max(0.0);
-    let n = segments(length + sink, recipe.mesh.segment_length);
-    let mut points = Vec::with_capacity(n + 1);
-    let mut radii = Vec::with_capacity(n + 1);
-    for k in 0..=n {
-        let h = -sink + (length + sink) * k as f32 / n as f32;
+    // The base, finely: rings every `base_ring_spacing` studs up to its
+    // top (never more than half the trunk), then the rest as any limb.
+    let base_top = recipe.mesh.base_height.min(length * 0.5);
+    let mut heights = Vec::new();
+    let mut base_end = 0;
+    if base_top > 0.0 {
+        let spacing = recipe.mesh.base_ring_spacing.max(0.05);
+        let n = ((base_top + sink) / spacing).ceil().clamp(1.0, 96.0) as usize;
+        heights.extend((0..n).map(|k| -sink + (base_top + sink) * k as f32 / n as f32));
+        base_end = n;
+    }
+    let from = if base_end > 0 { base_top } else { -sink };
+    let n = segments(length - from, recipe.mesh.segment_length);
+    heights.extend((0..=n).map(|k| from + (length - from) * k as f32 / n as f32));
+    let mut points = Vec::with_capacity(heights.len());
+    let mut radii = Vec::with_capacity(heights.len());
+    for h in heights {
         points.push(up * h + wobble(h.max(0.0)));
         let t = (h / length).clamp(0.0, 1.0);
         let taper = 1.0 + (trunk.tip_radius - 1.0) * t;
@@ -152,7 +169,7 @@ fn trunk(recipe: &TreeRecipe, seed: u64) -> Stem {
         radii.push(radius * taper.max(0.0) * flare);
     }
     let along = lengths_along(&points);
-    Stem {
+    let stem = Stem {
         level: 0,
         parent: None,
         points,
@@ -160,7 +177,8 @@ fn trunk(recipe: &TreeRecipe, seed: u64) -> Stem {
         along,
         v_start: 0.0,
         cap: f32::INFINITY,
-    }
+    };
+    (stem, base_end)
 }
 
 #[allow(clippy::too_many_arguments)]

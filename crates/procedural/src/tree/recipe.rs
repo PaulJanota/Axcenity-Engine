@@ -63,6 +63,18 @@ pub struct Trunk {
     pub wobble_length: f32,
     /// Studs it starts under the ground, so it meets a slope without a gap.
     pub sink: f32,
+    /// Root buttresses: how far each lobe stands out at the ground, as a
+    /// share of the radius there, how many go round, and over how many
+    /// studs of height they sink into the trunk. Only the trunk's base
+    /// ([`MeshDetail::base_height`]) has them.
+    pub buttress: f32,
+    pub buttress_count: u32,
+    pub buttress_height: f32,
+    /// The bark's relief at the base: how deep its ridges are, as a share
+    /// of the radius, and how many go round. Only the most detailed copy
+    /// has it; the bark's normal map carries the rest.
+    pub relief: f32,
+    pub relief_ridges: u32,
 }
 
 impl Default for Trunk {
@@ -77,6 +89,11 @@ impl Default for Trunk {
             wobble: 0.6,
             wobble_length: 14.0,
             sink: 0.5,
+            buttress: 0.4,
+            buttress_count: 5,
+            buttress_height: 3.0,
+            relief: 0.035,
+            relief_ridges: 14,
         }
     }
 }
@@ -157,6 +174,19 @@ pub struct MeshDetail {
     /// How much wider a limb is where it leaves its parent (a collar), as a
     /// share of its radius, fading out over about one and a half radii.
     pub collar: f32,
+    /// Studs of the trunk above the ground meshed finely, as its own
+    /// primitive (`TrunkBase`): rings every `base_ring_spacing` studs and
+    /// `base_radial` times the trunk's corners, for the buttresses and
+    /// relief the eye sees up close. 0 meshes the base as the rest.
+    pub base_height: f32,
+    pub base_ring_spacing: f32,
+    pub base_radial: u32,
+    /// The most triangles the most detailed copy may have: thinner limbs
+    /// are left out until it fits.
+    pub triangles: u32,
+    /// The simpler copies drawn farther away, each coarser than the one
+    /// before (the renderer draws at most three).
+    pub lods: Vec<LodDetail>,
 }
 
 impl Default for MeshDetail {
@@ -168,6 +198,65 @@ impl Default for MeshDetail {
             radial_max: 16,
             min_radius: 0.02,
             collar: 0.35,
+            base_height: 8.0,
+            base_ring_spacing: 0.3,
+            base_radial: 4,
+            triangles: 60_000,
+            lods: vec![
+                LodDetail {
+                    segment_scale: 1.5,
+                    radial_scale: 0.6,
+                    min_radius: 0.03,
+                    base_radial: 2,
+                    triangles: 25_000,
+                },
+                LodDetail {
+                    segment_scale: 2.5,
+                    radial_scale: 0.4,
+                    min_radius: 0.07,
+                    base_radial: 1,
+                    triangles: 8_000,
+                },
+                LodDetail {
+                    segment_scale: 4.0,
+                    radial_scale: 0.25,
+                    min_radius: 0.18,
+                    base_radial: 1,
+                    triangles: 2_000,
+                },
+            ],
+        }
+    }
+}
+
+/// One simpler copy of the tree: the same limbs (none move, so nothing
+/// jumps at the switch), with fewer rings and corners and the thin ones
+/// left out.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct LodDetail {
+    /// Its rings are at least this many times [`MeshDetail::segment_length`]
+    /// apart, and its rings have this share of the corners.
+    pub segment_scale: f32,
+    pub radial_scale: f32,
+    /// Limbs thinner than this (studs, at their start) are left out, with
+    /// what grows on them.
+    pub min_radius: f32,
+    /// The trunk base's corners as a multiple of the trunk's (1: no
+    /// buttresses); the relief is only on the most detailed copy.
+    pub base_radial: u32,
+    /// The most triangles it may have.
+    pub triangles: u32,
+}
+
+impl Default for LodDetail {
+    fn default() -> Self {
+        Self {
+            segment_scale: 2.0,
+            radial_scale: 0.5,
+            min_radius: 0.1,
+            base_radial: 1,
+            triangles: 25_000,
         }
     }
 }
@@ -342,6 +431,9 @@ impl TreeRecipe {
                     flare: 0.35,
                     lean: 1.5,
                     wobble: 0.2,
+                    buttress: 0.15,
+                    relief: 0.05,
+                    relief_ridges: 18,
                     ..Trunk::default()
                 },
                 levels: vec![
@@ -383,6 +475,8 @@ impl TreeRecipe {
                     flare: 0.25,
                     lean: 5.0,
                     wobble: 0.8,
+                    buttress: 0.05,
+                    relief: 0.015,
                     ..Trunk::default()
                 },
                 levels: vec![
@@ -417,6 +511,10 @@ impl TreeRecipe {
                     tip_radius: 0.35,
                     lean: 8.0,
                     wobble: 1.0,
+                    buttress: 0.4,
+                    buttress_count: 4,
+                    relief: 0.06,
+                    relief_ridges: 10,
                     ..Trunk::default()
                 },
                 levels: vec![

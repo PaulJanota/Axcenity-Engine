@@ -848,8 +848,8 @@ pub struct GraphicsSettings {
     /// every preset.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ray_traced_shadows: Option<RayTracedShadows>,
-    /// How many pixels ray traced sun shadows trace from: Full at Ultra,
-    /// Half below it.
+    /// How many pixels ray traced sun shadows trace from: Half at every
+    /// preset, Full as an override.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ray_traced_shadow_resolution: Option<RayShadowResolution>,
     /// Hardware ray traced ambient occlusion, on a GPU that can ray trace.
@@ -1137,14 +1137,13 @@ impl GraphicsSettings {
     }
 
     /// How many pixels ray traced sun shadows trace from: the override, or
-    /// the preset's (Full at Ultra, Half below it).
+    /// the preset's (Half at every preset: in Overgrown Street at Ultra,
+    /// 2560 × 1405, Full cost 13–41% of the frame rate for 0.5–1% of a
+    /// sunlit picture's pixels a little softer at shadow edges, with no more
+    /// shimmer in motion; docs/rendering/ray-tracing.md).
     pub fn ray_traced_shadow_resolution(&self) -> RayShadowResolution {
         self.ray_traced_shadow_resolution
-            .unwrap_or(if self.quality >= Quality::Ultra {
-                RayShadowResolution::Full
-            } else {
-                RayShadowResolution::Half
-            })
+            .unwrap_or(RayShadowResolution::Half)
     }
 
     /// These settings with the ray traced look turned on in one go
